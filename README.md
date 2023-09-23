@@ -1,3 +1,3 @@
 # notes
 
-own small composition
+My own essay
