@@ -1,3 +1,3 @@
 # notes
 
-My own essay
+Personal notes
