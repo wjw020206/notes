@@ -394,3 +394,190 @@ Symbol 类型
         ```
 
 15. 静态分配与对象池，详见P100，属于过早优化，一般不用考虑
+
+## 第五章 基本引用类型
+
+## 第六章 集合引用类型
+集合引用类型有
+- Object
+- Array
+- Map
+- Set
+- WeakMap
+- WeakSet
+
+Array
+
+```js
+// 创建一个长度为20的数组而非创建[20]，且每一项都为undefined
+let colors = new Array(20);
+```
+```js
+// 可以通过instanceof来检测数组，但仅局限于一个全局执行上下文
+if(value instanceof Array) {}
+
+// 不如果网页里有多个框架，则可能涉及两个不同的全局执行上下文
+// 因此就会有两个不同版本的Array 构造函数
+// 如果要把数组从一个框架传给另一个框架，则这个数组的构造函数将有别于在第二个框架内本地创建的数组
+// 此时可以使用isArray来解决这个问题
+if(Array.isArray(value)) {}
+```
+
+数组的操作
+```js
+// 将传入的字符串拆为单个字符数组
+console.log(Array.from("CodePencil")); // ['C', 'o', 'd', 'e', 'P', 'e', 'n', 'c', 'i', 'l']
+```
+`Array.from()` 用于将类数组(带有length属性的实例或可迭代对象)的结构转换为数组实例
+
+```js
+console.log(Array.of(1,2,3,4)); // [1,2,3,4]
+```
+
+`Array.of()` 用于将参数转换为数组实例
+
+```js
+const zeroes = [0, 0, 0, 0, 0];
+// 用5 填充整个数组
+zeroes.fill(5);
+console.log(zeroes); // [5, 5, 5, 5, 5]
+```
+`Array.fill()` 用于填充数组，可以接收三个值(要填充的内容，开始索引，结束索引)
+默认忽略超出边界的值以及0长度和反向索引范围
+
+```js
+let num1 = [0,1,2,3,4];
+// 复制从索引0开始的所有内容，插入到索引为5开始的位置
+console.log(num1.copyWithin(5)); // [0,1,2,3,4,0,1,2,3,4]
+
+let num2 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+// 复制从索引5开始的所有内容，插入到索引为0开始的位置
+console.log(num2.copyWithin(0,5)); // [5,6,7,8,9,5,6,7,8,9]
+```
+
+`copyWithin()` 用于复制数组中的部分内容并插入，可以接收三个值(插入索引位置，开始索引，结束索引)
+默认忽略超出边界的值以及0长度和反向索引范围
+
+```js
+let colors = ["red", "blue", "green"];
+alert(colors.toString()); // red,blue,green
+alert(colors.valueOf()); // red,blue,green
+alert(colors); // red,blue,green
+```
+
+调用数组的 `toLocaleString()` 方法时，每个值为了得到字符串会默认调用数组每个值的 `toLocaleString()` 方法，最终返回逗号分隔的数组
+
+数组的栈方法
+```js
+let num1 = [1,2,3,4,5,6,7,8,9];
+// 弹出最后一个元素，返回删除的元素
+alert(num1.pop()); // 9
+
+// 往数组中推入一个元素，返回推入元素的个数
+alert(num1.push(10)); // 1
+
+// 删除第一个元素，返回删除的元素
+alert(num1.shift()); // 1
+
+// 从数组开头推入元素，返回推入元素的个数
+alert(num1.unshift(-1,0)); // 2
+```
+
+```js
+let num1 = [1,2,3,4,5];
+// 翻转数组
+console.log(num1.reverse()); // [5,4,3,2,1]
+
+let num2 = [5,6,8,110,20];
+// sort() 默认调用数组中每一项的String() 转型函数后比较字符串来升序排序的
+console.log(num2.sort()); // [110,20,5,6,8]
+
+function compare(value1, value2) {
+  if (value1 < value2) {
+    return -1;
+  } else if (value1 > value2) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+// sort() 接收一个比较函数
+// 第一个参数应该排在第一个参数前面，返回负值
+// 第一个参数和第二个参数相同，返回0
+// 第一个参数应该排在第二个参数后面，返回正值
+console.log(num2.sort(compare)); // [5, 6, 8, 20, 110]
+
+// 简便写法
+console.log(num2.sort((a,b) => a - b)); // [5, 6, 8, 20, 110]
+```
+
+```js
+let colors = ["red", "green", "blue"];
+let colors2 = colors.concat("yellow", ["black", "brown"]);
+
+console.log(colors); // ["red", "green","blue"]
+console.log(colors2); // ["red", "green", "blue", "yellow", "black", "brown"]
+
+// 阻止concat默认打平数组
+colors2[Symbol.isConcatSpreadable] = false;
+console.log(colors); // ["red", "green","blue"]
+console.log(colors2); // ["red", "green", "blue", "yellow", ["black", "brown"]]
+```
+
+```js
+let colors = ["red", "green", "blue", "yellow", "purple"];
+let colors2 = colors.slice(1);
+let colors3 = colors.slice(1, 4);
+
+alert(colors2); // green,blue,yellow,purple
+alert(colors3); // green,blue,yellow
+```
+`slice()` 用于创建一个包含原有数组中一个或多个元素的新数组，接收参数(开始索引，结束索引)
+
+`splice()` 功能强大，可以对数组进行删除、插入、替换操作
+- 删除 `splice(要删除第一个元素的下标,删除元素的数量)`
+- 插入 `splice(开始位置的下标,0,要插入的元素)`
+- 替换 `splice(开始位置的下标，要删除元素的数量，要插入的元素)`
+
+定型数组详见 P155
+
+Map
+```js
+const m1 = new Map([
+  ['key1','val1'],
+  ['key2','val2'],
+  ['key3','val3']
+])
+
+// 返回映射元素的个数
+console.log(m1.size); // 3
+console.log(m1.get('key1')); // val1
+console.log(m1.set('key4','val4')); // 添加键/值对
+console.log(m1.has('key3')); // true
+console.log(m1.delete('key3')); // 删除这一个键/值对
+console.log(m1.clear()); // 清空映射中的所有键/值对
+```
+
+- 如果给定固定大小的内存，Map可以比Object多存储50%的键/值对
+- 如果涉及大量的插入元素操作，Map性能比Object更好
+- 如果涉及大量的查找操作，Object会比Map更好
+- 如何设计大量的删除操作，Map性能会更好
+
+WeakMap(弱映射)：只能使用Object或者继承Object的类型作为键，操作方法和Map类似，但是没有 `clear()` 方法以及不可迭代，当键对应的对象被清除时，对应的值也被清除
+
+Set
+```js
+const s1 = new Set(['val1','val2','val3']);
+
+// 返回集合元素的个数
+console.log(s1.size); // 3
+console.log(s1.get('key1')); // val1
+// 该操作是幂等的，多次添加只会添加一次
+console.log(s1.add('val4')); // 添加集合元素
+console.log(s1.has('key3')); // true
+// 该操作是幂等的，多次删除只会删除一次
+console.log(s1.delete('key3')); // 删除这一个集合元素
+console.log(s1.clear()); // 清空集合中的所有元素
+```
+
+WeakSet(弱集合)：只能使用Object或者继承Object的类型作为值，操作方法和Set类似，但是没有 `clear()` 方法以及不可迭代，当值对应的对象被清除时则自动清除
