@@ -396,6 +396,88 @@ Symbol 类型
 15. 静态分配与对象池，详见P100，属于过早优化，一般不用考虑
 
 ## 第五章 基本引用类型
+基本引用类型有
+- Date
+- String
+- 原始值包装类型
+  - Boolean
+  - Number
+  - String
+- 内置单例对象
+  - Global
+  - Math
+
+Date
+```js
+// 创建日期对象
+// 构造函数接收毫秒，如果不传则默认显示当前时间和日期
+let now = new Date();
+console.log(now); // Sat Oct 07 2023 09:06:09 GMT+0800 (中国标准时间)
+
+// 基于其他日期和时间创建日期对象
+let someDate = new Date(Date.parse('May 23, 2019'));
+
+// 直接把表示日期的字符串传给Date构造函数，会在后台调用Date.parse()
+// 上面一行代码可以简写为如下
+let someDate2 =  new Date('May 23, 2019');
+
+// GMT 时间2000 年1 月1 日零点
+let y2k = new Date(Date.UTC(2000, 0));
+
+// GMT 时间2005 年5 月5 日下午5 点55 分55 秒
+let allFives = new Date(Date.UTC(2005, 4, 5, 17, 55, 55));
+
+// 把两个以上的数字参数传入，会在后台调用Date.UTC()
+// 上面一行代码可以简写为如下
+let someDate3 =  new Date(2000, 0);
+let someDate4 =  new Date(2005, 4, 5, 17, 55, 55);
+```
+`Date.parse()` 参数接收一个表示日期的字符串，返回该日期对应的毫秒数，具体传入的字符串格式参考P104，如果传入的字符串不表示日期，则返回NaN
+
+`Date.UTC()` 方法也是返回一个毫秒数，根据传入的年月日...等参数来生成对应的毫秒数，年和月是必需的，月数从 `0` 开始计算
+
+```js
+// 返回此方法执行时的日期和时间的毫秒数
+let date = Date.now();
+
+/* 可用于计算函数的执行完成所花费的毫秒数 */
+let result = 0;
+// 起始时间
+let start = Date.now();
+// 调用函数
+doSomething();
+// 结束时间
+let stop = Date.now(),
+result = stop - start;
+```
+```js
+let date = new Date();
+console.log(date.toLocaleString()); // '2023/10/7 09:26:19'
+console.log(date.toString()); // 'Sat Oct 07 2023 09:26:19 GMT+0800 (中国标准时间)'
+```
+`toLocaleString()` 方法返回与浏览器运行的本地环境一致的日期和时间，不包含时区信息
+
+`toString()` 方法返回与浏览器运行的本地环境一致的日期和时间，包含时区信息
+
+```js
+let date1 = new Date(2019, 0, 1); // 2019 年1月1日
+let date2 = new Date(2019, 1, 1); // 2019 年2月1日
+
+// 操作符会调用它的valueOf()，可以直接使用它返回的值
+console.log(date1 < date2); // true
+console.log(date1 > date2); // false
+```
+`valueOf()` 返回日期的毫秒数
+
+RegExp
+```js
+let expression = /pattern/flags;
+```
+pattern：模式
+
+flags: 标记，每个正则表达式可以带零个或多个
+
+详情参考P107
 
 ## 第六章 集合引用类型
 集合引用类型有
