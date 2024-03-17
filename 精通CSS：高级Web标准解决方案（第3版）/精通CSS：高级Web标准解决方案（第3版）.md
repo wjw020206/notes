@@ -1,4 +1,4 @@
-# 精通CSS：高级Web标准解决方案（第3版）
+# 精通 CSS：高级 Web 标准解决方案（第 3 版）
 
 ## 第一章 基础知识
 
@@ -9,29 +9,28 @@
 可以通过以下两种方式进行渐进增强
 
 1. 使用浏览器厂商前缀
+
    ```css
    .demo {
-     -webkit-transform: translate(0,10px);
-     -moz-transform: translate(0,10px);
-     -ms-transform: translate(0,10px);
+     -webkit-transform: translate(0, 10px);
+     -moz-transform: translate(0, 10px);
+     -ms-transform: translate(0, 10px);
      /* 标准属性不要忘记加了，一定要放在厂商前缀声明的后面 */
-     transform: translate(0,10px);
+     transform: translate(0, 10px);
    }
    ```
 
 2. 使用条件规则与检测脚本
 
    ```css
-   @supports(display: grid) {
+   @supports (display: grid) {
      /* 在支持网格布局的浏览器中要应用的规则 */
    }
    ```
 
-
-
 **语义化标签和类名结合**
 
-问题1：如果只使用 `div` 对文档没有任何语义作用，只是借助类名添加样式
+问题 1：如果只使用 `div` 对文档没有任何语义作用，只是借助类名添加样式
 
 ```html
 <div class="article">
@@ -42,7 +41,7 @@
 </div>
 ```
 
-问题2：如果只使用语义化标签则存在标签(除 `main` 标签外)重复，导致样式重复
+问题 2：如果只使用语义化标签则存在标签(除 `main` 标签外)重复，导致样式重复
 
 ```html
 <article>
@@ -64,8 +63,6 @@
 </article>
 ```
 
-
-
 **语义化扩展**
 
 1. ARIA 的 `role` 属性，用于无障碍优化，针对辅助访问设备添加更多的语义
@@ -75,7 +72,14 @@
    `aria-*` 相关属性和值：https://developer.mozilla.org/zh-CN/docs/Web/Accessibility/ARIA/Attributes
 
    ```html
-   <a href="#" role="slider" aria-labelledby="volume-label" aria-valuemin="1" aria-valuemax="100" aria-valuenow="67"></a>
+   <a
+     href="#"
+     role="slider"
+     aria-labelledby="volume-label"
+     aria-valuemin="1"
+     aria-valuemax="100"
+     aria-valuenow="67"
+   ></a>
    ```
 
    `aria-labelledby`、`aria-valuemin`、`aria-valuemax`、`aria-valuenow` 属性也提供了额外的滑动条信息
@@ -87,7 +91,9 @@
    ```html
    <section class="h-card">
      <p>
-       <a class="u-url p-name" href="https://github.com/wjw020206">CodePencil</a>
+       <a class="u-url p-name" href="https://github.com/wjw020206"
+         >CodePencil</a
+       >
        <span class="p-org">Enterprises</span>
        <a class="u-email" href="mailto:info@mail.com">Email</a>
      </p>
@@ -98,13 +104,17 @@
    </section>
    ```
 
-3. 微数据，与语义化标签一起使用，把定义格式的事情交给了第三方，http://schema.org 是由Bing、Google、Yahoo! 等搜索引擎共同创建的词汇表
+3. 微数据，与语义化标签一起使用，把定义格式的事情交给了第三方，http://schema.org 是由 Bing、Google、Yahoo! 等搜索引擎共同创建的词汇表
 
    ```html
    <section itemscope itemtype="http://schema.org/Person">
      <p>
        <a itemprop="name" href="https://github.com/wjw020206">CodePencil</a>
-       <span itemprop="affiliation" itemscope itemtype="http://schema.org/Organization">
+       <span
+         itemprop="affiliation"
+         itemscope
+         itemtype="http://schema.org/Organization"
+       >
          <span itemprop="name">Enterprises</span>
        </span>
        <a itemprop="email" href="mailto:info@mail.com">Email</a>
@@ -115,7 +125,6 @@
      </p>
    </section>
    ```
-   
 
 ## 第二章 添加样式
 
@@ -129,8 +138,6 @@
 
 ![image-20240222085606036](images/image-20240222085606036.png)
 
-
-
 **相邻同辈选择符**
 
 ```css
@@ -143,8 +150,6 @@ h2 + p {
 
 ![image-20240222085637309](images/image-20240222085637309.png)
 
-
-
 **一般同辈选择符**
 
 ```css
@@ -156,8 +161,6 @@ h2 ~ p {
 ```
 
 ![image-20240222085702940](images/image-20240222085702940.png)
-
-
 
 **通用选择符**
 
@@ -181,8 +184,6 @@ h2 ~ p {
 
 ![image-20240222090358303](images/image-20240222090358303.png)
 
-
-
 **属性选择符**
 
 - 匹配以某些字符开头的属性值
@@ -192,7 +193,7 @@ h2 ~ p {
   ```
 
   ```css
-  a[href^="https:"] {
+  a[href^='https:'] {
     /* 要设置的样式 */
   }
   ```
@@ -204,7 +205,7 @@ h2 ~ p {
   ```
 
   ```css
-  img[src$=".jpg"] {
+  img[src$='.jpg'] {
     /* 要设置的样式 */
   }
   ```
@@ -216,7 +217,7 @@ h2 ~ p {
   ```
 
   ```css
-  a[href*="google"] {
+  a[href*='google'] {
     /* 要设置的样式 */
   }
   ```
@@ -229,7 +230,7 @@ h2 ~ p {
 
   ```css
   /* a[class~="active"] 也可以 */
-  a[class~="link"] {
+  a[class~='link'] {
     /* 要设置的样式 */
   }
   ```
@@ -241,12 +242,10 @@ h2 ~ p {
   ```
 
   ```css
-  a[class|="web"] {
+  a[class|='web'] {
     /* 要设置的样式 */
   }
   ```
-
-
 
 **伪元素**
 
@@ -265,8 +264,6 @@ h2 ~ p {
     font-size: 30px;
   }
   ```
-
-
 
 **伪类**
 
@@ -312,8 +309,6 @@ h2 ~ p {
 - 用户样式表：用户通过浏览器设置为网站应用自己的样式
 - 浏览器的默认样式表：一般都会比作者样式表覆盖
 
-
-
 **优先级（从高到低排序）**
 
 1. 标记了 `!important` 的用户样式(方便使用高对比度的无障碍模式)
@@ -321,8 +316,6 @@ h2 ~ p {
 3. 作者样式
 4. 用户样式
 5. 浏览器的默认样式
-
-
 
 **超链接伪类的层叠次序**
 
@@ -332,8 +325,6 @@ h2 ~ p {
 4. `a:focus`
 5. `a:active`
 
-
-
 **继承**
 
 任何直接应用给元素的样式都会覆盖掉继承的样式，继承的样式没有特殊性
@@ -342,8 +333,6 @@ h2 ~ p {
 - 文本属性：`text-align`、`text-indent`、`text-transform`、`text-decoration`、`word-spacing`、`letter-spacing`、`line-height`
 - 颜色属性：`color`
 - 列表属性：`list-style`
-
-
 
 **为文档应用样式表**
 
@@ -359,7 +348,7 @@ h2 ~ p {
 
   ```html
   <style>
-  	@import url("/c/modules.css");
+    @import url('/c/modules.css');
   </style>
   ```
 
@@ -368,13 +357,13 @@ h2 ~ p {
 ```html
 <head>
   <link ref="stylesheet" href="css/sheet1.css" />
-	<style>
-		@import "css/sheet3.css";
-  	h1 {
-    	color: red;
-  	}
-	</style>
-	<link ref="stylesheet" href="css/sheet2.css" />
+  <style>
+    @import 'css/sheet3.css';
+    h1 {
+      color: red;
+    }
+  </style>
+  <link ref="stylesheet" href="css/sheet2.css" />
 </head>
 ```
 
@@ -386,8 +375,6 @@ h2 ~ p {
 4. `sheet2.css` 中的样式
 
 最终应用的样式是 `sheet2.css` 中的样式，因为是最后声明的
-
-
 
 **性能**
 
@@ -405,7 +392,7 @@ h2 ~ p {
 
     ```html
     <body>
-    	...
+      ...
       <!-- 最后加载JavaScript -->
       <script src="script/index.js"></script>
     </body>
@@ -428,8 +415,6 @@ h2 ~ p {
 
 <img src="images/image-20240303163217950.png" alt="image-20240303163217950" style="zoom: 50%;" />
 
-
-
 **内边距：** 内边距是内容区周围的空间，**给元素应用背景会作用于元素的内容区和内边距**
 
 ```html
@@ -438,26 +423,24 @@ h2 ~ p {
 
 ```css
 .box {
-	width: 100px;
-	height: 100px;
-	background: url(./demo.jpg);
+  width: 100px;
+  height: 100px;
+  background: url(./demo.jpg);
   /* 内边距 */
-	padding: 50px;
+  padding: 50px;
 }
 ```
 
 <img src="images/image-20240303164512881.png" alt="image-20240303164512881" style="zoom:50%;" />
 
-
-
 **边框：** 边框是在内边距的外侧增加的一条框线
 
 ```css
 .box {
-	width: 100px;
-	height: 100px;
-	background: url(./demo.jpg);
-	padding: 50px;
+  width: 100px;
+  height: 100px;
+  background: url(./demo.jpg);
+  padding: 50px;
   /* 边框 */
   border: 10px solid #000;
 }
@@ -465,16 +448,14 @@ h2 ~ p {
 
 <img src="images/image-20240303164822694.png" alt="image-20240303164822694" style="zoom:50%;" />
 
-
-
 **外边距：** 边框外侧的是外边距，围绕在盒子可见区域之外的透明区域
 
 ```css
 .box {
-	width: 100px;
-	height: 100px;
-	background: url(./demo.jpg);
-	padding: 50px;
+  width: 100px;
+  height: 100px;
+  background: url(./demo.jpg);
+  padding: 50px;
   border: 10px solid #000;
   /* 外边距 */
   margin: 50px;
@@ -483,16 +464,14 @@ h2 ~ p {
 
 <img src="images/image-20240303165534520.png" alt="image-20240303165534520" style="zoom:50%;" />
 
-
-
 **轮廓线：** 在边框的外围画出一条线，**不会影响盒子的大小**，常用语调试和演示布局效果
 
 ```css
 .box {
-	width: 100px;
-	height: 100px;
-	background: url(./demo.jpg);
-	padding: 50px;
+  width: 100px;
+  height: 100px;
+  background: url(./demo.jpg);
+  padding: 50px;
   border: 10px solid #000;
   margin: 50px;
   /* 轮廓线 */
@@ -502,14 +481,10 @@ h2 ~ p {
 
 <img src="images/image-20240304084757348.png" alt="image-20240304084757348" style="zoom: 50%;" />
 
-
-
 **盒子大小：** 通过修改 `box-sizing` 属性可以改变计算盒子大小的方式
 
 - **content-box：** `box-sizing` 属性的**默认值**，此时盒子的大小不包含内边距和边框
 - **border-box：** 此时盒子的大小包含了内边距和边框
-
-
 
 **包含块：** 大部分情况下，包含块**指向一个元素最近的块级长辈元素(不仅指祖先元素也指父元素)**的内容区域
 
@@ -534,7 +509,7 @@ h2 ~ p {
    - **连续媒体**一般指音频或者运动视频
 4. 如果属性值是 `absolute` 或者 `fixed`，包含块同样会变成最近的长辈元素的内边距区域，这个最近的长辈元素符合以下的条件
    1. `transform` 或者 `perspective` 的值不是 `none`
-   2. `will-change` 属性值是 `transform` 或者  `perspective` 
+   2. `will-change` 属性值是 `transform` 或者 `perspective`
    3. `filter` 的值不是 `none` 或者 `will-change` 的值不是 `filter`(仅在 firefox 有效)
    4. `contain` 的值是 `paint`
 5. 包含根元素 `html` 的矩形包含块被称为**初始包含块**，它有视口(对连续媒体)或者页面区域(对于页面媒体)的尺寸
@@ -544,15 +519,13 @@ h2 ~ p {
 1. `height`、`top` 还有 `bottom` 属性从它的包含块的 `height` 计算它的百分比值
 2. `width`、`left`、`right`、`padding`、`margin` 都是从它的包含块的 `width` 计算它的百分比值
 
-
-
 ```html
 <section>
   <p>This is a paragraph</p>
 </section>
 ```
 
-**案例1：**
+**案例 1：**
 
 ```css
 body {
@@ -575,9 +548,7 @@ p {
 
 **解释：** `p` 元素的 `position` 属性为 `static`，所以它最近的包含块为 `section`，`p` 元素的 `width`、`padding` 、`margin` 百分比值根据 `section` 的**宽度**来计算，`height` 的百分比值根据 `section` 的**高度**来计算
 
-
-
-**案例2：**
+**案例 2：**
 
 ```css
 body {
@@ -596,9 +567,7 @@ p {
 
 **解释：**因为 `section` 标签是**行内元素**，所以 `p` 标签的包含块为 `body`，`p` 标签的 `width` 是 `body` 的宽度的一半
 
-
-
-**案例3：**
+**案例 3：**
 
 ```css
 body {
@@ -623,7 +592,7 @@ p {
 }
 ```
 
-**解释：**因为 `p` 标签的 `position` 属性值为 `absolute`，因此会去寻找 `position` 属性值不是 `static` 的长辈元素作为包含块，`p` 标签的百分比值会受到包含块的 `padding` 的值的影响，因为绝对定位的元素的**包含块是长辈元素的内边距区域**，如果想要消除这个影响可以把长辈元素的 `box-sizing` 属性设置为 `border-box`，此时结果如下：
+**解释：** 因为 `p` 标签的 `position` 属性值为 `absolute`，因此会去寻找 `position` 属性值不是 `static` 的长辈元素作为包含块，`p` 标签的百分比值会受到包含块的 `padding` 的值的影响，因为绝对定位的元素的**包含块是长辈元素的内边距区域**，如果想要消除这个影响可以把长辈元素的 `box-sizing` 属性设置为 `border-box`，此时结果如下：
 
 ```css
 body {
@@ -650,9 +619,7 @@ p {
 }
 ```
 
-
-
-**案例4：**
+**案例 4：**
 
 ```css
 body {
@@ -677,9 +644,7 @@ p {
 
 **解释：** 因为 `p` 元素的 `position` 值为 `fixed`，此时它的包含块是初始包含块(浏览器视口的大小)
 
-
-
-**案例5：**
+**案例 5：**
 
 ```css
 body {
@@ -696,7 +661,7 @@ p {
   left: 80px;
   top: 30px;
   width: 50%; /* 400px * 50% = 200px */
-  height: 25%; /* 160px * 25% = 40px */ 
+  height: 25%; /* 160px * 25% = 40px */
   margin: 5%; /* 400px * 5% = 20px */
   padding: 5%; /* 400px * 5% = 20px */
   background-color: cyan;
@@ -705,11 +670,7 @@ p {
 
 **解释：** 因为 `p` 元素的 `position` 值为 `absolute`，`section` 的 `transform` 属性值不为 `none`，所以 `p` 元素的包含块为 `section`
 
-
-
 在 CSS 中，**任何需要设置高度的时候都应该要谨慎**，元素的高度应该取决于所包含的内容，实在需要明确设定默认高度，**最好使用 `min-height`**，允许盒子的高度随内容扩展
-
-
 
 **块级元素：** 显示为内容块或块级盒子的形式
 
@@ -726,7 +687,7 @@ p {
   ```html
   <div>TEST</div>
   <div class="box">
-  	<span>CodePencil</span>
+    <span>CodePencil</span>
   </div>
   ```
 
@@ -740,12 +701,10 @@ p {
 
   ![image-20240305165157573](images/image-20240305165157573.png)
 
-  
-
   ```html
   <div>TEST</div>
   <div class="box">
-  	<div>CodePencil</div>
+    <div>CodePencil</div>
   </div>
   ```
 
@@ -759,8 +718,6 @@ p {
 
   <img src="images/image-20240305165249715.png" alt="image-20240305165249715" style="zoom: 67%;" />
 
-
-
 **行盒子(line box 也叫行框)：** 由一行文本形成的水平盒子叫做行盒子，行盒子的高度由所包含的行内盒子决定，**修改行盒子的大小的唯一途径就是修改行高(line-height)或者内部的行内盒子设置水平方向的边框、内边距和外边距**
 
 ```html
@@ -770,8 +727,6 @@ p {
 ```
 
 代码中 `<p>` 标签内部是一个行盒子 `<span>` 标签内部也是一个行盒子，有两个行盒子(嵌套的)
-
-
 
 使用 `display: table` 可以让非表格元素采用表格的布局方式
 
@@ -817,8 +772,6 @@ p {
 
 <img src="images/image-20240306084510331.png" alt="image-20240306084510331" style="zoom:50%;" />
 
-
-
 **块级元素：** 当元素的 `display` 属性为 `block`、`list-item`、`table` 时会被标记为块级元素，垂直排列，一行占一个，同时参与块级格式化上下文(BFC)，块级元素内部至少生成一个**块级盒**，也可能是**块级容器盒**
 
 **块级盒：** 描述它与兄弟元素的表现方式
@@ -860,8 +813,6 @@ p {
 
 <img src="images/image-20240309195031576.png" alt="image-20240309195031576" style="zoom: 45%;" />
 
-
-
 **行内级元素：** 当 `display` 属性设置为 `inline`、`inline-block`、`inline-table` 时，这些盒子会被标记为行内级元素，在水平方向上排列，如果宽度不够会自动换行
 
 **替换元素：** 指具有内在尺寸的元素，如 `img`、`video` 等，它们的尺寸不受到外部样式的影响
@@ -879,8 +830,6 @@ p {
 因为 `p` 标签是块盒，内部包含了行内元素所以生成的行内格式化上下文来包含行内元素，此时为**台湾是**这三个字生成的了匿名的行内盒，也为 `strong` 标签本身也是行内盒，所以在水平方向上排列
 
 <img src="images/image-20240311093742400.png" alt="image-20240311093742400" style="zoom:50%;" />
-
-
 
 **外边距折叠**
 
@@ -901,8 +850,6 @@ p {
 折叠后的外边距又碰到其它块盒子又会继续折叠
 
 <img src="images/image-20240316103857337.png" alt="image-20240316103857337" style="zoom:67%;" />
-
-
 
 **浮动**
 
@@ -926,8 +873,6 @@ p {
 
 <img src="images/image-20240316105125960.png" alt="image-20240316105125960" style="zoom:50%;" />
 
-
-
 **清除浮动**
 
 > 浮动元素会脱离文档流，影响常规文档流的元素
@@ -937,16 +882,14 @@ p {
 ```html
 <img src="./demo.jpg" />
 <p>
-	我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本
+  我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本
 </p>
 <p>
-	我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本
+  我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本我是文本
 </p>
 ```
 
 <img src="images/image-20240316110013004.png" alt="image-20240316110013004" style="zoom: 33%;" />
-
-
 
 给图片应用浮动，虽然 `p` 标签忽视了浮动元素，但是内部的文本(行盒子)依旧在排布时避开图片，形成了文字环绕图片的效果，**浮动就是为了在网页中显示文字环绕图片效果而引入的**
 
@@ -970,7 +913,7 @@ p:nth-of-type(2) {
 
 <img src="images/image-20240316224256956.png" alt="image-20240316224256956" style="zoom:33%;" />
 
-**注意：** 此时浏览器会在这个**清除浮动的元素的上方添加做够大的外边距**，使得行盒子不紧挨着浮动元素，这个行为通过浏览器的开发者工具是无法查看到的，如果要给这个清除浮动的元素添加外边距需要值大于浏览器添加的外边距才会生效
+**注意：** 此时浏览器会在这个 **清除浮动的元素的上方添加做够大的外边距**，使得行盒子不紧挨着浮动元素，这个行为通过浏览器的开发者工具是无法查看到的，如果要给这个清除浮动的元素添加外边距需要值大于浏览器添加的外边距才会生效
 
 ```css
 p:nth-of-type(2) {
@@ -991,8 +934,6 @@ p:nth-of-type(2) {
 ```
 
 <img src="images/image-20240316225313475.png" alt="image-20240316225313475" style="zoom:33%;" />
-
-
 
 因为浮动元素不会占据文档流，所以导致**包含浮动元素的盒子无法生成高度**，此时可以使用伪元素创建一个空元素来清除浮动，使得包括浮动元素的盒子可以生成高度
 
@@ -1029,37 +970,33 @@ p:nth-of-type(2) {
 
 ![image-20240316231127136](images/image-20240316231127136.png)
 
-
-
 **格式化上下文**
 
 > 浏览器在摆放盒子的时候会通过盒子的类型生成格式化上下文
 >
 > 分为**块级格式化上下文(Block Formatting Context)** 和**行内格式化上下文(Inline Formatting Context)**
 
-
-
 - **块级格式化上下文(Block Formatting Context)**
 
   创建了块级格式化上下文的元素规定了内部的块级盒如何布局，并使该盒子在页面上形成一个隔离的独立容器，容器里面的子元素不会影响到外面的元素，反之亦然
 
-  *下列情况将创建一个块格式化上下文：*
+  _下列情况将创建一个块格式化上下文：_
 
   - 根元素 ( html )
   - 浮动 (元素的 `float` 属性值不为 `none` )
   - 绝对定位元素 (元素的 `position` 属性值为 `fixed` 或 `absolute` )
   - 行内块 (元素的 `display: inline-block` )
-  - 表格单元格 (元素的 `display: table-cell`，HTML表格单元格默认属性 )
-  - 表格标题 (元素的 `display: table-caption`，HTML表格标题默认属性 )
+  - 表格单元格 (元素的 `display: table-cell`，HTML 表格单元格默认属性 )
+  - 表格标题 (元素的 `display: table-caption`，HTML 表格标题默认属性 )
   - `overflow` 的属性值不为 `visible` 的元素
-  - 弹性元素 (  `display: flex` 或 `display: inline-flex` 的元素的**直接子元素** )
-  - 网格盒子 (  `display: grid`  或 `display: inline-grid`的元素的**直接子元素** )
+  - 弹性元素 ( `display: flex` 或 `display: inline-flex` 的元素的**直接子元素** )
+  - 网格盒子 ( `display: grid` 或 `display: inline-grid`的元素的**直接子元素** )
 
   详细参考：https://developer.mozilla.org/zh-CN/docs/Web/CSS/CSS_display/Block_formatting_context
 
 > PS：直接子元素是指一个元素的直接下级子元素，例如 A 元素中包含着 B 和 C，那 B 和 C 就是 A 元素的直接子元素
 
-  **作用：**
+**作用：**
 
 1. 在一个块级格式化上下文内部的盒子会在垂直方向，从顶部一个接着一个地放置
 
@@ -1068,6 +1005,7 @@ p:nth-of-type(2) {
 3. 在一个块级格式化上下文中每个元素外边距 (margin) 都会与其父元素左侧边框 (border) 开始，不会超出包含块的边界，即使存在浮动也是如此
 
 4. 块级格式化上下文区域中的内容不会与浮动元素发生遮挡
+
    ```css
    <div class="media-block">
      <img src="./常用头像.jpg" class="media-fig" />
@@ -1119,8 +1057,6 @@ p:nth-of-type(2) {
 
    ![image-20240316231127136](images/image-20240316231127136.png)
 
-
-
 - **行内格式化上下文(Inline Formatting Context)**
 
   在行内格式化中，盒子一个接着一个地水平排列，起点是包含块的顶部，**水平方向上的内边距，边框以及外边距可以正常使用**
@@ -1128,15 +1064,11 @@ p:nth-of-type(2) {
   - 对于非替换元素，如：`a`、`span` 等没有默认大小的元素**无法在垂直方向上正常使用内边距、边框和外边距**
   - 对于替换元素，如：`input`、`img` 等有默认大小的元素可以**可以在垂直方向上正常使用内边距、边框和外边距**
 
-
-
 **内在大小和外在大小**
 
 CSS3 定义了一组应用给 ( `min-` 和 `max-` ) `width` 和 `height` 属性的关键字，要么继承周围上下文的大小(外在大小)要么继承元素自身内容的大小(内在大小)，将某个属性值设置为 `auto` 可以在不设置 `width` 的情况下达到收缩自适应的目的
 
-
-
-**CSS布局模块**
+**CSS 布局模块**
 
 - 弹性盒布局 (flex box)
 - 网格布局 (grid layout)：目标是取代浮动和定位元素的布局方式
