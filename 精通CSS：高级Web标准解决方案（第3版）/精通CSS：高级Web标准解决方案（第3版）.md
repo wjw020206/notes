@@ -413,7 +413,7 @@ h2 ~ p {
 
 **盒模型**
 
-<img src="images/image-20240303163217950.png" alt="image-20240303163217950" style="zoom: 50%;" />
+<img src="images/image-20240303163217950.png" alt="image-20240303163217950" style="zoom:50%;" />
 
 **内边距：** 内边距是内容区周围的空间，**给元素应用背景会作用于元素的内容区和内边距**
 
@@ -1073,3 +1073,382 @@ CSS3 定义了一组应用给 ( `min-` 和 `max-` ) `width` 和 `height` 属性�
 - 弹性盒布局 (flex box)
 - 网格布局 (grid layout)：目标是取代浮动和定位元素的布局方式
 - 多栏布局 (Multi-column Layout Module)：实现像报纸那样内容的多栏布局，可以指定栏数，也可以指定每一栏的宽度，让浏览器根据宽度自动确定栏数，主要用于控制文字排版
+
+## 第四章 网页排版
+
+**字体族：** 属性值是一个备选列表，按优先级从左到右排版
+
+```css
+body {
+  font-family: 'Georgia Pro', Georgia, Times, 'Times New Roman', serif;
+}
+```
+
+**注意：** 字体族名中包含空格或者其它非标准符号时推荐加上双引号，以防浏览器误判
+
+**通用字体族：** 充当没有选择的选择
+
+- `serif` 表示由浏览器选择一种衬线字体
+- `sans-serif` 表示由浏览器选择一种无衬线字体
+- `monospace` 表示由浏览器选择一种等宽字体，适用于显示代码
+
+**字体大小和行高**
+
+几乎所有的浏览器中 `font-size` 的默认大小为 `16px`
+
+```css
+h3 {
+  font-size: 1.314em; /* 16px * 1.314 = 21.024px */
+}
+```
+
+`em` 应用在 `font-size` 属性上时是元素继承的 `font-size` 的缩放因子，设置 `em` 比设置 `px` 更加灵活，使用 `131.4%` 和 `1.314em` 效果是一样的，没有区别
+
+**问题：** 当元素和元素继承的 `font-size` 属性都使用 `em` 单位会出现变成例如：`1.314em` \* `1.314em`，导致与设计稿不符
+
+要解决这个问题可以使用 `rem` ，`rem` 也是缩放因子，始终根据 `html` 元素的 `font-size` 属性值来缩放
+
+**基于比例缩放的字形型大小**
+
+> `font-size` 设置多大，没有固定的标准
+
+可以设置各级标题大小符合 **纯四度** 的数学比例，或者其它比例也可以，尽量维持类似的比例关系，具体可以参考
+
+https://www.modularscale.com
+
+**行间距、对齐及行盒子的构造**
+
+如果行盒子中包含多个行高不一的行内盒子，那行盒子的最终高度至少等于其中的最高的行内盒子
+
+一般来说行高取 **1.2 ~ 1.5** 的范围内，行与行之间不能太密也不能太疏
+
+```css
+body {
+  font-family: 'Georgia Pro', Georgia, Times, 'Times New Roman', serif;
+  line-height: 1.5; /* 16px * 1.5 = 24px */
+}
+```
+
+可以给 `line-height` 指定 `em`、`px` 或 `%`
+
+**注意：** 上方的代码中 `body` 元素的所有的子元素都会继承 `line-height` 的 **计算值** ，也就是说如果你使用带有单位的值，例如 `em` 或 `%`，子元素继承的是计算后的 `px` 单位的值，如果你 **使用无单位的值就不会导致这个结果** ，子元素继承的是一个系数
+
+**垂直对齐**
+
+除了 `line-height`，行内盒子也会受到 `vertical-align` 属性的影响，默认值是 `baseline`
+
+**注意：** 影响行间距的不只有 `line-height`，还有 `vertical-align` 可能会扩展行盒子的高度，行内块和图片的垂直对齐稍有不同，因为它们不一定有自己的唯一基线
+
+**文本粗细**
+
+`font-weight` 默认值为 `normal` 对应 `400`，加粗 `bold` 对应 `700`，一些字体包含很多粗细的变体，当你使用对应的粗细时就会使用对应的字体的粗细变体，如果字体中没有对应的粗细变体，浏览器会尽量模拟加粗的效果，**但是不能模拟变细的效果**，模拟效果都不太理想
+
+**字体样式**
+
+```css
+i {
+  font-style: italic;
+}
+```
+
+与 `font-weight` 类似，会从字形中选择斜体变体显示，如果不存在这个变体则浏览器会尽量模拟，模拟效果不太理想
+
+**大小写变化**
+
+```css
+h1 {
+  text-transform: uppercase; /* 文字转换为大写字母显示 */
+  text-transform: uppercase; /* 文字转换为大写字母显示 */
+  text-transform: none; /* 文字根据源码默认大小字母显示(默认) */
+}
+```
+
+**小型大写变体**
+
+可以把英文文本转换为小型大写变体，**小型大写变体中其它字母都是大写，只有首字母是正常大小**，正确的小型大写变体很大程度上是根据字母的字型来变化的，不过能做到这一点的大多都是付费字体，`font-variant` 会影响行盒子的高度
+
+```css
+<p class="normal">Firefox rocks!</p>
+<p class="small">Firefox rocks!</p>
+```
+
+```css
+p.normal {
+  font-variant: normal;
+}
+p.small {
+  font-variant: small-caps;
+}
+```
+
+<img src="images/image-20240318085347751.png" alt="image-20240318085347751" style="zoom:67%;" />
+
+**注意：**只有当首字母是小写的时候，首字母同样也会变成大写并缩小
+
+```html
+<p class="normal">firefox rocks!</p>
+<p class="small">firefox rocks!</p>
+```
+
+<img src="images/image-20240318085623533.png" alt="image-20240318085623533" style="zoom:67%;" />
+
+**控制字母和单词间距**
+
+> 人为的改变字母间距不是一件好事，大多数字体设计间距的初衷是让人更容易识别单词
+
+默认词距是由当前字体中空白字符的宽度决定的，以下规则在默认词距上增加 `0.1em`
+
+```css
+p {
+  word-spacing: 0.1em;
+}
+```
+
+**注意：** `word-spacing` 用于控制词间距，该属性很少使用
+
+同样的，`letter-spacing` 也可以控制字符间的间距
+
+```css
+p {
+  letter-spacing: 0.1em;
+}
+```
+
+**版心宽度**
+
+> 行长(版心宽度)影响阅读体验，过长或过短的文本都会打断人的眼球移动
+
+在大屏幕中的网页主体内容的文本行长通常是 45 ~ 75 个字符，平均值是 66 个字符
+
+对于小屏幕(远距离观看的大屏幕或者投影)而言行长至少也应该有 40 个字符
+
+要控制行长可以通过设定文本的段落、标题等元素的宽度来实现
+
+```css
+article {
+  /* 例如 Georgia 字体平均每个字符0.5em宽 36em / 0.5em = 72个字符 */
+  max-width: 36em;
+  margin: 0 auto;
+}
+```
+
+**注意：** 如果视口宽度小于 `max-width` ，该元素会自动调整宽度
+
+**文本缩进与对齐**
+
+> 默认情况下文本是左对齐的，文本左对齐有助于眼睛找到下一行，保持阅读节奏
+
+对于连续的段落或者相邻的段落可以设置一行外边距或首行缩进
+
+```css
+p + p {
+  text-indent: 1.25em;
+}
+```
+
+<img src="images/image-20240318211527310.png" alt="image-20240318211527310" style="zoom: 33%;" />
+
+**毛边**
+
+> 如下图，文章的右侧参差不齐，在术语上叫做 **毛边**
+
+<img src="images/image-20240318211715682.png" alt="image-20240318211715682" style="zoom:33%;" />
+
+虽然毛边没有什么大的影响，但是当文本水平居中时会导致两边都形成毛边，从而影响可读性
+
+<img src="images/image-20240318212100916.png" alt="image-20240318212100916" style="zoom: 33%;" />
+
+要解决上述这个问题，可以使用 `text-align: justify;` 让单词平分间距，使两边对齐，以此来消除毛边
+
+<img src="images/image-20240318221351298.png" alt="image-20240318221351298" style="zoom: 33%;" />
+
+**注意：** 由于屏幕大小的不同，安装字体的不同以及浏览器的引擎不同等原因都会影响用户看到的结果，如果此时使用 `text-align: justify;` 可能会发生文本空白构成的 **串流** ，版心宽度越小越严重
+
+<img src="images/image-20240319060044893.png" alt="image-20240319060044893" style="zoom: 50%;" />
+
+浏览器处理文本两端对齐时使用的算法很 **粗糙** ，不如传统的出版效果好，虽然可以通过修改 `text-justify` 属性来修改所使用的算法，但是浏览器对多个值的支持较弱，基本上 **只涉及调整非西方语言的字形和单词**
+
+但 IE 浏览器中支持 `text-justify` 属性的值中有一个非标准值 `newspaper` ，使用了更聪明的算法，该算法会同时调整字母间距和单词间距
+
+**书写方向**
+
+```html
+<!-- 表示文字从右往左书写 -->
+<p dir="rtl">我是文本</p>
+
+<!-- 表示文字从左往右书写 -->
+<p dir="ltr">我是文本</p>
+```
+
+```css
+p {
+  text-align: start;
+}
+```
+
+**注意：** 当 `dir` 的值为 `rtl` 时，使用 `text-align: start;` 的方向从原先的右对齐编程了左对齐，浏览器会自动反转默认的文本方向
+
+**连字符**
+
+想要缓解串流的情况可以使用连字符，可以手工在 HTML 中敲入连字符 `&shy;`，连字符会在需要断词换行的时候显示
+
+![image-20240319062033352](images/image-20240319062033352.png)
+
+但是手动添加软连字符不现实，可以使用 `hyphens` 属性让浏览器自动插入连字符
+
+1. 首要将 HTML 的语言模式设置为 `en`
+
+   ```html
+   <html lang="en"></html>
+   ```
+
+2. 在相关元素上添加 `hyphens` 属性
+
+   ```css
+   p {
+     hyphens: auto;
+   }
+   ```
+
+   **注意：** 如果要关闭连字符则将 `hyphens` 属性值设置为 `manual`，即手动模式
+
+**多栏文本**
+
+对于大屏幕来说把整篇文章设置版心宽度太浪费空间了，可以把文本分成多栏，限制每栏的宽度
+
+<img src="images/image-20240319063045714.png" alt="image-20240319063045714" style="zoom: 33%;" />
+
+```css
+article {
+  max-width: 70em;
+  columns: 20em; /* 设置每栏最小的宽度 */
+  columns-gap: 1.5em; /* 设置每栏之间的间隔 */
+  margin: 0 auto;
+}
+```
+
+<img src="images/image-20240319063716215.png" alt="image-20240319063716215" style="zoom:50%;" />
+
+`columns` 属性是 `column-count` 和 `column-width` 属性的简写形式
+
+- 如果只设置 `column-count` 属性则浏览器会严格生成指定数量的栏，不管宽度如何
+- 如果同时设置了 `column-count` 和 `column-width` 属性，则前者会作为最大栏数，后者作为最小栏宽
+
+`columns: 20em;` 等同于在保证最小宽度 `20em` 的前提下自动设置栏数，等同于 `column-width: 20em;`
+
+`columns: 3;` 等同于保证三栏，自动设置宽度，等同于 `column-count: 3;`
+
+`columns: 3 20em;` 至少三栏，每栏栏宽至少 `20em` ，等同于 `column-count: 3;` 和 `column-width: 20em;` 同时使用
+
+在不支持多栏属性的浏览器中可以在段落元素上设置 `max-width` ，旧版浏览器只会显示一栏，但可以确保可读性
+
+```css
+article > p {
+  max-width: 36em;
+}
+```
+
+**跨栏**
+
+可以让某些元素排在栏内文本流之外，强制伸长它们来达到跨行的效果
+
+```css
+h1 {
+  /* 拉长标题横跨所有行 */
+  column-span: all;
+}
+```
+
+`column-span: none;` 可以关闭跨栏特性
+
+<img src="images/image-20240319082939261.png" alt="image-20240319082939261" style="zoom: 33%;" />
+
+如果给分栏中的元素设置 `column-span: all;` ，效果如下
+
+<img src="images/image-20240319083516390.png" alt="image-20240319083516390" style="zoom:33%;" />
+
+**垂直律动与基线网格**
+
+在网页设计中要保证基线准确比较麻烦，例如在多栏文本中因为标题的存在导致各栏文本没有严格对齐
+
+<img src="images/image-20240319084647372.png" alt="image-20240319084647372" style="zoom:33%;" />
+
+要解决这个问题可以**让标题的上外边距、行高和下外边距加起来等于正文行高值的整数倍**
+
+**Web 字体**
+
+使用 Web 字体有一个问题，就是 **许可** ，目前多数字体的设计者都施加了安全限制，例如只允许从指定的域名下载字体或者要求定期修改字体名以防止盗链
+
+使用字体最简单的方式可以使用 **Web 字体托管服务**，许可问题交给它们处理，只需要关心如何使用这些字体
+
+- 收费的
+  1. https://fonts.adobe.com
+  2. https://www.typography.com/user-guide/included
+  3. https://www.fonts.com
+- 免费的
+  1. https://fonts.google.com
+
+**@font-face 规则**
+
+嵌入 Web 字体的关键是使用 `@font-face` 规则
+
+```css
+@font-face {
+  font-family: Vollkorn;
+  font-weight: bold;
+  src: url('fonts/vollkorn/Vollkorn-Bold.woff') format('woff');
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: Vollkorn;
+  font-weight: bold;
+}
+```
+
+在 `font-family` 的值为 `Vollkorn` 并且 `font-weight` 的值为 `bold` 时才会应用这个规则，之后通过 `url()` 提供浏览器下载包含粗体字体的字体格式，字体格式每个浏览器支持程度都不一样，好在所有浏览器都支持标准的 WOFF 格式，有的支持较新的 WOFF2 格式
+
+对于 IE8 之前的浏览器需要使用以下的兼容性写法来解决对字体格式支持不一致的问题
+
+```css
+@font-face {
+  font-family: Vollkorn;
+  src: url('fonts/Vollkorn-Regular.eot#?ie') format('embedded-opentype'), url('fonts/Vollkorn-Regular.woff2')
+      format('woff2'), url('fonts/Vollkorn-Regular.woff') format('woff'), url('fonts/Vollkorn-Regular.ttf')
+      format('truetype'), url('fonts/Vollkorn-Regular.svg') format('svg');
+}
+```
+
+**字体描述符**
+
+- `font-family` 必需，字体族的名称
+- `src` 必需，URL 或 URL 列表，用以下载字体
+- `font-weight` 可选的字体粗细，默认值为 `normal`
+- `font-style` 可选的字体样式，默认值为 `normal`
+
+**注意：** 这些属性在 `@font-face` 中的意义和通常规则中的不一样，**它们不会改变字体** ，只是为了告诉浏览器什么样的情况用特定的字体
+
+如果不小心把 `font-weight` 设置为字体族名称，其它粗细的依旧可以使用这里的字体，因为浏览器加载选择字体的原则是：正确的 `font-family` 优先于正确的粗细值
+
+在使用时容易的犯的错误是在 `@font-face` 块中把 `font-weight` 属性设置为 `normal` ，而在使用时却把 `font-weight` 属性设置为 `bold`，导致浏览器以为这个字体没有相应的加粗变体，会在原来字体粗细的基础上进行**模拟加粗**
+
+**Web 字体浏览器性能**
+
+在网页是实践应用中存在一些麻烦
+
+- 浏览器需要下载额外的字体文件，会延长用户的等待时间，所以要注意不要加载过多的字体文件，自己托管的自定义字体要确保设置适当的缓存首部
+
+- 浏览器在渲染字体时也存在问题，浏览器在下载 Web 字体时有两种处理方式
+  1. 在字体下载完成前暂缓显示文本，这种方式的术语是 **FOIT(flash of invisible text)** ，Safari、Chrome 和 IE 浏览器默认使用这种方式，**缺点是如果网络速度很慢，用户必需等待字体下载完成才能看到内容**
+  1. 在字体下载完成前使用备用的字体显示内容，**缺点是会带来字体切换闪动的问题，特别是备用字体和 Web 字体大小相差很多的情况下，存在网页内容跳跃过大，用户会失去焦点**
+
+想要更好的处理 Web 字体和备用字体之间的切换，可以使用 JavaScript 加载字体
+
+[CSS Font Loading 规范](https://developer.mozilla.org/zh-CN/docs/Web/API/CSS_Font_Loading_API) 定义了一个用来加载字体的实验性 JavaScript API，但不是所有的浏览器都支持，需要借助第三方库来实现一致的字体加载体验
+
+Web Font Loader：https://github.com/typekit/webfontloader
+
+这个库在浏览器支持的情况下会用原生的字体加载 API，在浏览器不支持的情况下会模拟相同的功能，也支持 Web 字体服务
