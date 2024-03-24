@@ -1183,7 +1183,7 @@ p.small {
 
 <img src="images/image-20240318085347751.png" alt="image-20240318085347751" style="zoom:67%;" />
 
-**注意：**只有当首字母是小写的时候，首字母同样也会变成大写并缩小
+**注意：** 只有当首字母是小写的时候，首字母同样也会变成大写并缩小
 
 ```html
 <p class="normal">firefox rocks!</p>
@@ -1452,3 +1452,198 @@ h6 {
 Web Font Loader：https://github.com/typekit/webfontloader
 
 这个库在浏览器支持的情况下会用原生的字体加载 API，在浏览器不支持的情况下会模拟相同的功能，也支持 Web 字体服务
+
+## 第五章 漂亮的盒子
+
+**背景颜色**
+
+`background` 与 `background-color` 属性有什么区别？
+
+前者是一个简写属性，可以一次性设置多个与背景相关的属性，后者只能设置背景颜色
+
+```css
+body {
+  background: #bada55;
+}
+```
+
+**注意：** `body` 没有设置高度依旧可以显示出全屏的背景颜色，是因为单独给 `body` 设置背景颜色的时候实际上是给浏览器画布设置了背景颜色，当 `html` 和 `body` 分别设置不同的背景颜色，浏览器会优先拿 `html` 的背景颜色往浏览器画布上设置背景颜色
+
+为什么写页面的时候要写如下代码？
+
+```css
+html,
+body {
+  height: 100%;
+}
+```
+
+**原因：** 因为 `html` 、`body` 元素默认高度为 0，导致内容无法正常使用百分比撑满全屏，如果只设置 `body` 标签的高度为 `100%` 也还是不行的，因为 `body` 的高度百分比是以 `html` 的高度为准的，高度依旧是 0，所以要同时给 `html`、`body` 设置高度为 `100%`
+
+使用 `rgba()` 与 `opacity` 有什么区别？
+
+前者只是元素的背景发生了透明，而后者是整个元素变得透明，包括里面的子元素
+
+什么时候使用 `img` 元素作为内容图片，什么时候应该使用 CSS 使用背景图片？
+
+如果图片从网页中去掉后，网站本身仍然有意义的，则应该当做背景图片，反之使用内容图片
+
+**图片格式**
+
+前端常用的图片格式有如下：
+
+- **JPEG：** 一种位图格式，有损压缩，压缩率高，不支持透明度，**适合照片**
+
+- **PNG：** 一种位图格式，无损压缩，不适合照片(文件体积会很大)，支持透明度，**适合图标、插图等小尺寸的图片**
+- **GIF：** 早期的位图格式，与 PNG 类似，主要用于动图，除了动图外已被 PNG 取代，**PNG 实际也支持动图但浏览器支持落后**，支持透明度，但是不支持阿尔法分级，存在边缘锯齿
+- **SVG：** 一种矢量图片格式，支持无损放大，本身也是一种标记语言，可以直接嵌入网页，也可以作为资源引用、
+- **WebP：** Google 开发的一种新的图片格式，结合了 JPEG 高压缩率 和 PNG 阿尔法透明特性，**但浏览器的支持还参差不齐**
+
+**背景位置**
+
+使用 `background-position` 属性调整位置
+
+```css
+.box {
+  background-position: 20% 20%;
+}
+```
+
+当使用百分比单位时实际上是使用定位图片中对应位置的点和元素中对应位置的点重合
+
+<img src="images/image-20240321061742900.png" alt="image-20240321061742900" style="zoom:33%;" />
+
+```css
+.box {
+  background-position: 20px 20px;
+}
+```
+
+当使用像素单位时是用图片左上角的点偏移
+
+<img src="images/image-20240321061038764.png" alt="image-20240321061038764" style="zoom: 33%;" />
+
+```css
+.box {
+  background-position: right 1em top 50%;
+}
+```
+
+**注意：** 该写法是 CSS3 中新加入的语法，例子中是把图片定位在距离右边缘 1em，距离上边缘 50% 的位置，用于控制背景图片产生空白区(间距)，**但该写法无法优雅降级**，低版本浏览器不支持
+
+**背景的裁切和原点**
+
+默认情况下，背景图片是被限制在元素的边框以内的(包括边框)，**若把边框设置为半透明色，那图片边缘就会出现半透明的边框**
+
+```css
+.box {
+  width: 200px;
+  height: 200px;
+  background: url(./demo.jpg);
+  border: 10px solid rgba(220, 220, 160, 0.5);
+  background-repeat: no-repeat;
+}
+```
+
+<img src="images/image-20240321063712492.png" alt="image-20240321063712492" style="zoom: 50%;" />
+
+要想解决这个问题，可以使用 `background-clip` 属性改变这个行为，默认值为 `border-box`，把它设置为 `padding-box`，将图片裁剪到内边距盒子以内
+
+```css
+.box {
+  width: 200px;
+  height: 200px;
+  background: url(./demo.jpg);
+  border: 10px solid rgba(220, 220, 160, 0.5);
+  background-repeat: no-repeat;
+  background-clip: padding-box;
+}
+```
+
+<img src="images/image-20240321064456291.png" alt="image-20240321064456291" style="zoom: 50%;" />
+
+此时图片的定位偏移的参照点变成了内边距的左上角(原来的是元素边框的左上角)，此时如果不想参照点在内边距的左上角，但是还想保持裁切，可以使用 `background-clip` 来调整的参照点(原点)的位置
+
+```css
+.box {
+  width: 200px;
+  height: 200px;
+  background: url(./demo.jpg);
+  border: 10px solid rgba(220, 220, 160, 0.5);
+  background-repeat: no-repeat;
+  /* 将背景图片的参照点设置为边框而非内边距 */
+  background-origin: border-box;
+  background-clip: padding-box;
+}
+```
+
+**背景大小**
+
+如果要背景图片随着元素的缩放而缩放，则需要使用百分比
+
+```css
+.box {
+  background-size: 100px auto;
+}
+```
+
+**注意：** 不要给图片的宽度和高度都设置为百分比，可能会元素的高度变化导致图片变形，给一个维度(宽度或高度)设置为百分比，另一个维度设置为 `auto`，可以保持固有的宽高比，但是存在背景图片一边被裁切的情况
+
+```css
+.box {
+  background-size: contain;
+}
+```
+
+使用 `contain` 浏览器会自行决定哪一边使用 `auto`，会尽可能的保证背景图片的最大化，同时保证图片的宽高比，避免图片被裁切
+
+- 在元素高度比宽度高的情况下，浏览器会给宽度设置为 `100%`，高度设置为 `auto`，高度留白
+- 在元素宽度比高度高的情况下，浏览器会给宽度设置为 `auto`，高度设置为 `100%`，宽度留白
+
+```css
+.box {
+  background-size: cover;
+}
+```
+
+使用 `cover` 图片会被缩放以确保覆盖元素的每一个像素，同时不会变形，超出元素的部分会被裁切
+
+- 在元素高度比宽度高的情况下，元素高度会被填满，左右会被裁切
+- 在元素宽度比高度高的情况下，元素宽度会被填满，高度会被裁切
+
+**背景属性简写**
+
+背景属性值的顺序可以随意，但是有两个注意点
+
+1. 因为两个长度值既可以给 `background-position` 使用也可以给 `background-size` 使用，所以**两个都需要声明**，要先声明 `background-position`，后声明 `background-size`，中间用 `/` 分隔
+
+   ``` css
+   .box {
+     background: 50% 50% / cover;
+   }
+   ```
+
+2. 因为 `*-box` 关键字( `border-box`、`padding-box`、`content-box` )既可以给 `background-origin` 使用，也可以给 `background-clip` 使用所以有如下规则：
+
+   - 如果存在一个 `*-box` 关键字则 `background-origin` 和 `background-clip` 都取这个值
+   - 如果存在两个 `*-box` 关键字则第一个为 `background-origin` 的值，第二个为 `background-clip` 的值
+
+**注意：** 因为背景属性简写会把没有使用过的属性都重置为默认值，所以应该把它放在第一位，然后再覆盖特定的属性，**最好还是使用明确的属性，跟容易让人理解**
+
+**边框圆角**
+
+在给 `border-radius` 指定百分比时，没有必要给任何一个角设置超过 50% 的值，元素被设置为圆角后，只会改变触摸范围，不会改布局的盒子大小
+
+**可伸缩图片模式**
+
+如果想让图片随着容器的缩小而缩小，但是在容器放大时又不会大到超过图片自身的大小
+
+```css
+img {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+}
+```
+
+**注意：** 此处加上的 `width: auto` 和 `height: auto` 是为了覆盖之前的声明(如果有的话)，同时可以解决 IE8 不声明 `width` 无法正确缩放图片的问题
