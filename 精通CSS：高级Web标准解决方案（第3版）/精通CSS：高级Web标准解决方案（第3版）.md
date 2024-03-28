@@ -1647,3 +1647,266 @@ img {
 ```
 
 **注意：** 此处加上的 `width: auto` 和 `height: auto` 是为了覆盖之前的声明(如果有的话)，同时可以解决 IE8 不声明 `width` 无法正确缩放图片的问题
+
+## 第六章 内容布局
+
+**CSS 中负外部距的行为**
+
+- 左边或上边的负外边距会把元素向左或向上拉，盖住旁边的元素
+
+  ```html
+  <div class="box">
+    <div class="top"></div>
+    <div class="bottom"></div>
+  </div>
+  ```
+
+  ```css
+  .top,
+  .bottom {
+    width: 30px;
+    height: 30px;
+    background-color: red;
+  }
+  .bottom {
+    /* 负上外边距 */
+    margin-top: -10px;
+    background-color: blue;
+  }
+  ```
+
+<img src="images/image-20240324112325403.png" alt="image-20240324112325403" style="zoom:50%;" />
+
+- 右边或下边的负外边距会把相邻元素向左或向上拉，盖住设置了负外边距的元素
+
+  ```html
+  <div class="box">
+    <div class="left"></div>
+    <div class="right"></div>
+  </div>
+  ```
+
+  ```css
+  .box {
+    display: flex;
+  }
+  .left,
+  .right {
+    width: 30px;
+    height: 30px;
+    background-color: red;
+  }
+  .right {
+    background-color: blue;
+  }
+  .left {
+    margin-right: -10px;
+  }
+  ```
+
+<img src="images/image-20240324123233595.png" alt="image-20240324123233595" style="zoom:50%;" />
+
+- 在浮动元素上，与浮动方向相反的负外边距会导致浮动区域缩小，使得相邻元素盖住浮动的元素。而与浮动方向相同的负外边距会在该方向上把浮动元素向外拉
+
+  ```html
+  <div class="box">
+    <div class="left"></div>
+    <div class="right"></div>
+  </div>
+  ```
+
+  - 当浮动方向和负外边距方向相反时
+
+    ```css
+    .left,
+    .right {
+      width: 30px;
+      height: 30px;
+      background-color: red;
+      float: left;
+    }
+    .right {
+      background-color: blue;
+    }
+    .left {
+      /* 负外边距和浮动方向相反 */
+      margin-right: -10px;
+    }
+    ```
+
+    <img src="images/image-20240324123233595.png" alt="image-20240324123233595" style="zoom:50%;" />
+
+  - 当浮动方向和负外边距方向相同时，向外拉
+
+    ```css
+    .left,
+    .right {
+      width: 30px;
+      height: 30px;
+      background-color: red;
+      float: left;
+    }
+    .right {
+      background-color: blue;
+    }
+    .left {
+      /* 负外边距和浮动方向相同 */
+      margin-left: -10px;
+    }
+    ```
+
+- 给未声明宽度的非浮动元素应用负外边距时，左、右负外边距会向外拉伸元素，导致元素扩张，有可能盖住相邻元素
+
+**定位与 z-index 的堆叠内容的陷阱**
+
+**堆叠上下文：** 就像是一盒扑克牌，每张牌本身也是一个上下文(牌盒)，牌只能相对当前的牌盒排定次序，任何一个设定了 `position: absolute` 及值不是 `auto` 的 `z-index` 属性的元素，都会创建一个自己后代元素的堆叠上下文，**一个堆叠上下文的内部不会影响其他堆叠上下文**
+
+**根堆叠上下文：** 所有 `z-index` 不是 `auto` 的定位元素都会在这个上下文中排序，随着其它上下文的建立，就会出现堆叠层级
+
+**注意：** 设置小于 `1` 的 `opacity` 的值也可以触发新的堆叠上下文，`transform` 和 `filter` 属性也可以触发新的堆叠上下文
+
+**水平布局不同技术的优缺点**
+
+- 浮动布局
+
+  **优点：** 与行内块一样可以包含多行文本，并且会基于自己的内容来 ”收缩适应“，元素排列不依赖元素在代码中的次序
+
+  **缺点：** 需清除浮动，存在被之前更高的浮动元素卡住的问题
+
+- 行内块布局
+
+  **优点：** 可以包含多行文本，并且会基于自己的内容来 ”收缩适应“，支持控制垂直对齐
+
+  **缺点：** 存在空白符占用导致元素换行的问题
+
+- 表格显示布局 `display: table`
+
+  **优点：** 水平布局很便捷，实现表格内容的垂直居中很容易
+
+  **缺点：** 仅支持不会发生折行的内容，使用 `table` 标签布局的问题表格也同样存在，无法给内部元素重写排序以及应用外边距
+
+**Flexbox 中自动外边距**
+
+一般情况下，使用 `margin: 0 auto` 可以使元素水平居中，但是使用 `margin: auto 0` 却无法使元素垂直居中
+
+```html
+<div class="box">
+  <div></div>
+</div>
+```
+
+```css
+.box {
+  width: 300px;
+  height: 300px;
+  background-color: red;
+}
+.box > div {
+  width: 150px;
+  height: 150px;
+  background-color: blue;
+  /* 无法使元素垂直居中 */
+  margin: auto 0;
+}
+```
+
+<img src="images/image-20240325220441673.png" alt="image-20240325220441673" style="zoom: 33%;" />
+
+**原因：** 在块级格式化上下文中，如果 `margin-left` 和 `margin-right` 的值都是 `auto`，则它们表达值相等，从而使元素可以水平居中，但是如果 `margin-top` 和 `margin-bottom` 的值都是 `auto`，则它们的值都为 `0`，也就无法造成垂直上的居中
+
+在 Flexbox 中，使用 `marin: auto` 可以使元素水平垂直居中
+
+```css
+.box {
+  display: flex;
+  width: 300px;
+  height: 300px;
+  background-color: red;
+}
+.box > div {
+  width: 150px;
+  height: 150px;
+  background-color: blue;
+  /* 使元素水平垂直居中 */
+  margin: auto;
+}
+```
+
+<img src="images/image-20240325221533932.png" alt="image-20240325221533932" style="zoom:33%;" />
+
+**原因：** 在 `flex` 格式化上下文中，设置了 `margin: auto` 的元素，在通过 `justify-content` 和 `align-self` 对齐之前，任何处于空闲的空间都会被分配到该方向的 `margin` 中去，不仅是水平方向会被分配，垂直方向也会分配
+
+在 `flex` 格式化上下文中，`margin: auto` 可以模拟 `space-between` 和 `space-around`
+
+```html
+<ul class="g-flex">
+  <li>liA</li>
+  <li>liB</li>
+  <li>liC</li>
+  <li>liD</li>
+  <li>liE</li>
+</ul>
+```
+
+```css
+.g-flex {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  background-color: blue;
+}
+```
+
+- `marign: auto` 实现 `space-around`
+
+  ```css
+  li {
+    width: 18%;
+    height: 80px;
+    background-color: green;
+    box-sizing: border-box;
+    /* 模拟 space-around 效果 */
+    margin: auto;
+  }
+  ```
+
+  <img src="images/image-20240326085748271.png" alt="image-20240326085748271" style="zoom:50%;" />
+
+- `margin: auto` 实现 `space-between`
+
+  ```css
+  li {
+    width: 18%;
+    height: 80px;
+    background-color: green;
+    box-sizing: border-box;
+    /* 模拟 space-between 效果 */
+    margin: auto;
+  }
+  li:first-child {
+    /* 清除左边元素的外边距 */
+    margin-left: 0;
+  }
+  li:last-child {
+    /** 清除右边元素的外边距 */
+    margin-right: 0;
+  }
+  ```
+
+  <img src="images/image-20240326090317001.png" alt="image-20240326090317001" style="zoom:50%;" />
+
+**flex 可伸缩尺寸**
+
+- `flex-basis` ：控制 flex 元素(指 flex 容器 **内部** 的元素)在**主轴方向**上、经过修正之前的 "首选" 大小 ( `width` 或 `height` )，可以使用长度单位( 如：`px`、`em` 等)、也可以使用百分比(相对于容器的主轴而言)，默认值为 `auto`，`auto` 的意思在 flex 元素设置了宽度或者高度的情况下 flex 元素可以从对应的属性 (`width` 或 `height`) 获得主尺寸，如果 flex 元素没有设置高度或者宽度则根据其内容来确定大小，可以直接指定 `content` 值，会自动忽略 flex 元素的高度或者宽度值，按照内容来确定大小，但是这个值是新出的，存在兼容性问题
+- `flex-grow`：一个弹性系数，在通过 `flex-basis` 为每一项设置了首选大小之后，如果还有剩余空间，该数值表示剩余空间扩展的比值，默认值为 `0` 表示不扩展，弹性系数表示占剩余空间的几份
+
+  - 例如一个 flex 容器中有两个元素，没有占用完容器的所有空间，给两个元素都指定 `flex-grow: 1` ，则表示将剩余空间分成两份，两个元素各占一份
+  - 如果第一个元素设置为 `flex-grow: 3` ，第二个元素设置为 `flex-grow: 1` 表示把剩余空间分成四份，第一个元素占三份，第二个元素占一份
+  - 如果把两个元素的 `flex-basis` 的值设置为 `0` 并把 `flex-grow` 设置为 `1` 表示容器**全部的空间**分为两部分，每个元素各占一部分
+
+  **注意：** 在 `flex: 1 0 0%` 简写中，`flex-basis` 必须加单位，可以加 `%` 或者 `px`
+
+- `flex-shrink`：一个弹性系数，与 `flex-grow` 的作用相反，在空间不足时收缩的比值，默认值为 `1` 表示以自己首选尺寸(通过 `flex-basis` 设置的)为比例收缩，收缩的计算方式是元素自己的 `flex-shrink` 的值乘以自己的 `flex-basis`，再用乘积除以每一项的 `flex-shrink` 与 `flex-basis` 的乘积之和，最后再拿得到的比例系数乘以超出的宽度(负空间)，从而得到元素要收缩的空间
+
+  <img src="images/image-20240327213911427.png" alt="image-20240327213911427" style="zoom: 50%;" />
