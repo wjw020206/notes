@@ -1910,3 +1910,364 @@ img {
 - `flex-shrink`：一个弹性系数，与 `flex-grow` 的作用相反，在空间不足时收缩的比值，默认值为 `1` 表示以自己首选尺寸(通过 `flex-basis` 设置的)为比例收缩，收缩的计算方式是元素自己的 `flex-shrink` 的值乘以自己的 `flex-basis`，再用乘积除以每一项的 `flex-shrink` 与 `flex-basis` 的乘积之和，最后再拿得到的比例系数乘以超出的宽度(负空间)，从而得到元素要收缩的空间
 
   <img src="images/image-20240327213911427.png" alt="image-20240327213911427" style="zoom: 50%;" />
+
+
+
+## 第七章 页面布局和网格
+
+flex 和 grid
+
+## 第八章 响应式Web设计与CSS
+
+**浏览器视口：** 视口就是浏览器显示网页的矩形区域，在桌面浏览器上通过CSS像素来合理利用视口的空间
+
+**CSS像素：** CSS 像素不是物理像素，CSS像素是像素与屏幕物理像素之间存在的一种灵活的对应关系，取决于硬件、操作系统和浏览器以及用户是否缩放了页面，例如在 iPhone 5 中物理像素的宽度为 640 像素，但在 CSS 中的视口像素为 320 像素，这里每个 CSS 像素相当于 2 X 2 个物理像素
+
+**默认视口：** 在智能手机刚出现的时候，还没有多少网站针对小屏幕做优化，通常的做法是移动设备的浏览器会模拟一个大约 1000 像素宽的视口，在其中显示缩小后的页面，这是实现响应式设计的第一道关卡
+
+**理想视口：** 与设备尺寸自身尺寸接近的视口，因操作系统、设备和浏览器而异，例如：iPhone 5 的理想视口的宽度就是 320 像素
+
+**可见视口(视觉视口)：** 显示网页的矩形区域，这个视口等于浏览器窗口减去所有按钮、滚动条、工作条等组件之后，实际包含网页内容的空间
+
+**布局视口：** 放大网页时，网页的某些区域会跑到可见视口之外，约束整个页面的矩形区域就是布局视口
+
+可见视口和布局视口在桌面浏览器和移动浏览器的工作机制是一样的
+
+<img src="images/image-20240331095523662.png" alt="image-20240331095523662" style="zoom:50%;" />
+
+
+
+对于响应式Web设计而言，只会基于设备的 “理想视口” 来适配页面，桌面端浏览器不需要任何特殊对待，因为桌面端浏览器的理想视口就是其默认视口，但平板和智能手机需要拆解模拟的默认视口，令其等于理想视口，需要通过 HTML 中的 meta 元素来做到
+
+
+
+在页面的头部元素中添加一个 `meta` 标签即可
+
+```html
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+```
+
+- `width=device-width` 作用是设置当前设备的理想视口(device-width)作为视口宽度的基准
+- `initial-scale=1` 作用是设置与理想视口匹配的缩放级别，可以避免 ios 中一些奇怪的缩放行为，值大于1，表示放大布局，实际会导致布局视口缩小，反之小于1的值会缩小布局，实际会导致布局视口中可容纳的 CSS 像素增多
+
+
+
+**媒体查询**
+
+可以同过给 `link` 元素添加 `media` 属性来指定哪些设备上应用相关样式
+
+```css
+<link rel="stylesheet" href="demo.css" media="screen, print" />
+```
+
+`print` 表示打印设备，`screen` 表示屏幕设备，如果不关心设备可以使用 `all` 关键字或者不写 `media` 属性
+
+
+
+最常见的方法就是在 CSS 文件中指定
+
+```css
+@media print {
+  /* 针对打印设备的选择符和规则 */
+}
+```
+
+能用的上的类型有 `print` 、`screen` 和 `all`
+
+
+
+该媒体查询条件要求视口至少 600 CSS 像素
+
+```html
+<link rel="stylesheet" href="demo.css" media="screen and (min-width: 600px)" />
+```
+
+**注意：** 在媒体查询不匹配的情况下，很多浏览器仍然会下载 CSS 文件，因此不要过度使用带媒体查询的 `link` 标签
+
+
+
+同样的声明可以在 CSS 文件中通过 `@meida` 使用
+
+```css
+@media screen and (min-width: 600px) {
+  /* 样式规则 */
+}
+
+/* 多个条件通过使用 and 关键字连接起来 */
+@media screen (min-width: 600px) and (max-width: 1000px) {
+	/* 样式规则 */
+}
+
+/* 多个媒体查询用逗号分隔 */
+@media screen, print and (min-width: 600px) {
+  /* 样式规则 */
+}
+
+/* 相当于 @media all and (min-width: 30em) */
+@media (min-width: 30em) {
+  /* 样式规则 */
+}
+
+@media not screen {
+  /* 针对非屏幕的样式 */
+}
+
+/* only 关键字可以避免旧版本浏览器误解媒体查询 */
+@media only screen and (min-width: 30em) {
+  /* 样式规则 */
+}
+
+@media (orientation: portrait) {
+  /* 竖向屏幕时的样式 */
+}
+
+@media (min-aspect-ratio: 16/9) {
+  /* 宽高比至少为16:9时应用的样式 */
+}
+```
+
+
+
+在响应式设计中与 **宽度** 相关的媒体查询占绝大多数，因为创建网页的默认方式就是和水平布局的视口一样宽，垂直方向上可以让内容自动扩展
+
+IE8 以及更早的浏览器不支持媒体查询，对于这些浏览器可以提供一个固定宽度的布局或者使用腻子脚本，如：[Respond.js](https://github.com/scottjehl/Respond)，这个脚本在不支持媒体查询的浏览器上从所有的 CSS 文件中搜索媒体查询语法，然后根据屏幕大小应用或删除对应的样式
+
+**Respond.js的缺点：**
+
+1. 对直接写在 HTML 文件中的 `style` 标签里的媒体查询无效
+2. 存在一些边界情况需要避免，具体参考官方文档
+
+
+
+使用条件注释，条件注释只有 IE 浏览器才会识别，非IE浏览器会把它当做正常注释处理
+
+```html
+<!-- [if (lt IE 9) & (!IEMobile)] -->
+<link rel="stylesheet" href="oldIE.css" media="all" />
+<![endif]-->
+```
+
+上述的代码表示低于 IE9(不包含IE9) 的浏览器并且不是Windows Phone 中的IE浏览器时才执行条件注释中的样式
+
+
+
+**移动优先的CSS**
+
+先针对小屏幕进行设计，在各种浏览器中和设备中测试，通过媒体查询在某些点(断点)上进行样式调整
+
+代码尽可能的少，适用的设备却尽可能多
+
+
+
+**媒体查询放在哪里**
+
+- 影响布局的媒体查询(包含一堆类名的)通常放在布局规则的附近
+- 影响个别组件的就放在组件样式规则的附近
+- 在相同断点下既影响布局也影响组件的样式的媒体查询统一放在样式表的最后
+
+**注意：** 媒体查询不会增加选择符的特殊性，依旧遵循正常的层叠规则
+
+
+
+**响应设计模式**
+
+- 响应文本列，依靠 `column-width` 属性来做文本列响应式处理
+- 没有媒体查询的响应式 Flexbox，依靠 `flex-wrap` 和 `flex` 属性来做响应式处理
+- 网格响应式，使用媒体查询结合 `grid` 来做响应式处理
+
+
+
+**响应式背景图片**
+
+通过媒体查询根据 `min-width` 来切换加载对应大小的背景图片
+
+```css
+.box {
+  height: 300px;
+  background-size: cover;
+  background-image: url(img/small-demo.jpg);
+}
+/* 尺寸过大时加载大图 */
+@media only screen and (min-width: 600px) {
+  .box {
+    height: 600px;
+    background-image: url(img/big-demo.jpg);
+  }
+}
+```
+
+
+
+如果一张 400X400 像素的图片在高分辨率屏幕上也显示为 400X400 CSS 像素会导致图片被放大，导致失真模糊，此时可以通过 CSS 像素比来加载图片，一般高分辨的手机和平板的最低像素比是 1.5
+
+```css
+@media (-webkit-min-device-pixel-ratio: 1.5),(min-resolution: 1.5dppx) {
+  .box {
+    background-image: url(img/medium-demo.jpg);
+  }
+}
+```
+
+**注意：** `-webkit-min-device-pixel-ratio` 的值不需要加单位，主要针对 Safari 浏览器
+
+
+
+**响应式嵌入媒体**
+
+```css
+img,object,video,emded {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+}
+```
+
+通过设置 `max-width` 可以使元素变得可伸缩，同时不会超过其固有大小
+
+
+
+**响应式图片**
+
+```html
+<img src="img/600x300.png" srcset="img/1200x600.png 1.5x" alt="demo img" />
+```
+
+**原因：** 由于浏览器会对网页进行预处理，会在构建完整个页面或运行 JavaScript 之前开始下载，所以无法通过 JavaScript 的操作来根据设备或屏幕大小动态加载不同大小的图片，所以诞生了标准的响应式属性 `srcset`
+
+**功能：** `srcset` 属性针对目标分辨率和物理像素与 CSS 像素的比例指定可替换的图片，`1.5x` 表示屏幕分辨率是普通分辨率的 1.5 倍(通常是 Retina 显示屏的情况)，则加载分辨率更高的图片
+
+
+
+但是上述语法只能根据分辨率切换显示的图片，不能控制显示图片的尺寸，需要添加 `sizes` 属性
+
+```html
+<img src="img/xsmall.png" 
+   srcset="img/xsmall.png 300w,
+   img/small.png 400w,
+   img/medium.png 600w,
+   img/large.png 800w,
+   img/xlarge.png 1200w"
+   sizes="(min-width: 70em) 12.6875em,
+   (min-width: 50em) calc(25vw * 0.95 - 2.75em),
+   (min-width: 35em) calc(95vw / 2 - 4.125em),
+   calc(95vw - 1.375em)"
+   alt="demo img"
+/>
+```
+
+`srcset="img/xsmall.png 300w` 在一组 URL 后面添加实际的宽度值，其中的 `300w` 是宽度描述符，`sizes` 属性是告诉浏览器在不同视口大小下应该使用哪个图像的大小，通过使用媒体查询来定义不同视口宽度下图像的大小，依次从前往后执行，所以最后一个大小可以不设置媒体查询
+
+
+
+**picture 元素**
+
+```html
+<picture>
+	<source type="image/webp" 
+  	srcset="img/xsmall.webp 300w,
+  	img/small.webp 400w,
+  	img/medium.webp 600w,
+  	img/large.webp 800w,
+  	img/xlarge.webp 1200w" 
+  	sizes="(min-width: 70em) 28em,
+  	(min-width: 50em) calc(50vw * 0.95 - 2.75em),
+  	calc(95vw - 1.375em)"
+	/>
+  <img src="img/xsmall.png"
+  	srcset="img/xsmall.png 300w,
+    img/small.png 400w,
+    img/medium.png 600w,
+    img/large.png 800w,
+    img/xlarge.png 1200w"
+    sizes="(min-width: 70em) 28em,
+  	(min-width: 50em) calc(50vw * 0.95 - 2.75em),
+  	calc(95vw - 1.375em)"
+  />
+</picture>
+```
+
+这段代码中 `picture` 元素中仍然要有 `img`，因为 `picture` 元素和 `source` 元素要选择哪个图片作为 `img` 的最终源文件，其次是作为不支持 `picture` 元素浏览器的后备选项，在 `picture` 中 `source` 元素 **可以有多个**
+
+**执行过程：** 浏览器在碰到包含 `img` 的 `picture` 元素时会先尝试寻找 `source` 元素并从中选出匹配的源文件让 `img` 显示，如果浏览器支持 webp 格式会从中挑选匹配的图片，然后 `source` 元素和 `img` 元素拥有相同的 `sizes` 和 `srcset` 属性，再从中匹配文件显示，如果没有找到匹配的元素会回到 `img` 元素中检查它的属性并进行匹配，如果都没找到则使用 `img` 元素 `src` 属性中的图片
+
+**区别：** 响应式图片只支持根据分辨率加载对应的图片，而 `picture` 元素支持根据分辨率和图片类型加载图片
+
+
+
+如果相对文件来源拥有跟多的控制，可以在 `source` 元素上添加 `media` 属性来增加媒体查询
+
+```html
+<picture>
+  <source meida="(min-width: 70em) and (min-resolution: 3dppx)" srcset="..." />
+  <img src="..." alt="..." />
+</picture>
+```
+
+区别在于浏览器不再替你选择用哪个 `source` 元素，`srcset` 属性的内部选择取决于浏览器，但它必须使用在 `media` 或 `type` 属性上匹配的第一个 `source` 元素
+
+
+
+对于不兼容 `srcset` 和 `sizes` 属性的浏览器，可以使用 [picturefill](https://github.com/scottjehl/picturefill) 官方腻子脚本
+
+
+
+**响应式排版**
+
+在大屏幕中阅读，一般每行 45 ~ 70 个字符比较舒服，在小屏幕中，一般每行 35 ~ 45 个字符比较合适
+
+随着每行字符的减少，行高通常也可以减小，例如台式机显示器上的行高如果是 1.5，那么移动设备上的行高可以是 1.3
+
+要为网站主体内容设置合适的字体大小，简单的方法是拿一本实体书或杂志，放在通常阅读屏幕的位置，一般来说把字体设置为 20 像素才让人感觉像看书一样
+
+在手机屏幕中，因为拿的会比书更近一些，字体大小差不多在 16~18 像素之间
+
+要判断某种距离关系下屏幕大小和字体大小是否匹配，可以参考 https://trentwalton.com/2012/06/19/fluid-type/ 中提到的方法，在可接受的起始位置各加上一个特殊字符，例如下面的一段文本中加入了 `*`
+
+```html
+<p>Lorem ipsum dolor sit amet,consectetur adip *isicing elit,sed do eius mod*j tempor incidid.</p>
+```
+
+在移动设备上测试时，如果第一行出现了两个星号，说明这一行太长了，最好是第一行折行的地方在第一个星号之前一点
+
+
+
+在上述不同大小的屏幕下找到合适的字体后，接下来就是实现在不同的屏幕下显示对应合适的字体大小了
+
+- 使用弹性字体大小
+
+  通过使用 `em`、`rem`、`vw`、`vh`、`vmin` 和 `vmax` 等相对长度的字体大小来在不同屏幕间进行适配
+
+- 设置基准字体大小，通过媒体查询动态改变基准字体大小
+
+  ```css
+  p {
+    font-size: 1em;
+  }
+  h1 {
+    font-size: 2.25em;
+  }
+  h2 {
+    font-size: 1.875em;
+  }
+  @meida only screen and (min-width: 32.5em) {
+    body {
+      font-size: 1.125em;
+    }
+  }
+  @meida only screen and (min-width: 52em) {
+    body {
+      font-size: 1.25em;
+    }
+  }
+  ```
+
+  
+
+- 视口相关的单位，视口单位中 1 表示视口宽度的 `1%`
+
+  - `vw` 表示视口宽度
+  - `vh` 表示视口高度
+  - `vmin` 表示视口宽度和高度中较小的
+  - `vmax` 表示视口宽度和高度中较大的
+
+如果直接使用视口单位存在大小过大的情况，需要通过媒体查询通过断点来重新定义 `font-size`
