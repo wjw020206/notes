@@ -2271,3 +2271,66 @@ img,object,video,emded {
   - `vmax` 表示视口宽度和高度中较大的
 
 如果直接使用视口单位存在大小过大的情况，需要通过媒体查询通过断点来重新定义 `font-size`
+
+
+
+## 第九章 表单与数据表
+
+**高级响应式表格**
+
+- 在屏幕过小时，给表格列引入控制机制，比如第一例固定在一个位置上，其它列表可以滚动，让人知道在看哪一行
+- 在屏幕变小时隐藏一些列，只显示最重要的内容
+- 如果用户必须放大才能看清，则链接到一个单独的窗口
+- 提供切换控件，让用户决定隐藏或显示哪些列
+
+可以参考 https://github.com/filamentgroup/tablesaw
+
+
+
+**表单**
+
+- 把表单控件的名称放在相应控件的上方最合适，用户在向下滚动页面时，可以先看到名称，也非常适合在移动端浏览器上显示表单
+
+- `fieldset` 对表单相关信息块分组，使用 `legend` 元素表明每个 `fieldset` 的目的，需要通过 CSS 重置默认的样式，因为不同的浏览器显示样式不同
+
+- `label` 元素非常重要，给表单添加机构，增强可用性和无障碍性
+
+  - 隐式，把表单元素嵌入 `label` 标签中
+
+    ```html
+    <label for="comment-email">
+      Email<input name="comment-email" type="email" />
+    </label>
+    ```
+
+  - 显式，通过 `label` 的 `for` 属性和表单元素的 `id` 属性进行关联
+
+    ```html
+  <label for="comment-email">Email</label>
+    <input name="comment-email" id="comment-email" type="email" />
+    ```
+    
+    虽然 `label` 元素可以离表单元素很远，**但应该尽量避免这么做**，把 `label` 以及相应的表单控件包在 `p` 这样的块级元素中，这样从语义上可以代表表单中的一项
+
+- 无障碍隐藏技术，如果使用 `display: none` 或 `visibility: hidden` 会导致屏幕阅读器跳过该文本，如果想隐藏但不想跳过可以使用如下代码
+
+  ```css
+  /* 隐藏但是屏幕阅读器可以读到 */
+  .visuallyhidden {
+    position: absolute;
+    overflow: hidden;
+   	width: 1px;
+    height: 1px;
+    clip: rect(0 0 0 0);
+  }
+  
+  /* 覆盖'隐藏'属性 */
+  .visuallyshow {
+    position: static;
+   	width: auto;
+    height: auto;
+    clip: none;
+  }
+  ```
+
+- 在对表单控件应用样式或再造的过程中，无论采取什么路线，一定要保证这些控件原生版本在上线后也能照常工作
