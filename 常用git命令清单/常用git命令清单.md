@@ -1,6 +1,6 @@
 # 常用 git 命令清单
 
-<img src="images/Snipaste_2024-04-22_11-45-54.png" alt="Snipaste_2024-04-22_11-45-54" style="zoom: 67%;" />
+![image-20240423084923562](images/image-20240423084923562.png)
 
 - Workspace: 工作区
 - Index/Stage: 暂存区
