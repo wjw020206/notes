@@ -1921,7 +1921,7 @@ flex 和 grid
 
 **浏览器视口：** 视口就是浏览器显示网页的矩形区域，在桌面浏览器上通过CSS像素来合理利用视口的空间
 
-**CSS像素：** CSS 像素不是物理像素，CSS像素是像素与屏幕物理像素之间存在的一种灵活的对应关系，取决于硬件、操作系统和浏览器以及用户是否缩放了页面，例如在 iPhone 5 中物理像素的宽度为 640 像素，但在 CSS 中的视口像素为 320 像素，这里每个 CSS 像素相当于 2 X 2 个物理像素
+**CSS 像素：** CSS 像素不是物理像素，CSS像素是像素与屏幕物理像素之间存在的一种灵活的对应关系，取决于硬件、操作系统和浏览器以及用户是否缩放了页面，例如在 iPhone 5 中物理像素的宽度为 640 像素，但在 CSS 中的视口像素为 320 像素，这里每个 CSS 像素相当于 2 X 2 个物理像素
 
 **默认视口：** 在智能手机刚出现的时候，还没有多少网站针对小屏幕做优化，通常的做法是移动设备的浏览器会模拟一个大约 1000 像素宽的视口，在其中显示缩小后的页面，这是实现响应式设计的第一道关卡
 
@@ -2306,7 +2306,7 @@ img,object,video,emded {
   - 显式，通过 `label` 的 `for` 属性和表单元素的 `id` 属性进行关联
 
     ```html
-  <label for="comment-email">Email</label>
+    <label for="comment-email">Email</label>
     <input name="comment-email" id="comment-email" type="email" />
     ```
     
@@ -2334,3 +2334,438 @@ img,object,video,emded {
   ```
 
 - 在对表单控件应用样式或再造的过程中，无论采取什么路线，一定要保证这些控件原生版本在上线后也能照常工作
+
+
+
+## 第十章 变换、过渡与动画
+
+**二维变换**
+
+变换改变就是改变元素所在的坐标系统，也可以理解为变换是一种**畸变场**，任何落在元素渲染空间内的像素都会被畸变场捕获，然后再把它们输出到页面上的新位置或改变大小，**元素本身还在页面原来的位置上**
+
+不管元素在哪里，都可以使用它在视口中的坐标来描述其位置，例如距离顶部 200 像素，距离页面左边 200 像素，这就是**视口坐标系统**
+
+给使用 `transform: rotate(45deg)` 的元素添加外边距，**外边距的位置也会发生旋转，旋转后的矩形不妨碍页面其他部分的布局**
+
+
+
+**变换原点**
+
+默认情况下盒子的变换是以盒子的中心为原点的，控制原点位置的属性为 `transform-origin`
+
+```css
+.box {
+  transform-origin 10px 10px;
+  transform: rotate(45deg);
+}
+```
+
+`transform-origin` 属性可以接收三个值，分别是 x、y 和 z 轴坐标，如果只给一个值，第二个默认关键字为
+
+`center`，第三个值不影响二维变换，可以暂时忽略
+
+**注意：** 在 SVG 元素应用变换时，它的 `transform-origin` 属性默认是在元素的左上角，不在元素的中心点
+
+
+
+**平移**
+
+移动元素到新的位置，可以使用 `transform: translateX()` 或者 `transform: translateY()`，也可以使用 `transform: translate()` 同时沿着两个轴平移
+
+使用 `translate()` 函数时，可以接收两个坐标值，分别表示 x 轴 和 y 轴平移的距离，当只有一个值的时候表示的是 x 轴，此时 y 轴浏览器默认设为 0，这个值可以是任何长度，**当使用百分比的时候是相对于元素本身的大小，而不是包含块的大小**，因此，可以不必知道元素本身有多大就可以使用 `tansform: translate(-50%)` 就可以向左移动自身宽度的一半
+
+
+
+**多重变换**
+
+可以对一个元素同时应用多重变换，多重变换的形式以空格分隔列表形式给 `transform` 属性, 浏览器会按照声明的顺序依次应用
+
+```css
+.box {
+  width: 100px;
+  height: 100px;
+  transform: rotate(45deg) translate(-50%);
+}
+```
+
+上述代码表示先顺时针旋转 45 度，再沿着 x 轴左移动自身宽度的一半
+
+
+
+**缩放和变形**
+
+```css
+.box {
+  /* 等同于 transform: scaleX(2) scaleY(2); */
+  transform: scale(2);
+}
+```
+
+`scale()` 函数只传一个数的时候表示同时在 x 轴和 y 轴上缩放，**传入数值 1 不会发生改变**
+
+
+
+```css
+.box {
+  transform: skewX(15deg)
+}
+```
+
+`skew()` 函数只传一个度数的时候表示同时在 x 轴和 y 轴上变形，`skewX()` 表示水平线在元素变形后依旧保持水平，垂直线会发生倾斜，`skewY()` 则反之
+
+
+
+**二维变换矩阵**
+
+通过使用 `matrix()` 低级函数直接操作矩阵的值，值一共有 6 个，但是使用需要相当强的数学能力，一般是为 JavaScript 读取变换后的计算样式而服务的
+
+
+
+**变换与性能**
+
+浏览器在计算 CSS 效果时，会在例如修改文字大小导致生成的行盒子折行导致元素本身变高的情况下迫使浏览器进一步重新计算布局
+
+使用 CSS 变换时，响应的计算只会影响相关元素的坐标系统，不会改变元素内部的布局，也不会影响外部的元素，多数浏览器都会尽量安排图形处理器来做计算，所以变换的性能是很好的
+
+**注意：** 
+
+- 有些浏览器会为变换的元素切换抗锯齿方法，会导致动态应用了一个变换，文本可能会瞬间变的不一样，要避免这个问题只需**在加载时尝试只使用初始值应用变换**
+- 应用给元素的任何变换都会创建一个堆叠上下文，使用时要注意使用 `z-index`，如果子元素使用了变换，子元素上的 `z-index` 的值再大也不会出现在父元素上方
+- 固定定位使用变换后元素也会创建一个新的包含块，发生变换的元素中有一个子元素使用了 `position: fixed`，那么它会将发生变化的元素当成自己的视口
+
+
+
+**过渡**
+
+过渡是一种动画，指从一种状态过渡到另一种状态
+
+<iframe height="300" style="width: 100%;" scrolling="no" title="transition-btn" src="https://codepen.io/wjw020206/embed/GRLeNdd?default-tab=html%2Cresult" frameborder="no" loading="lazy" allowtransparency="true" allowfullscreen="true">
+  See the Pen <a href="https://codepen.io/wjw020206/pen/GRLeNdd">
+  transition-btn</a> by CodePencil (<a href="https://codepen.io/wjw020206">@wjw020206</a>)
+  on <a href="https://codepen.io">CodePen</a>.
+</iframe>
+
+```css
+button {
+  /* 表示所有受影响的属性花150毫秒的时间来过渡 */
+  transition: all 150ms;
+}
+```
+
+用户界面组件的过渡时间多数都应该在 0.3 秒内完成，否则会人觉得拖泥带水，其他视觉效果可以延长时间
+
+
+
+```css
+button {
+	transition: box-shadow 0.15s, transform 0.15s;
+}
+```
+
+多个过渡之间使用逗号分隔，**必须指定两个过渡动画重复指定持续时间**
+
+
+
+若多个过渡动画持续时间相同，可以简写为如下代码
+
+```css
+button {
+	transition-property: box-shadow,transform;
+  transition-duration: 0.15s;
+}
+```
+
+如果多个动画持续时间不同，`transition-duration` 可以用逗号分隔，指定多个持续时间
+
+**注意：** 使用带 `-webkit` 前缀的属性时，`transition-property` 本身也要加前缀，例如如下代码
+
+```css
+button {
+	-webkit-transition-property: -webkit-box-shadow,-webkit-transform;
+  -webkit-transition-duration: 0.15s;
+}
+```
+
+
+
+**过渡计时函数**
+
+通过使用 `transition-timing-function` 属性来指定，属性的值有如下
+
+- linear：速度始终恒定
+- ease(默认)：开始缓慢加速，后来缓慢减速
+- ease-in：开始慢，后来快
+- ease-out：开始快，后来慢
+- ease-in-out：两头慢，中段快
+
+
+
+**三次贝塞尔函数**
+
+可以通过使用 `cubic-bezier()` 作为过渡计时函数，可以通过以下网站在线生成 `cubic-bezier()` 的参数
+
+https://cubic-bezier.com
+
+
+
+**步进函数**
+
+除了可以通过预设的关键字和 `cubic-bezier()` 指定缓动效果，还可以指定过渡中每一步的状态，通过使用 `setps()` 来指定
+
+```html
+<div class="hello-box"></div>
+```
+
+```css
+.hello-box {
+  width: 200px;
+  height: 200px;
+  transition: background-position 1s steps(6, start);
+  background: url(../images/step-animation.png) no-repeat 0 -1200px;
+}
+
+.hello-box:hover {
+  background-position: 0 0;
+}
+```
+
+实现鼠标放上去时显示步进动画，这里使用 `steps(6, start)` 作为的 `transition-timing-function` 属性的值，意思是把过渡过程切分为 6 个步骤，在每一次开始时改变属性，包含起始状态在内就创建了 7 个步骤
+
+默认情况下，第二个参数为 `end`，表示在每一步结束时改变属性，这里希望用户在鼠标悬停时直接看到变化，所以就选择在每一步开始时启动过渡
+
+
+
+**使用不同的正向和反向过渡**
+
+上述代码在鼠标离开后，依旧会有 6 个步骤的反向动画，如果要去除鼠标离开后的动画，可以给初始状态下的过渡的持续时间设置为 0
+
+```css
+.hello-box {
+  width: 200px;
+  height: 200px;
+  /* 初始状态下过渡时间设置为0 */
+  transition: background-position 0s steps(6, start);
+  background: url(../images/step-animation.png) no-repeat 0 -1200px;
+}
+
+.hello-box:hover {
+  background-position: 0 0;
+  /* 当鼠标放上时再设置过渡时间 */
+  transition-duration: 0.6s;
+}
+```
+
+
+
+**“粘着”过渡**
+
+```css
+.hello-box {
+  width: 200px;
+  height: 200px;
+  /* 初始状态下过渡时间设置为9999999999 */
+  transition: background-position 9999999999s steps(6, start);
+  background: url(../images/step-animation.png) no-repeat 0 -1200px;
+}
+
+.hello-box:hover {
+  background-position: 0 0;
+  /* 当鼠标放上时再设置过渡时间 */
+  transition-duration: 0.6s;
+}
+```
+
+从技术实现的角度来看，依旧会反向，只不过速度**极慢**，需要浏览器标签页保持打开数年时间才能看到一些变化
+
+
+
+**延迟过渡**
+
+通过使用 `transition-delay` 属性来推迟过渡的发生，在简写的 `transition` 属性中延迟时间必须是第二个时间值
+
+```css
+.hello {
+  transition: background-position 0s 1s steps(6);
+  /* 等于添加了 transition-delay: 1s; */
+}
+```
+
+如果将延迟时间设置为负数值，例如在 10 秒的过渡中使用了 `transition-delay: -5s;`，那么过渡一开始就会跳到一半的位置
+
+
+
+**过渡的能与不能**
+
+一般来说，计算值存在中间状态就可以实现过渡动画，例如：长度、颜色、边框，字体大小等
+
+虽然有些属性没有明确的中间值，但是却可以实现过渡动画，例如使用 `z-index` 时，不能指定值为 1.5，但是 1 或 999 都没有问题，`column-count` 同样也只接受整数值，浏览器会自动插入整数值进行过渡
+
+也可以给 `visibility` 属性实现过渡动画，但浏览器会在过渡经过中点后突变为两个终点值中的一个
+
+对于有些可以实现动画的属性，例如：`height`，只能在数值之间过渡是，像 `auto` 这样的关键字就**不能**用于表示要过渡到的一个状态
+
+
+
+**CSS 关键帧动画**
+
+CSS 过渡是一种**隐式**动画，例如给浏览器指定两个状态，让浏览器在元素从一个状态过渡到另一个状态的过程中，给指定的属性添加动画效果，有时候动画的范围不仅限于两个状态，或者动画属性一开始就不存在，此时需要使用 CSS Animations 关键帧动画来实现
+
+``` css
+@keyframes 动画名 {
+  from {
+    /* 要变换的样式 */
+  }
+  50% {
+    /* 要变换的样式 */
+  }
+  to {
+    /* 要变换的样式 */
+  }
+}
+```
+
+`from` 和 `to` 分别的是 `0%` 和 `100%` 的别名，如果既没指定 `from` (或 `0%`)，也没指定 `to`(或 `100%`)，浏览器会根据元素现有的属性自动创建这两个值，关键帧选择符的值从 1 开始，没有上限。
+
+定义完动画序列后，需要使用 `animation-name` 把它跟标志中的方块连接起来
+
+```css
+.box {
+  /* 要连接的动画名 */
+  animation-name: 动画名;
+  /* 动画持续时长 */
+  animation-duration: 1.5s;
+  /* 动画延迟时间 */
+	animation-delay: 1s;
+  /* 动画循环次数 设置 infinite 表示无限循环 */
+  animation-iteration-count: 3;
+  /* 动画计时函数 */
+  animation-timing-function: linear;
+}
+```
+
+可以给一个元素添加多个动画，多个动画之间使用逗号分隔，**如果某一时刻两个动画都要加给同一个属性，则后声明的动画优先**
+
+上述代码可以使用简写属性 `animation`
+
+```css
+.box {
+  animation: 动画名 1.5s 1s 3 linear;
+}
+```
+
+`backwards`：该属性值是设置 `animation-fill-mode` 属性的，用来告诉浏览器在动画运行之前或之后如何处理动画。默认情况下，第一个关键帧中的属性在运行之前不会被应用，如果指定了 `backwards`，则表示第一个关键帧中的属性会被立即应用，即使动画有延迟或一开始被暂停。
+
+
+
+**曲线动画**
+
+通常元素在两点间的位移动画都是走直线的，但可以通过多添加些关键帧，每一帧改变一点方向就可以实现元素沿曲线运行。
+
+
+
+**注意**
+
+- 有些动画会在页面加载后立即开始，也可能稍有延迟。有些浏览器不能保证页面加载后能够平滑流畅的启动动画，最好在页面完全加载完后通过 JavaScript 去触发动画
+- 关键帧中的属性没有任何特殊性，那些选择符只会简单地改变元素的属性，但有些浏览器却允许动画中的属性使用 `!important` 覆盖普通规则，会让人困惑，正常情况下关键帧中的属性不允许加 `!important`，加了会被忽略
+- Android OS 的第 2 个版本和第 3 个版本都支持 CSS 动画，但是每个关键帧只允许一个属性，如果添加多个属性会导致元素完成消失，这时可以把动画代码拆分成多个关键帧块
+
+
+
+**三维变换**
+
+**透视：**在 Z 轴方向上的元素离用户近些的时候看起来大一些，反之小一些
+
+![image-20240508085308173](images/image-20240508085308173.png)
+
+```html
+<div class="box"></div>
+```
+
+```css
+.box {
+  width: 100px;
+  height: 100px;
+  margin: auto;
+  border: 2px solid;
+  transform: rotateY(60deg);
+}
+```
+
+![image-20240508085742960](images/image-20240508085742960.png)
+
+如果直接使用三维变化相关的属性，体验不出任何 3D 效果，因为还没有使用透视
+
+此时需要给添加三维变化元素的父元素添加 `perspective` 透视属性，`perspective` 属性用于设置用户距离元素的距离，离的越近，变化越大，**默认距离是无穷远**
+
+```css
+body {
+  perspective: 800px;
+}
+```
+
+![image-20240508165927434](images/image-20240508165927434.png)
+
+**注意：** 这个数值表示观察点位于屏幕前方有多远，恰当的距离一般是 600 ~ 1000 像素
+
+
+
+**透视原点**
+
+默认情况下，观察者的视线与应用透视的元素相交于元素的中心，通过使用 `perspective-origin` 属性来修改透视原点的位置，使用上跟 `transform-origin` 类似，可以接受 x、y 坐标值(带关键字 top、right、bottom 和 left)、百分比或者长度值，透视原点默认值为 `50%`
+
+```css
+body {
+  perspective: 800px;
+  transform-origin: 50%;
+}
+```
+
+
+
+**perspective()变换函数**
+
+在父元素上设置 `perspective` 属性可以让其中所有元素的三维变换都共享相同的透视关系
+
+如果要让父元素内的个别元素设置单独的透视，需要使用 `perspective()` 函数
+
+```css
+.box {
+  /* 为box元素设置单独的透视关系 */
+  transform: perspective(800px) rotateY(60deg);
+}
+```
+
+
+
+默认情况下，任何应用给父元素的三维变换都会导致子元素上的三维变换失效，并使其变平。如果不想让子元素上的三维变换失效，需要创建一个三维上下文，让子元素的变换与父元素在同一个三维空间中
+
+```css
+body {
+  /* 默认值为 flat */
+  transform-style: preserve-3d;
+}
+```
+
+
+
+**高级三维变换**
+
+`rotate3d()`：可以围绕穿越三维空间的任意一条线翻转元素
+
+```css
+.box {
+  /* 假想的围绕的线会穿过变换原点和三维坐标为(1,1,1)的点，两点确定一条直线 */
+  transform: rotate3d(1, 1, 1, 45deg);
+}
+```
+
+前面的是 x、y、z 轴的向量坐标，最后的是角度，其中坐标定义了一条线，作为旋转轴，这里不用指定单位，因为点与点之间的位置是相对的，使用 `transform: rotate3d(100, 100, 100, 45deg);` 结果也与上述代码相同
+
+后面的度数表示元素围绕旋转轴的旋转角度是 45 度
+
+
+
+**三维矩阵变换**
+
+与二维矩阵变换类似，也有一个 `matrix3d()` 函数，该函数接收 16 个参数，通常也是用于 JavaScript 和 CSS 组合实现高性能交互体验时才用的，堪称有史以来最复杂的 CSS 属性。
+
