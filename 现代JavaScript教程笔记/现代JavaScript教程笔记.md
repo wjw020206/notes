@@ -2567,3 +2567,982 @@ const sum = (a, b) => { // 花括号表示开始一个多行函数
 
 alert(sum(1, 2)); // 3
 ```
+
+
+
+## 代码质量
+
+
+
+**在浏览器中调试**
+
+调试是指在一个脚本中找出并修复错误的过程，所有现代浏览器和大多数其他环境都支持调试工具
+
+浏览器的开发者工具中有一个令调试更加容易的特殊用户界面，可以让我们一步一步地跟踪代码以查看当前实际运行情况
+
+
+
+**资源（Sources）面板**
+
+![image-20240707091049258](images/image-20240707091049258.png)
+
+![image-20240707091024054](images/image-20240707091024054.png)
+
+资源面板包含三个部分
+
+1. **文件导航：** 该区域列出了 HTML、JavaScript、CSS 和包含图片在内的其他依附于次页面的文件，Chrome 扩展程序也会在这里显示
+2. **代码编辑：** 该区域显示源码
+3. **JavaScript 调试：** 该区域用于调试
+
+
+
+**控制台（Console)**
+
+在资源面板按下 `Esc` 会出现一个控制台，可以输入一些命令然后按下 `Enter` 来执行
+
+在控制台中，语句执行完毕之后，其执行结果会显示在下面
+
+![image-20240707091541668](images/image-20240707091541668.png)
+
+
+
+**断点（Breakpoints）**
+
+通过点击在资源面板代码编辑区域的行号数字，可以设置一个断点
+
+![image-20240707091953510](images/image-20240707091953510.png)
+
+断点是调试器会自动暂停 JavaScript 执行的地方
+
+当代码被暂停时，我们可以检查当前的变量，在控制台执行命令等等
+
+可以在右侧的面板中找到断点的列表，当在数个文件中有许多的断点时，这是非常有用的，它允许我们：
+
+- 快速跳转至代码中的断点（通过点击右侧面板中的对应的断点）
+- 通过取消选中断点来临时禁用对应的断点
+- 通过右键点击并选择移除来删除一个断点
+- ......等等
+
+
+
+**条件断点**
+
+在行号上右键点击允许你创建一个条件断点，至于当给定了表达式（创建条件断点时提供的表达式）为真时才会被触发
+
+当需要在特定的变量值或参数的情况下暂停程序的执行时，这种调试方式就很有用
+
+
+
+**debugger 命令**
+
+可以使用 `debugger` 命令来暂停代码
+
+```js
+function hello(name) {
+  let phrase = `Hello, ${name}!`;
+  
+  debugger; // 调试器会在这里停止
+  
+  say(phrase);
+}
+```
+
+**注意：** 这样的命令只有在开发者工具打开时才有效，否则浏览器会忽略它
+
+
+
+**暂停并查看**
+
+`hello()` 函数在页面加载期间被调用，因此激活调试器的最简单的方法（在外面已经设置了断电之后）就是重新加载页面，因此我们可以按下 `F5` （Windows, Linux）或 `Cmd+R`（Mac）
+
+![image-20240707101847513](images/image-20240707101847513.png)
+
+在右侧的信息下拉列表中，可以查看当前的代码状态
+
+1. **监视（Watch）：** 显式任意表达式的当前值，通过点击 `+` 号然后输入一个表达式，调试器就会显示它的值，并在执行过程中自动重新计算表达式
+
+2. **调用堆栈（Call Stack）：** 显示嵌套的调用链，上述图片中的调试器正在 `hello()` 的调用链中，被 `index.html` 中的一个脚本调用（这里没有函数，因此显示匿名(anonymous)，如果点击了其中一个堆栈项，调试器将跳到对应的代码处，并且还可以查看其所有变量
+
+3. **作用域（Scope）：** 显式当前的变量
+
+   `Local` 显式当前函数中的变量，可以在源代码编辑器中看到它们的值高亮显示了出来
+
+   `Global` 显示全局变量（不在任何函数中）
+
+   还有一个 `this` 关键字
+
+
+
+**跟踪执行**
+
+在右侧面板的顶部是一些关于追踪脚本的按钮
+
+<img src="images/image-20240707102923792.png" alt="image-20240707102923792" style="zoom: 67%;" />
+
+点击**继续执行按钮**，如果没有其它的断点，那么程序就会继续执行，并且调试器不会再控制程序
+
+
+
+<img src="images/image-20240707103154163.png" alt="image-20240707103154163" style="zoom:67%;" />
+
+点击**下一步按钮**，运行下一条语句，一次只会执行一行语句
+
+
+
+<img src="images/image-20240707103304997.png" alt="image-20240707103304997" style="zoom:67%;" />
+
+点击**跨步按钮**，与**下一步按钮类似**，如果下一条语句是函数调用则表现不同，这里的函数指的是：不是内建的函数，如 `alert` 函数等，而是我们自己写的函数
+
+对比一下，**下一步命令**会进行嵌套函数调用并在第一行暂停执行，但是**跨步命令**会我们不可见的执行嵌套函数的调用，跳过了函数的内部，执行会在函数调用完成后立即暂停
+
+如果对函数内部的执行不感兴趣，这个命令会很有用
+
+
+
+<img src="images/image-20240707103730932.png" alt="image-20240707103730932" style="zoom:67%;" />
+
+和**下一步命令**类似，但是在异步函数调用情况下表现不同，**下一步命令**会忽略异步行为，例如 `setTimeout`（计划的函数调用），它会过一段时间再执行，而**步入命令**会进入代码中并等待（如果需要）
+
+
+
+<img src="images/image-20240707104014983.png" alt="image-20240707104014983" style="zoom:67%;" />
+
+**步出命令**继续执行当前函数内的剩余代码，并暂停在调用当前函数的下一行代码处，当我们使用**下一步命令**偶然进入到一个嵌套调用中，但是有对这个函数不感兴趣时，可以使用**步出命令**会立马执行到函数的最后
+
+
+
+<img src="images/image-20240707104239552.png" alt="image-20240707104239552" style="zoom:67%;" />
+
+这个按钮不会影响程序的执行，只是一个批量操作断点的开关
+
+
+
+<img src="images/image-20240707104336520.png" alt="image-20240707104336520" style="zoom:67%;" />
+
+当启用此功能，如果开发者工具是开着的时候，任何脚本执行错误都会导致该脚本执行自动暂停，然后我们可以在调试器中分析变量来看一下什么出错了
+
+当我们的脚步因为错误挂掉的时候，可以打开调试器，启用这个选项然后重新加载页面来看一下哪里导致它挂掉了和当时的上下文是什么
+
+新版的 Chrome 已经没有了这个按钮，取而代之的是如下图的选项
+
+<img src="images/image-20240707104628159.png" alt="image-20240707104628159" style="zoom:67%;" />
+
+
+
+**Continue to here**
+
+在启用调试模式的时候右键代码行才会有这个选项，可以让代码移动很多步到某一行为止，可以偷懒少打一个断点非常方便
+
+<img src="images/image-20240707104819544.png" alt="image-20240707104819544" style="zoom:67%;" />
+
+
+
+**日志记录**
+
+想要输出一些东西在控制台上，可以使用 `console.log` 函数
+
+```js
+console.log('Hello World');
+```
+
+普通用户是看不到这个输出的，它在控制台里显示
+
+打开控制台的两种方式
+
+- 打开浏览器的开发者工具中的 Console（控制台）选项卡
+- 在浏览器的开发者工具中的任意一个选项卡中按下 `Esc`，会在下方打开一个控制台
+
+如果在代码中有足够的日志记录，那么可以从记录中看到刚才发生了什么，就不需要借助调试器了
+
+Chrome 开发者工具详细的文档可以参考 https://developer.chrome.com/docs/devtools
+
+
+
+**代码风格**
+
+代码必须尽可能的清晰和易读
+
+![image-20240707121359598](images/image-20240707121359598.png)
+
+
+
+**花括号**
+
+在大多数的 JavaScript 项目中，花括号以 ”Egyptian“ 风格，左花括号与相应的关键字在同一行上，额不是新起一行，左花括号前还应该有一个空格
+
+```js
+if (condition) {
+  // do this
+}
+```
+
+对于很短的代码，写成一行的可以接受的，但是代码块的方式通常更具有可读性
+
+
+
+**行的长度**
+
+没有人喜欢读一长串代码，最后将代码分割一下
+
+```js
+// 使用回勾引号 ` 允许将字符串拆分为多行
+let str = `
+  ECMA International's TC39 is a group of JavaScript developers,
+  implementers, academics, and more, collaborating with the community
+  to maintain and evolve the definition of JavaScript.
+`;
+```
+
+对于 `if` 语句
+
+```js
+if(id === 123 &&
+  moonPhase === 'Waning Gibbous' &&
+  zodiacSign === 'Libra'
+) {
+  letTheSorceryBegin();
+}
+```
+
+一行代码的最大长度应该在团队层面上达成一致，通常是 80 或 120 个字符
+
+
+
+**缩进**
+
+主要有两种类型的缩进
+
+- 水平方向上的缩进：2 或 4 个空格
+
+  一个水平缩进通常由 2 或 4 个空格或者 ”Tab“ 制表符（`Tab` 键）构成，如今空格更普遍一点
+
+  选择空格而是 tabs 的优点之一是，这允许你做出比 ”Tab“ 制表符更加灵活的缩进配置
+
+- 垂直方向上的缩进：用于将代码拆分为逻辑块的空行
+
+  即使是单个函数通常也被分割为数个逻辑块，下面的示例中，初始化变量、主循环结构和返回值都被垂直分割了
+
+  ```js
+  function pow(x, n) {
+    let result = 1;
+    // <--
+    for (let i = 0; i < n; i++) {
+      result *= x;
+    }
+    // <--
+    return result;
+  }
+  ```
+
+  插入一个额外的空行有助于使代码更具可读性，写代码时，不应该出现连续超过 9 行都没有被垂直分割的代码
+
+
+
+**分号**
+
+每一个语句后面都应该有一个分号，即使它可以被跳过，但在 JavaScript 中，极少数的情况下，换行符有时不会被解释为分号
+
+
+
+**嵌套的层级**
+
+尽量避免代码嵌套层级过深
+
+例如在循环中，有时候使用 `continue` 命令以避免额外的嵌套是一个好主意
+
+不应该像下面这样添加嵌套的 `if` 条件
+
+```js
+for (let i = 0; i < 10; i++) {
+  if (cond) {
+    ...//
+  }
+}
+```
+
+可以写成这样
+
+```js
+for (let i = 0; i < 10; i++) {
+  if (!cond) continue; 
+  ... // 没有额外的嵌套
+}
+```
+
+使用 `if/else` 和 `return` 也可以做类似的事情
+
+```js
+function pow(x, n) {
+  if(n < 0) {
+    alert('Negative "n" not supported');
+  } else {
+    let result = 1;
+    
+    for (let i = 0; i < n; i++) {
+      result *= x;
+    }
+    
+    return result;
+  }
+}
+```
+
+可以修改为如下代码，这样的代码更具有可读性，一旦条件通过检查，代码执行就可以进入 ”主“ 代码流，而不需要额外的嵌套了
+
+```js
+function pow(x, n) {
+	if(n < 0) {
+  	alert('Negative "n" not supported');
+  	return;
+	}
+  
+  let result = 1;
+
+  for (let i = 0; i < n; i++) {
+    result *= x;
+  }
+
+  return result;
+}
+```
+
+
+
+**函数位置**
+
+如果正在写几个 ”辅助“ 函数和一些使用它们的代码，那么有三种方式来组织这些函数
+
+1. 在调用这些函数的代码的上方声明这些函数
+
+   ```js
+   // 函数声明
+   function createElement() {
+     ...
+   }
+   
+   function setHandler(elem) {
+     ...
+   }
+   
+   function walkAround() {
+     ...
+   }
+   
+   // 调用函数的代码
+   let elem = createElement();
+   setHandler(elem);
+   walkAround();
+   ```
+
+2. 先写调用代码，再写函数
+
+   ```js
+   // 调用函数的代码
+   let elem = createElement();
+   setHandler(elem);
+   walkAround();
+   
+   // 函数声明
+   function createElement() {
+     ...
+   }
+   
+   function setHandler(elem) {
+     ...
+   }
+   
+   function walkAround() {
+     ...
+   }
+   ```
+
+3. 混合，在第一次使用一个函数时，对该函数进行声明
+
+**大多数情况下，第二种方式更好**，因为阅读代码时，我们首先想知道的是它做了什么，如果函数的定义先行，那么在整个程序的最开始就展示出了这些信息，可能我们不需要阅读这些函数了，尤其是它们的名字清晰地展示出了它们的功能的时候
+
+
+
+**风格指南**
+
+风格指南里包含了如何编写代码的通用规则，例如：使用哪个引号，用多少空格来缩进、一行代码最大长度等非常多的细节
+
+当团队中所有的成员都使用相同的风格指南时，代码看起来将是统一的，无论是团队中谁写的，都是一样的风格
+
+一些受欢迎的选择：
+
+- [Google JavaScript 风格指南](https://google.github.io/styleguide/jsguide.html)
+- [Airbnb JavaScript 风格指南](https://github.com/airbnb/javascript)
+- [Idiomatic.JS](https://github.com/rwaldron/idiomatic.js)
+- [StandardJS](https://standardjs.com/)
+
+
+
+**自动检查器**
+
+检查器是可以自动检查代码样式，并提出改进建议的工具
+
+它们的妙处在于进行代码风格检查时，可以发现一些代码错误
+
+以下是一些最出名的代码检查工具：
+
+- [JSLint](https://www.jslint.com/) —— 第一批检查器之一
+- [JSHint](https://www.jshint.com/) —— 比 JSLint 多了更多设置
+- [ESLint](https://eslint.org/) —— 应该是最新的一个
+
+大多数检查器都可以与编辑器集成在一起：只需要在编辑器中启用插件并配置代码风格即可
+
+
+
+**注释**
+
+通常通过注释来描述代码怎样工作和为什么这样工作
+
+
+
+**糟糕的注释**
+
+```js
+// 这里的代码会先做这件事(……)，然后做那件事情(……)
+// ……谁知道还有什么……
+very;
+complex;
+code;
+```
+
+在好的代码中，这种 ”解释性“ 注释的数量应该是最少的，严格地来说，就算没有它们，代码也应该是很容易理解的
+
+有一个很棒的原则：**如果代码不够清晰，以至于需要一个注释，那么或许它应该被重写**
+
+
+
+**分解函数**
+
+有时候用一个函数来代替一个代码片段是更好的
+
+```js
+function showPrimes(n) {
+  nextPrime:
+  for (let i = 2; i < n; i++) {
+
+    // 检测 i 是否是一个质数（素数）
+    for (let j = 2; j < i; j++) {
+      if (i % j == 0) continue nextPrime;
+    }
+
+    alert(i);
+  }
+}
+```
+
+更好的变体，使用一个分解出来的函数 `isPrime`
+
+```js
+function showPrimes(n) {
+  for (let i = 2; i < n; i++) {
+    // 检测 i 是否是一个质数（素数）
+    if (!isPrime(i)) continue;
+
+    alert(i);
+  }
+}
+
+function isPrime(n) {
+	for (let j = 2; j < i; j++) {
+		if (i % j == 0) return false;
+	}
+}
+```
+
+这样就很容易理解代码了，函数自己就变成了一个注释，这种代码被称为**自描述型**代码
+
+
+
+**创建函数**
+
+```js
+// 在这里我们添加威士忌（译注：国外的一种酒）
+for(let i = 0; i < 10; i++) {
+  let drop = getWhiskey();
+  smell(drop);
+  add(drop, glass);
+}
+
+// 在这里我们添加果汁
+for(let t = 0; t < 3; t++) {
+  let tomato = getTomato();
+  examine(tomato);
+  let juice = press(tomato);
+  add(juice, glass);
+}
+
+// ...
+```
+
+可以像下面这样，将上面的代码重构为函数
+
+```js
+addWhiskey(glass);
+addJuice(glass);
+
+function addWhiskey(container) {
+  for(let i = 0; i < 10; i++) {
+    let drop = getWhiskey();
+    //...
+  }
+}
+
+function addJuice(container) {
+  for(let t = 0; t < 3; t++) {
+    let tomato = getTomato();
+    //...
+  }
+}
+```
+
+函数本身就可以告诉我们发生了什么，没有什么地方需要注释，分割之后代码的结构也更好了，每一个函数做什么，需要什么和返回什么都非常地清晰
+
+实际上，不能完全避免 ”解释型“ 注释，例如在一些复杂的算法中，会有一些出于优化的目的而做的一些巧妙的 ”调整“，通常情况下，我们应该尽可能地保持代码的简单和 ”自我描述“ 性
+
+
+
+**好的注释**
+
+解释性注释通常来说都是不好的，哪一种注释才是好的呢？
+
+- **描述架构**
+
+  对组件进行高层次的整体概括，它们如何相互作用、各种情况下的控制流程是怎么什么样......简而言之就是代码的鸟瞰图，有一个专门用于构建代码的高层次架构图，以对代码进行解释的特殊编程语言 UML，值得去学习
+
+- **记录函数的参数和用法**
+
+  有一个专门用于记录函数的语法 JSDoc：用法、参数和返回值
+
+  ```js
+  /**
+   * 返回 x 的 n 次幂的值。
+   *
+   * @param {number} x 要改变的值。
+   * @param {number} n 幂数，必须是一个自然数。
+   * @return {number} x 的 n 次幂的值。
+   */
+  function pow(x, n) {
+    ...
+  }
+  ```
+
+  这种注释可以帮助我们理解函数的目的，并且不需要研究其内部的实现代码，就可以直接正确地使用它
+
+- **为什么任务以这种方式解决？**
+
+  写了什么代码很重要，但是**为什么不那样写**可能对于理解正在发生什么更重要，为什么任务是通过这种方式解决的？代码并没有给出答案
+
+- **代码有哪些巧妙的特性？它们被用在了什么地方？**
+
+  如果代码存在任何巧妙和显而易见的方法，那绝对需要注释
+
+
+
+**使用 Mocha 进行自动化测试**
+
+自动化测试将被用于进一步的任务中，并且还将被广泛应用在实际项目中
+
+
+
+**为什么需要测试？**
+
+在写一个函数时，通常可以想象出它应该做什么：哪些参数会给出哪些结果
+
+在开发期间，可以运行程序来检查它比将结果与预期进行比较
+
+如果出了问题，那么我们会修复代码，然后再一次运行并检查结果，直到它工作为止
+
+**当通过手动重新运行来测试代码时，很容易漏掉一些东西**，当我们在开发时，会保留很多可能需要的用例，但是不要想着程序员在每一次代码修改后都去检查所有的案例，这就很容易造成修复了一个问题却造成另一个问题的情况
+
+**自动化测试意味着测试是独立于代码的。它们以各种方式运行我们的函数，并将结果与预期结果进行比较**
+
+
+
+**行为驱动开发（BDD）**
+
+BDD 包含了三部分内容：测试、文档和示例
+
+
+
+**开发规范**
+
+创建函数之前，想象函数应该做什么并且描述出来，这样的描述被称为规范，包含用例的描述以及针对它们的测试
+
+```js
+describe('pow', function() {
+  it('raises to n-th power', function() {
+    assert.equal(pow(2, 3), 8);
+  });
+});
+```
+
+一个规范包含三个主要的模块
+
+`describe("title", function() { ... })`
+
+表示我们正在描述的功能是什么，例子中我们正在描述函数 `pow`，用于组织 ”工人（workers）“ `it` 代码块
+
+`it('use case description', function() { ... })`
+
+`it` 里面的描述部分，我们以一种易于理解的方式描述特定的用例，第二个参数是用于对其进行测试的函数
+
+`assert.equal(value1, value2)`
+
+`it` 块中的代码，如果实现是正确的，它应该在执行的时候不产生任何错误
+
+`assert.*` 函数用于检查 `pow` 函数是否按照预期工作，在这里使用了其中之一，`assert.equal`，它会对参数进行比较，如果它们不相等则会抛出一个错误，这里它检查了 `pow(2, 3)` 的值是否等于 `8`，还有其它类型的比较和检查
+
+规范可以被执行，它将运行在 `it` 块中指定的测试
+
+
+
+**开发流程**
+
+1. 编写初始规范，测试最基本的功能
+2. 创建一个最初始的实现
+3. 检查它是否工作，运行测试框架来进行测试，当功能未完成时，将显示错误，持续修正直到一切都能工作
+4. 现在有一个带有测试的能工作的初步实现
+5. 增加更多的用例到规范中，获取目前的程序实现还不支持，无法通过测试
+6. 回到第 3 步，更新程序直到测试不会抛出错误
+7. 重复第 3 步到第 6 步，直到功能完善
+
+开发就是不断地迭代，写规范，实现它，确保测试通过，然后写更多的测试，确保它们正常工作
+
+
+
+**行为规范**
+
+在教程中将使用以下的 JavaScript 库进行测试
+
+- [Mocha](http://mochajs.org/) —— 核心框架：提供了包括通用型测试函数 `describe` 和 `it`，以及用于运行测试的主函数
+- [Chai](http://chaijs.com/) —— 提供很多断言（assertion）支持的库。它提供了很多不同的断言，现在我们只需要用 `assert.equal`
+- [Sinon](http://sinonjs.org/) —— 用于监视函数、模拟内建函数和其他函数的库，我们在后面才会用到它
+
+这些库都既适用于浏览器端，也适用于服务器端，这里使用浏览器端的变体
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- add mocha css, to show results -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mocha/3.2.0/mocha.css">
+  <!-- add mocha framework code -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mocha/3.2.0/mocha.js"></script>
+  <script>
+    mocha.setup('bdd'); // minimal setup
+  </script>
+  <!-- add chai -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chai/3.5.0/chai.js"></script>
+  <script>
+    // chai has a lot of stuff, let's make assert global
+    let assert = chai.assert;
+  </script>
+</head>
+
+<body>
+
+  <script>
+    function pow(x, n) {
+      /* function code is to be written, empty now */
+    }
+  </script>
+
+  <!-- the script with tests (describe, it...) -->
+  <script src="test.js"></script>
+
+  <!-- the element with id="mocha" will contain test results -->
+  <div id="mocha"></div>
+
+  <!-- run tests! -->
+  <script>
+    mocha.run();
+  </script>
+</body>
+
+</html>
+```
+
+该页面可分为五个部分：
+
+1. `<head>` —— 添加用于测试的第三方库和样式文件
+2. `<script>` 包含测试函数，在上述例子中就是和 `pow` 相关的代码
+3. 测试代码 —— 在上述代码中是名为 `test.js` 的脚本，包含上面 `describe('pow', ...)` 的那些代码
+4. HTML 元素 `<div id="mocha">` 将被 Mocha 用来输出结果
+5. 可以使用 `mocha.run()` 命令来开始测试
+
+
+
+**初始实现**
+
+为了通过测试，写一个简单的 `pow` 实现
+
+```js
+fucntion pow() {
+  return 8; // 作弊实现
+}
+```
+
+<img src="images/image-20240707183649163.png" alt="image-20240707183649163" style="zoom:67%;" />
+
+
+
+**改进规范**
+
+只靠作弊通过测试，这样的函数是不起作用的，需要给它添加更多的测试用例
+
+这里可以选择任意一种方式来组织测试代码
+
+1. 第一种方式，在同一个 `it` 中再添加一个 `assert`
+
+   ```js
+   describe('pow', function () {
+     it('raises to n-th power', function () {
+       assert.equal(pow(2, 3), 8);
+       assert.equal(pow(3, 4), 81);
+     });
+   });
+   ```
+
+   <img src="images/image-20240707184428414.png" alt="image-20240707184428414" style="zoom:67%;" />
+
+2. 第二种方式，写两个测试
+
+   ```js
+   describe("pow", function() {
+     it("2 raised to power 3 is 8", function() {
+       assert.equal(pow(2, 3), 8);
+     });
+   
+     it("3 raised to power 4 is 81", function() {
+       assert.equal(pow(3, 4), 81);
+     });
+   });
+   ```
+
+   <img src="images/image-20240707184512539.png" alt="image-20240707184512539" style="zoom:67%;" />
+
+主要区别。当 `assert` 触发一个错误时，`it` 代码块会立即终止，因此在第一种方式中，如果第一个 `assert` 失败了，将永远不会看到第二个 `assert` 的结果
+
+**保持测试之间独立，有助于获知代码中正在发生什么**，因此第二种方式更好一点
+
+除此之外，还有一个规范值得遵循，**一个测试检查一个东西**，如果在看测试代码的时候，发现其中有两个相互独立的检查，那么最好将它拆分成两个更简单的检查
+
+
+
+**改进实现**
+
+写一些更加实际的代码来通过测试
+
+```js
+function pow(x, n) {
+  let result = 1;
+  
+  for (let i = 0; i < n; i++) {
+    result *= x;
+  }
+  
+  return result;
+}
+```
+
+为了确保函数可以很好地工作，使用更多值来测试它，除了手动编写 `it` 代码块，还可以使用 `for` 循环来生成它们
+
+```js
+describe('pow', function () {
+  function makeTest(x) {
+    let expected = x * x * x;
+    it(`${x} in the power 3 is ${expected}`, function () {
+      assert.equal(pow(x, 3), expected);
+    });
+  }
+
+  for (let x = 0; x <= 5; x++) {
+    makeTest(x);
+  }
+});
+```
+
+<img src="images/image-20240707185418573.png" alt="image-20240707185418573" style="zoom:67%;" />
+
+
+
+**嵌套描述**
+
+在继续添加更多的测试之前，需要主要辅助函数 `makeTest` 和 `for` 应该被组合在一起，在其它测试中不需要 `makeTest`，只有在 `for` 循环中需要它，它们共同的任务就是检查 `pow` 是如何自乘至给定的幂次方
+
+使用嵌套的 `describe` 来进行分组
+
+```js
+describe('pow', function() {
+  describe('raises x to power 3', function() {
+    function makeTest(x) {
+      let expected = x * x * x;
+      it(`${x} in the power 3 is ${expected}`, function() {
+        assert.equal(pow(x, 3), expected);
+      });
+    }
+    
+    for (let x = 1; x <=5; x++) {
+      makeTest(x);
+    }
+  });
+  
+  // ... 可以在这里写更多的测试代码，describe 和 it 都可以添加在这里
+});
+```
+
+<img src="images/image-20240707190139367.png" alt="image-20240707190139367" style="zoom:67%;" />
+
+未来可以在顶级域中使用 `it` 和 `describe` 的辅助函数添加更多的 `it` 和 `describe`，它们不会看到 `makeTest`
+
+
+
+**`before/after` 和 `beforeEach/afterEach`**
+
+可以设置 `before/after` 函数来在运行测试之前/之后执行，也可以使用 `beforeEach/afterEach` 函数来设置在执行每一个 `it` 之前/之后执行
+
+```js
+describe('test', function() {
+  before(() => alert('Testing started - before all tests'));
+  after(() => alert('Testing finished - after all tests'));
+  
+  beforeEach(() => alert('Before a test - enter a test'));
+  afterEach(() => alert('After a test - exit a test'));
+  
+  it('test 1', () => alert(1));
+  it('test 2', () => alert(2));
+})
+```
+
+运行顺序为
+
+```
+'Testing started - before all tests' (before)
+'Before a test - enter a test' (beforeEach)
+1
+'After a test – exit a test' (afterEach)
+'Before a test - enter a test' (beforeEach)
+2
+'After a test – exit a test' (afterEach)
+'Testing finished – after all tests' (after)
+```
+
+通常，`before/after` 和 `beforeEach/afterEach` 被用于执行初始化，清零计数器或做一些介于每个测试（或测试组）之间的事情
+
+
+
+**延伸规范**
+
+前面的例子的第一次迭代开发完成了，函数 `pow(x, n)` 适用于正整数 `n`
+
+JavaScript 函数通常会返回 `NaN` 以表示一个数学错误，接下对无效的 `n` 值执行相同的操作
+
+```js
+describe("pow", function() {
+  // ...
+
+  it("for negative n the result is NaN", function() {
+    assert.isNaN(pow(2, -1));
+  });
+
+  it("for non-integer n the result is NaN", function() {
+    assert.isNaN(pow(2, 1.5));
+  });
+});
+```
+
+<img src="images/image-20240707191805522.png" alt="image-20240707191805522" style="zoom:67%;" />
+
+新加的测试失败了，因为目前的实现是不支持它们的，**这就是 BDD 的做法，首先写一些暂时无法通过的测试，然后去实现它们**
+
+给 `pow` 增加几行实现
+
+```js
+function pow(x, n) {
+  if (n < 0) return NaN;
+  if (Math.round(n) != n) return NaN;
+
+  let result = 1;
+
+  for (let i = 0; i < n; i++) {
+    result *= x;
+  }
+
+  return result;
+}
+```
+
+<img src="images/image-20240707192157882.png" alt="image-20240707192157882" style="zoom:67%;" />
+
+
+
+**Polyfill 和转译器**
+
+JavaScript 语言在稳步发展中，会定期出现一些对语言的新提议，它们会被进行分析讨论，如果认为有价值，就会被加入到 https://tc39.github.io/ecma262/  的列表中，然后被加到 [规范](http://www.ecma-international.org/publications/standards/Ecma-262.htm) 中
+
+JavaScript 引擎背后的团队关于首先要实现什么有他们自己的想法，可能会决定执行草案中的建议，并推迟已经在规范中的内容，因为它们不太有趣或者难以实现
+
+一个 JavaScript 引擎只能实现标准中的一部分是很常见的情况
+
+可以通过 https://compat-table.github.io/compat-table/es6/ 查看语言特性当前支持的状态
+
+如果让现代的代码在还不支持最新特性的旧引擎上工作，有两个工作可以做到这一点
+
+1. 转译器（Transpilers）
+2. 垫片（Polyfills）
+
+
+
+**转译器（Transpilers）**
+
+转译器是一种可以将源码转译成另一种源码的特殊的软件，它可以解析现代代码，并使用旧的语法结构对其进行重写，进而使其在旧的引擎中工作
+
+例如在 ES2020 之前就没有空值合并运算符 `??`，如果访问者使用了过时的浏览器访问页面，浏览器就可能不明白 `height = height ?? 100` 这段代码的含义
+
+转译器会分析我们的代码，并将 `height ?? 100` 重写为 `(height !== undefined && height !== null) ? height : 100`
+
+```js
+// 在运行转译器之前
+height = height ?? 100;
+
+// 在运行转译器之后
+height = (height !== undefined && height !== null) ? height : 100;
+```
+
+现在重写了的代码适用于更旧版本的 JavaScript 引擎，通常开发者会在自己的计算机上运行编译器，然后将转译后的代码部署到服务器
+
+[Babel](https://babeljs.io/) 是最著名的转译器之一，现代项目构建系统，例如 [Webpack](https://webpack.js.org/)，提供了在每次代码更改时自动运行转译器的方法，因此很容易将代码转译集成到开发过程中
+
+
+
+**垫片（Polyfills）**
+
+新的语言特性可能不仅包括语法结构和运算符，还可能包括内建函数
+
+例如，`Math.trunc(n)` 是一个 “截断” 数字小数部分的函数，例如 `Math.trunc(1.23)` 返回 `1`
+
+在一些非常过时的 JavaScript 引擎中没有 `Math.trunc` 函数，所以这样的代码会执行失败
+
+因为这个讨论的是新函数，而不是语法更改，因此不需要在此转译任何内容，只需要声明缺失的函数
+
+更新/添加新函数的脚步被称为 “polyfill”，它 “填补” 了空白并添加了缺失的实现，以下是 `Math.trunc` 的 polyfill 的一个实现它的脚本
+
+```js
+if(!Math.trunc) { // 如果没有这个函数
+  Math.trunc = function(number) {
+    // Math.ceil 和 Math.floor 甚至存在于上古年代的 JavaScript 引擎中
+    return number < 0 ? Math.ceil(number) : Math.floor(number);
+  };
+}
+```
+
+JavaScript 是一种高度动态的语言，脚步可以添加/修改任何函数，甚至包括内建函数
+
+两个有趣的 polyfill 库
+
+- [core js](https://github.com/zloirock/core-js) 支持了很多特性，允许只包含需要的特性
+- [polyfill.io](http://polyfill.io/) 提供带有 polyfill 的脚本的服务，具体取决于特性和用户的浏览器
