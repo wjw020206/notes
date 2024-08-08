@@ -5389,3 +5389,1870 @@ let obj = {
 alert(obj * 2); // 4，对象先被转换为原始值字符串 '2'，之后它被乘法转换为数字 2
 ```
 
+
+
+## 数据类型
+
+
+
+**原始类型的方法**
+
+JavaScript 允许使用对象一样使用原始类型（字符串、数字等），JavaScript 还提供了这样的调用方法
+
+原始类型和对象之间的区别：
+
+一个原始值：
+
+- 是原始类型中一种值
+- 在 JavaScript 中有 7 种原始类型：`string`、`number`、`bigint`、`boolean`、`symbol`、`null` 和 `undefined`
+
+一个对象：
+
+- 能否存储多个值作为属性
+- 可以使用大括号 `{}` 创建对象，JavaScript 中还有其他种类的对象，例如函数就是对象
+
+可以把一个函数作为对象的属性存储在对象中
+
+```js
+let john = {
+  name: 'John',
+  sayHi: function() {
+    alert('Hi buddy!');
+  },
+};
+
+john.sayHi(); // hi buddy;
+```
+
+许多的内建对象已经存在，例如处理日期、错误、HTML 元素等的内建对象，它们具有不同的属性和方法
+
+但是这些特性（feature）都是有代价的，就是对象比原始类型 ”更重“，它们需要额外的资源来支持运作
+
+
+
+**当做对象的原始类型**
+
+JavaScript 创建者面临的悖论：
+
+- 人们可能想到对诸如字符串或数字之类的原始类型执行很多操作，最好使用方法来访问它们
+- 原始类型必须尽可能的简单轻量
+
+解决方法有点尴尬：
+
+1. 原始类型仍然是原始的，与预期相同，提供单个值
+2. JavaScript 允许访问字符串、数字、布尔值和 symbol 的方法和属性
+3. 为了使它们起作用，创建了提供额外功能的特殊 ”对象包装器“，使用后立即被销毁
+
+”对象包装器“ 对于每种原始类型都是不同的，它们被称为 `String`、`Number`、`Boolean`、`Symb ol` 和 `BigInt`，因此，它们提供了不同的方法
+
+例如：字符串方法 `str.toUpperCase()` 返回一个大写化处理的字符串
+
+```js
+let str = 'Hello';
+
+alert( str.toUpperCase() ); // HELLO
+```
+
+以下是 `str.toUpperCase()` 中实际发生的情况：
+
+1. 字符串 `str` 是一个原始值，因此，在访问其属性时，会创建一个包含字符串字面量的特殊对象，并且具有可用的方法，例如：`toUpperCase()`
+2. 该方法运行并返回一个新的字符串（由 `alert` 显示）
+3. 特殊对象被销毁，只留下原始值 `str`
+
+所以原始类型可以提供方法，但它们依然是轻量的
+
+JavaScript 引擎高度优化了这个过程，它们甚至可以跳过创建额外的对象，但是它仍然必须遵守规范，并且表现得好像它创建了一样
+
+数字有其自己的方法，例如：`toFixed(n)` 将数字舍入到给定的精度
+
+```js
+let n = 1.23456;
+
+alert( n.toFixed(2) ); // 1.23
+```
+
+
+
+**构造器 String/Number/Boolean 仅供内部使用**
+
+像 Java 这样的一些语言允许我们使用 `new Number(1)` 或 `new Boolean(false)` 等语法，明确地为原始类型创建 ”对象包装器“
+
+在 JavaScript 中，由于历史原因，这样也是可以，但非常**不推荐**，因为这样会出问题
+
+例如：
+
+```js
+alert( typeof 0 ); // 'number'
+
+alert( typeof new Number(0) ); // 'object'
+```
+
+对象在 `if` 中始终为真，所以此处的 `alert` 将显示：
+
+```js
+let zero = new Number(0);
+
+if(zero) { // zero 为 true，因为它是一个对象
+  alert('zeroo is truthy?!?');
+}
+```
+
+
+
+**null/undefined 没有任何方法**
+
+特殊的原始类型 `null` 和 `undefined` 是例外，它们**没有对应的 ”对象包装器“**，也没有提供任何方法，从某种意义上来说，它们是 ”最原始的“
+
+尝试访问这种值的属性会导致错误
+
+```js
+alert(null.test); // TypeError: Cannot read properties of null (reading 'test')
+```
+
+
+
+**数字类型**
+
+在现代 JavaScript 中，数字（number）有两种类型：
+
+1. JavaScript 中的常规数字以 64 位的格式 IEEE-754 存储，也被称为 ”双精度浮点数“，这是我们大多数时候所使用的数字
+2. Bigint 用于表示任意长度的整数，有时会需要它们，因为常规整数不能安全地超过 `2^53 - 1` 或小于 `-(2^53 - 1)`，只有在少数领域才会用到 Bigint
+
+
+
+**编写数字的更多方法**
+
+如果需要表示 10 亿
+
+```js
+let billion = 1000000000;
+```
+
+也可以使用下划线 `_` 作为分隔符
+
+```js
+let billion = 1_000_000_000;
+```
+
+这里的下划线 `_` 扮演了 “语法糖” 的角色，使得数字具有更强的可读性，JavaScript 引擎会直接忽略数字之间的 `_`，所以上面两个例子其实是一样的
+
+在 JavaScript 中，可以通过在数字后面附加字面 `e` 并指定零的个数来缩短数字
+
+```js
+let billion = 1e9; // 10 亿，字面意思，数字 1 后面跟 9 个 0
+
+alert( 7.3e9 ); // 73 亿
+```
+
+换句话说，`e` 把数字乘以 `1` 后面跟着给定数量的 0 的数字
+
+```js
+1e3 === 1 * 1000;
+1.23e6 === 1.23 * 1000000;
+```
+
+非常小的数字也可以使用 `e` 来完成，如果我们想避免显式地写零，可以这样写
+
+```js
+let msc = 1e-6; // 1 的左边有 6 个 0，等价于 0.000001;
+```
+
+换句话说， `e` 后面的负数表示除以 1 后面跟着给定数量的 0 的数字
+
+```js
+1e-3 === 1 / 1000; // 0.001
+
+1.23e-6 === 1.23 / 1000000; // 0.00000123
+
+1234e-2 === 1234 / 100; // 12.34
+```
+
+
+
+**十六进制、二进制和八进制数字**
+
+十六进制数字在 JavaScript 中广泛的用于表示颜色，编码字符以及其他许多东西，有一种较短的写法 `0x`，然后是数字
+
+```js
+alert( 0xff ); // 255
+alert( 0xFF ); // 255（一样，大小写没影响）
+```
+
+二进制和八进制数字系统很少使用，但也支持使用 `0b` 和 `0o` 前缀
+
+```js
+let a = 0b11111111; // 二进制形式的 255
+let b = 0o377; // 八进制形式的 255
+
+alert( a == b ); // true, 两边都是相同的数字，都是 255
+```
+
+只有这三种进制支持这种写法，对于其他进制，应该使用函数 `parseInt`
+
+
+
+**toString(base)**
+
+方法 `num.toString(base)` 返回在给定 `base` 进制数字系统中 `num` 的字符串表示形式
+
+```js
+let num = 255;
+
+alert( num.toString(16) ); // ff
+alert( num.toString(2) ); // 11111111
+```
+
+`base` 的范围可以从 `2` 到 `36`，默认情况下是 `10`
+
+常见的用例如下：
+
+- `base=16` 用于十六进制颜色，字符编码等，数字可以是 `0..9` 或 `A..F`
+
+- `base=2` 主要用于调试按位操作，数字可以是 `0` 或 `1`
+
+- `base=36` 是最大进制，数字可以是 `0..9` 或 `A..Z`，所有拉丁字母都被用于了表示数字，对于 `36` 进制来说，一个有趣且有用的例子是，当我们需要将一个较长的数字标识符转换为较短的时候，例如做一个短的 URL，可以简单地使用基数为 `36` 的数字系统表示：
+
+  ```js
+  alert( 123456..toString(36) ); // 2n9c
+  ```
+
+  **注意：** 此处的 `123456..toString(36)` 中的两个点不是打错了，如果想直接在一个数字上调用一个方法，比如上面例子的 `toString`，需要在它后面放置两个点 `..`
+
+  如果只放置一个点：`123456.toString(36)`，那么就会出现一个 error，因为 JavaScript 语法隐含了第一个点之后的部分为小数部分，如果再放一个点，那么 JavaScript 就知道小数部分为空，现在使用该方法
+
+  也可以写成 `(123456).toString(36)`
+
+
+
+**舍入**
+
+舍入（rounding）是使用数字时最常用的操作之一
+
+有个几个对数字进行舍入的内建函数
+
+- `Math.floor`
+
+  向下舍入：`3.1` 变成 `3`，`-1.1` 变成 `-2`
+
+- `Math.ceil`
+
+  向上舍入：`3.1` 变成 `4`，`-1.1` 变成 `-1`
+
+- `Math.round`
+
+  向最近的整数舍入： `3.1` 变成 `3`，`3.6` 变成 `4`，`3.5` 变成 `4`
+
+- `Math.trunc`**（IE 浏览器不支持该方法）**
+
+  移动小数点后所有内容而没有舍入：`3.1` 变成 `3`，`-1.1` 变成 `-1`
+
+以上函数涵盖了处理数字小数部分的所有可能方法
+
+如果想将数字舍入到小数点后 `n` 位，有两种方式可以实现这个需求
+
+1. 乘除法，将数字舍入到小数点后两位，然后再将数字乘以 `100`，调用输入函数，再将其除回
+
+   ```js
+   let num = 1.23456;
+   
+   alert( Math.round(num * 100) / 100 ); // 1.23456 -> 123.456 -> 123 -> 1.23
+   ```
+
+2. 函数 `toFixed(n)` 将数字舍入到小数点后 `n` 位，并以字符串形式返回结果
+
+   ```js
+   let num = 12.34;
+   
+   alert( num.toFixed(1) ); // '12.3'
+   ```
+
+   这会向上或向下舍入到最接近的值，类似于 `Math.round`
+
+   ```js
+   let num = 12.36;
+   
+   alert( num.toFixed(1) ); // '12.4'
+   ```
+
+   **注意：** `toFixed` 的结果是一个字符串，如果小数部分比所需要的短，则会在结尾添加零：
+
+   ```js
+   let num = 12.34;
+   
+   alert( num.toFixed(5) ); // '12.34000'
+   ```
+
+   可以使用一元加号或 `Number()` 调用，将其转换为数字，例如 `+num.toFixed(5)`
+
+
+
+**不精确的计算**
+
+在内部，数字是以 64 位格式 IEEE-754 表示的，所以正好有 64 位可以存储一个数字，其中 52 位被用于存储这些数字，其中 11 位用于存储小数点的位置，而 1 位用于符号
+
+如果一个数字真的很大，则可能会溢出 64 位存储，变成一个特殊的数值 `Infinity`：
+
+```js
+alert( 1e500 ); // Infinity
+```
+
+这可能不那么明显，但经常会发生的是，精度的损失
+
+```js
+alert( 0.1 + 0.2 == 0.3 ); // false
+```
+
+上述代码之所以会得到 `false` 是因为 `0.1 + 0.2` 的值为 `0.30000000000000004`
+
+之所以会这样是因为一个数字以其二进制的形式存储在内存中，一个 `1` 和 `0` 的序列，但是在十进制数字系统中看起来简单的 `0.1`，`0.2` 这样的小数，实际上在二进制形式中是无限循环小数
+
+什么是 `0.1`？`0.1` 就是 `1` 除以 `10`，`1/10`，即十分之一，在十进制数字系统中，这样的数字表示起来很容。将其与三分之一进行比较：`1/3`，三分之一变成了无限循环小数 `0.33333(3)`
+
+在十进制数字系统中，可以保证以 `10` 的整数次幂作为除数能够正常工作，但是以 `3` 作为除数则不能，也是同样的原因，在二进制数字系统中，可以保证以 `2` 的整数次幂作为除数时能够正常工作，但 `1/10` 就变成了一个无限循环的二进制小数
+
+使用二进制数字系统无法精确存储 `0.1` 或 `0.2`，就像没有办法将三分之一存储为十进制小数一样
+
+IEEE-754 数字格式通过将数字舍入到最接近的可能数字来解决此问题，这些舍入规则通常不允许我们看到 “极小的精度损失”，但是它确实存在
+
+```js
+alert( 0.1.toFixed(20) ); // 0.10000000000000000555
+```
+
+当我们对两个数字进行求和时，它们的 “精度损失” 会叠加起来
+
+这就是为什么 `0.1 + 0.2` 不等于 `0.3`
+
+如何解决这个问题，最可靠的方法是借助方法 `toFixed(n)` 对结果进行舍入
+
+``` js
+let sum = 0.1 + 0.2;
+
+alert( +sum.toFixed(2) ); // 0.3
+```
+
+我们也可以将数字乘以 100（或更大的数字），将起转换为整数，进行数学运算，然后再除回，当我们使用整数进行数学运算时，误差会有所减少，但仍然可以在除法中得到
+
+```js
+alert( (0.1 * 10 + 0.2 * 10) / 10 ); 0.3
+alert( (0.28 * 100 + 0.14 * 100) / 100 ); // 0.4200000000000001
+```
+
+因此，乘/除法可以减少误差，但不能完全消除误差
+
+有时候可以尝试完全避免小数，当然实际上完全避免小数处理几乎是不可能的，只需要在必要时剪掉其 “尾巴” 来对其进行输入即可
+
+
+
+**有趣的例子**
+
+```js
+// Hello！我是一个会自我增加的数字！
+alert( 9999999999999999 ); // 显示 10000000000000000
+```
+
+出现了同样的问题：精度损失，有 64 位来表示该数字，其中 52 位可用于存储数字，但这还不够，所以最不重要的数字就消失了
+
+JavaScript 不会在此类事件中触发 error，它会尽最大努力使数字符合所需的格式，但不幸的是，这种格式不够大到满足需求
+
+
+
+**两个零**
+
+数字内部表示的另一个有趣结果是存在两个零：`0` 和 `-0`
+
+因为在存储时，使用一位来存储符号，因此对于包括零在内的任何数字，可以设置这一位或者不设置
+
+在大多数情况下，这种区别并不明显，因为运算符将它们视为相同的值
+
+
+
+**测试：isFinite 和 isNaN**
+
+- `Infinity`（和 `-Infinity`）是一个特殊的数值，比任何数值都大（小）
+- `NaN` 代表一个 error
+
+它们属于 `number` 类型，但不是 “普通” 数字，因此，这里有用于检查它们的特殊函数：
+
+- `isNaN(value)` 将其参数转换为数字，然后测试它是否为 `NaN`：
+
+  ```js
+  alert( isNaN(NaN) ); // true
+  alert( isNaN('str') ); // true
+  ```
+
+  `isNaN(value)` 函数用于判断值是否是 `NaN`，因为 `NaN` 是独一无二的，不等于任何东西，包括它自身
+
+  ```js 
+  alert( NaN === NaN ); // false
+  ```
+
+- `isFinite(value)` 将其参数转换为数字，如果是常规数字而不是 `NaN/Infinity/-Infinity`，则返回 `true`
+
+  ```js
+  alert( isFinite('15') ); // true
+  alert( isFinite('str') ); // false，因为是一个特殊的值：NaN
+  alert( isFinite(Infinity) ); // false，因为是一个特殊的值：Infinity
+  ```
+
+  有时利用 `isFinite` 被用于验证字符串值是否为常规数字
+
+  ```js
+  let num = +prompt('Enter a number', '');
+  
+  // 结果会是 true，除非输入的是 Infinity、-Infinity 或不是数字
+  alert( isFinite(num) );
+  ```
+
+  **注意：** 在所有数字函数中，包括 `isFinite`，空字符串或仅有空格的字符串被视为 `0`
+
+
+
+**与 `Object.is`** 进行比较
+
+有一个特殊的内建方法 `Object.is`，它类似于 `===` 一样对值进行比较，但它对两种边缘情况更可靠：
+
+1. 它适用于 `NaN`：`Object.is(NaN, NaN) === true`，这是件好事
+2. 值 `0` 和 `-0` 是不同的：`Object.is(0, -0) === false`，从技术上讲这是对的，因为在内部，数字的符号位可能会不同，即使其他地方所有位均为零
+
+在所有其他情况下，`Object.is(a, b)` 与 `a === b` 相同
+
+这种比较方式经常被用在 JavaScript 规范中，当内部算法需要比较两个值是否完全相同时，它使用 `Object.is`
+
+
+
+**parseInt 和 parseFloat**
+
+使用加号 `+` 或 `Number()` 的数字转换是严格的，如果一个值不完全是一个数字，就会失败
+
+```js
+alert( +'100px' ); // NaN
+```
+
+唯一的例外是字符串开头或结尾的空格，因为它们会忽略
+
+但实际情况中，我们经常会遇到，例如：CSS 中的 `'100px'` 或者其它国家的货币 `19€`，并希望从中提取出一个数值
+
+这就是 `parseInt` 和 `parseFloat` 的作用
+
+它们可以从字符串中 “读取” 数字，直到无法读取为止，如果发生 error，则返回收集到的数字，函数 `parseInt` 返回一个整数，而 `parseFloat` 返回一个浮点数
+
+```js
+alert( parseInt('100px') ); // 100
+alert( parseFloat('12.5em') ); // 12.5
+
+alert( parseInt('12.3') ); // 12，只有整数部分被返回了
+alert( parseFloat('12.3.4') ); // 12.3，在第二个点停止了读取
+```
+
+在某些情况下，`parseInt/parseFloat` 会返回 `NaN`，当没有数字可读时会发生这种情况
+
+```js
+alert( parseInt('a123') ); // NaN，在第一个符号停止了读取
+```
+
+
+
+**parseInt(str, radix) 的第二个参数**
+
+`parseInt()` 函数具有可选的第二个参数，它指定了数字系统的基数，因此 `parseInt` 还可以解析十六进制、二进制数字等的字符串
+
+```js
+alert( parseInt('0xff', 16) ); // 255
+alert( parseInt('ff', 16) ); // 255，没有 0x 仍然有效
+
+alert( parseInt('2n9c', 36) ); // 123456
+```
+
+
+
+**其它数学函数**
+
+JavaScript 有一个内建的 Math 对象，它包含了一个小型的数学函数和常量库
+
+- `Math.random()`：返回一个从 0 到 1 的随机数（不包括 1）
+
+  ```js
+  alert( Math.random() ); // 0.1234567894322
+  alert( Math.random() ); // 0.5435252343232
+  alert( Math.random() ); // ... (任何随机数)
+  ```
+
+- `Math.max(a, b, c...)` 和 `Math.min(a, b, c...)`
+
+  从任意数量的参数中返回最大值和最小值
+
+  ```js
+  alert( Math.max(3, 5, -10, 0, 1) ); // 5
+  alert( Math.min(1, 2) ); // 1
+  ```
+
+- `Math.pow(n, power)`：返回 `n` 的给定（power）次幂
+
+  ```js
+  alert( Math.pow(2, 10) ); // 2 的 10 次幂 = 1024
+  ```
+
+`Math` 对象中还有更多函数和常量，包括三角函数等
+
+
+
+**字符串**
+
+在 JavaScript 中，文本数据被以字符串形式存储，单个字符没有单独的类型
+
+字符串的内部格式始终是 UTF-16，它不依赖于页面编码
+
+
+
+**引号（Quotes）**
+
+字符串中可以包含在单引号、双引号或反引号中
+
+反引号还允许在第一个反引号之前指定一个 “模版函数”，语法是：func`string`，函数 `func` 被自动调用，接收字符串和嵌入式表达式，并处理它们，这叫做 “tagged templates”，这功能可以更轻松地将字符串包装到自定义模版或其他函数中，但很少使用
+
+
+
+**特殊字符**
+
+可以使用 `\n` 支持对单引号和双引号创建跨行字符串
+
+```js
+let guestList = 'Guests:\n * John\n * Pete\n * Mary';
+
+alert(guestList); // 一个多行客人列表
+```
+
+还有其他不常见的 “特殊” 字符
+
+| 字符                                    | 描述                                                         |
+| :-------------------------------------- | :----------------------------------------------------------- |
+| `\n`                                    | 换行                                                         |
+| `\r`                                    | 在 Windows 文本文件中，两个字符 `\r\n` 的组合代表一个换行。而在非 Windows 操作系统上，它就是 `\n`。这是历史原因造成的，大多数的 Windows 软件也理解 `\n` |
+| `\'`, `\"`                              | 引号                                                         |
+| `\\`                                    | 反斜线                                                       |
+| `\t`                                    | 制表符                                                       |
+| `\b`, `\f`, `\v`                        | 退格，换页，垂直标签 —— 为了兼容性，现在已经不使用了         |
+| `\xXX`                                  | 具有给定十六进制 Unicode `XX` 的 Unicode 字符，例如：`'\x7A'` 和 `'z'` 相同 |
+| `\uXXXX`                                | 以 UTF-16 编码的十六进制代码 `XXXX` 的 Unicode 字符，例如 `\u00A9` —— 是版权符号 `©` 的 Unicode。它必须正好是 4 个十六进制数字 |
+| `\u{X…XXXXXX}`（1 到 6 个十六进制字符） | 具有给定 UTF-32 编码的 Unicode 符号。一些罕见的字符用两个 Unicode 符号编码，占用 4 个字节。这样我们就可以插入长代码了 |
+
+Unicode 示例：
+
+```js
+alert( '\u00A9' ); // ©
+alert( '\u{20331}' ); // 佫，罕见的中国象形文字（长 Unicode）
+alert( '\u{1F60D}' ); // 😍，笑脸符号（另一个长 Unicode）
+```
+
+所有的特殊字符都要以反斜杠字符 `\` 开始，它也被称为 “转义字符”
+
+如果想要在字符串中插入一个引号，就可以使用它
+
+```js
+alert('I\'m the Warlrus!'); // I'm the Walrus!
+```
+
+反斜杠 `\` 在 JavaScript 中用于正确读取字符串，然后小时，内存中的字符串没有 `\`
+
+如果需要在字符串中显示一个实际的反斜杠 `\`
+
+```js
+alert( `The backslash: \\` ); // The backslash: \
+```
+
+
+
+**访问字符**
+
+要获取在 `pos` 位置的一个字符，可以使用方括号 `[pos]` 或者调用 `str.charAt(pos)` 方法，第一个字符从零位置开始
+
+```js
+let str = `Hello`;
+
+// 第一个字符
+alert( str[0] ); // H
+
+// 最后一个字符
+alert( str[str.length - 1] ); // o
+```
+
+方括号是获取字符的一种现代化方式，而 `chatAt` 是历史原因才存在的
+
+它们之间的唯一区别是，如果没有找到字符，`[]` 返回 `undefined`，而 `charAt` 返回一个空字符串
+
+```js
+let str = 'Hello';
+
+alert( str[1000] ); // undefined
+alert( str.charAt(1000) ); // ''（空字符串）
+```
+
+也可以使用  `for..of` 遍历字符
+
+```js
+for (let char of 'Hello') {
+  alert( char ); // H,e,l,l,o
+}
+```
+
+
+
+**字符串是不变的**
+
+在 JavaScript 中，字符串不可更改，改变字符是不可能的
+
+```js
+let str = 'Hi';
+
+str[0] = 'h'; // error
+alert( str[0] ); // H
+```
+
+通常的解决方法是创建一个新的字符串，并将其分配给 `str` 而不是以前的字符串
+
+```js
+let str = 'Hi';
+
+str = 'h' + str[i];
+
+alert( str ); // hi
+```
+
+
+
+**改变大小写**
+
+`toLowerCase()` 和 `toUpperCase()` 方法可以改变大小写
+
+```js
+alert( 'Interface'.toUpperCase() ); // INTERFACE
+alert( 'Interface'.toLowerCase() ); // interface
+```
+
+使一个字符变成小写
+
+```js
+alert( 'Interface'[0].toLowerCase() ); // i
+```
+
+
+
+**查找子字符串**
+
+- str.indexOf：从给定位置 `pos` 开始，在 `str` 中查找 `substr`，如果没有找到，则返回 `-1`，否则返回匹配成功的位置
+
+  ```js
+  let str = 'Widget with id';
+  
+  alert( str.indexOf('Widget') ); // 0, 因为 'Widget' 一开始就被找到
+  alert( str.indexOf('widget') ); // -1，没有找到，检索是大小写敏感的
+   
+  alert( str.indexOf('id') ); // 1, id 在位置 1 处
+  ```
+
+  可选的第二个参数允许我们从一个给定的位置开始检索
+
+  ```js
+  let str = 'Widget with id';
+  
+  alert( str.indexOf('id', 2) ); // 12
+  ```
+
+  如果对所有存在位置都感兴趣，可以在一个循环中使用 `indexOf`，每一次新的调用都发生在上一匹配位置之后
+
+  ```js
+  let str = 'As sly as a fox, as strong as an ox';
+  
+  let target = 'as'; // 要查找的目标
+  
+  let pos = 0;
+  while (true) {
+    let foundPos = str.indexOf(target, pos);
+    if(foundPos === -1) break;
+    
+    alert( `Found at ${ foundPos }` );
+    pos = foundPos + 1; // 继续从下一个位置查找
+  }
+  ```
+
+  相同的算法可以简写
+
+  ``` js
+  let str = 'As sly as a fox, as strong as an ox';
+  let target = 'as';
+  
+  let pos = -1;
+  while ((pos = str.indexOf(target, pos + 1)) !== -1) {
+    alert( pos );
+  }
+  ```
+
+- 按位 NOT 技巧
+
+  使用 `~` 运算符，它将数字转换为 32-bit 整数（如果存在小数部分，则删除小数部分），然后对其二进制表示形式中的所有位取反
+
+  简单来说就是：对于 32-bit 整数，`~n` 等于 `~(n+1)`
+
+  ```js
+  alert( ~2 ); // -3
+  alert( ~1 ); // -2
+  alert( ~0 ); // -1
+  alert( ~-1 ); // 0
+  ```
+
+  可以看到只有当 `n === -1` 时，`~n` 才为零（适用于任何 32-bit 带符号的整数 `n`)
+
+  因此，只有当 `indexOf` 的结果不是 `-1` 时，检查 `if( ~str.indexOf('...') )` 才为真
+
+  可以使用它来简化 `indexOf` 检查
+
+  ```js
+  let str = 'Widget';
+  
+  if( ~str.indexOf('Widget') ) {
+    alert( 'Found it!' ); // 正常运行
+  }
+  ```
+
+  通常不建议使用这种非显而易见的方式，但这种特殊的技巧在旧代码中仍然广泛使用，所以还是需要理解它，推荐在现代 JavaScript 中使用 `.includes` 方法
+
+
+
+**includes, startsWith, endsWith**
+
+现代的方法 `str.includes(substr,pos)` 根据 `str` 中是否包含 `substr` 来返回 `true/false`
+
+```js
+alert( "Widget with id".includes("Widget") ); // true
+```
+
+`str.includes` 的第二个可选参数是开始搜索的起始位置
+
+```js
+alert( 'Widget'.includes('id') ); // true
+alert( 'Widget'.includes('id', 3) ); // false，从位置 3 开始没有 id
+```
+
+方法 `str.startsWith` 和 `str.endsWith` 与 `str.includes` 有相同的功能
+
+```js
+alert( 'Widget'.startsWith('Wid') ); // true, 'Widget' 以 'Wid' 开始
+alert( 'Widget'.endsWith('get') ); // true，'Widget' 以 'get' 结束
+```
+
+
+
+**获取子字符串**
+
+JavaScript 中有三种获取字符串的方法：`substring`、`substr` 和 `slice`
+
+- `str.slice(start [, end])`
+
+  返回字符串从 `start` 到（但不包括）`end` 的部分
+
+  ```js
+  let str = 'stringify';
+  alert( str.slice(0, 5) ); // 'strin'
+  alert( str.slice(0, 1) ); // 's'
+  ```
+
+  如果没有第二个参数，`slice` 会一直运行到字符串末尾
+
+  ```js
+  let str = 'stringify';
+  alert( str.slice(2) ); // 'ringify'
+  ```
+
+  `start/end` 也可能是负值，它们的意思是起始位置从字符串结尾计算
+
+  ```js
+  let str = 'stringify';
+  
+  // 从右边的第四个字符开始，从右边的第一个字符（不包括）结束
+  alert( str.slice(-4, -1) ); // 'gif'
+  ```
+
+- `str.substring(start [, end])`
+
+  返回字符串从 `start` 到（但不包括）`end` 大部分
+
+  这与 `slice` 几乎相同，但允许 `start` 大于 `end`
+
+  ```js
+  let str = "stringify";
+  
+  // 这些对于 substring 是相同的
+  alert( str.substring(2, 6) ); // 'ring'
+  alert( str.substring(6, 2) ); // 'ring'
+  
+  // 但对于 slice 是不同的
+  alert( str.slice(2, 6) ); // 'ring'
+  alert( str.slice(6, 2) ); // ''（空字符串）
+  ```
+
+  不支持负参数（不像 `slice`），它们被视为 `0`
+  
+- `str.substr(start [, length])`
+
+  返回字符串从 `start` 开始的给定 `length` 的部分
+
+  ```js
+  let str = 'stringify';
+  alert( str.substr(2, 4) ); // 'ring'，从位置 2 开始，获取 4 个字符
+  ```
+
+  第一个参数可能是负数，从结尾算起
+
+  ```js
+  let str = 'stringify';
+  alert( str.substr(-4, -2) ); // 'gi'，从第 4 位获取 2 个字符
+  ```
+
+  **注意：** `substr` 有一个小缺点，它不是在 JavaScript 核心规范中描述的，它是因为历史原因而遗留下来的仅浏览器特性，因此，理论上非浏览器环境可能无法支持 `substr`，但它实际上在别的地方都能用
+
+| 方法                    | 选择方式                                    | 负值参数            |
+| ----------------------- | ------------------------------------------- | ------------------- |
+| `slice(start, end)`     | 从 `start` 到 `end`（不包含 `end`）         | 允许                |
+| `substring(start, end)` | 从 `start` 到 `end` (不包含 `end`)          | 负值视为 `0`        |
+| `substr(start, length)` | 从 `start` 开始获取长度为 `length` 的字符串 | 允许 `start` 为负数 |
+
+通常来说 `slice` 稍微灵活一些，并且它允许以负值作为参数并且写法更简短
+
+
+
+**比较字符串**
+
+字符串按照字母顺序逐字比较
+
+不过存在一些奇怪的地方
+
+1. 小写字母总是大于大写字母
+
+   ```js
+   alert( 'a' > 'Z' ); // true
+   ```
+
+2. 带变音符号的字母存在 “乱序” 的情况
+
+   ```js
+   alert( 'Österreich' > 'Zealand' ); // true
+   ```
+
+   对这些国家名进行排序，可能会导致奇怪的结果，通常，人们会期望 `Zealand` 在名单中的 `Österreich` 之后出现
+
+所有字符串都是用 UTF-16 编码，每个字符都有对应的数字代码，有特殊的方法可以获取代码表示的字符，以及字符对应的数字代码
+
+- `str.codePointAt(pos)`
+
+  返回在 `pos` 位置的字符代码
+
+  ```js
+  // 不同的字母有不同的代码
+  alert( 'z'.codePointAt(0) ); // 122
+  alert( 'Z'.codePointAt(0) ); // 90
+  ```
+
+- `String.fromCodePoint(code)`
+
+  通过数字 `code` 创建字符
+
+  ```js
+  alert( String.fromCodePoint(90) ); // Z
+  ```
+
+  还可以用 `\u` 后跟十六进制代码，通过这些代码添加 Unicode 字符
+
+  ```js
+  // 在十六进制系统中 90 为 5a
+  alert( '\u005a' ); // Z
+  ```
+
+
+
+**正确的比较**
+
+执行字符串比较的 “正确” 算法比看起来更复杂，因为不同语言的字母的不相同
+
+因此浏览器需要知道要比较的语言
+
+幸运的是，所有现代浏览器（IE10 - 需要额外的库 [Intl.JS](https://github.com/andyearnshaw/Intl.js/)）都支持国际化标准 ECMA-402
+
+它提供了一种特殊的方法来比较不同语言的字符串，遵循它们的规则
+
+调用 `str.localeCompare(str2)` 会根据语言规则返回一个整数，这个整数能指示字符串 `str` 在排序顺序中排在字符串 `str2` 前面、后面、还是相同
+
+- 如果 `str` 排在 `str2` 前面，则返回负数
+- 如果 `str` 排在 `str` 后面，则返回正数
+- 如果它们再相同位置，则返回 `0`
+
+```js
+alert( 'Österreich'.localeCompare('Zealand') ); // -1
+```
+
+这个方法实际上在 [文档](https://developer.mozilla.org/zh/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare) 中指定了两个额外的参数，这两个参数允许它指定语言（默认语言从环境中获取，字符顺序视语言不同而不同）并设置诸如区分大小写，或应该将 `"a"` 和 `"á"` 作相同处理等附加的规则
+
+
+
+**内部，Unicode**
+
+这部分知识用于计划处理 emoji、罕见的数学或象形文字或其他罕见的符号
+
+
+
+**代理对**
+
+所有常用的字符都是一个 2 字节的代码，大多数欧洲语言，数字甚至大多数象形文字中的字母都有 2 字节的表示形式
+
+但 2 字节值允许 65536 个组合，这对于表示每个可能的符号是不够的，所以稀有的符号被称为 “代理对” 的一对 2 字节的符号编码
+
+这些符号的长度为 `2`
+
+```js
+alert( 'X'alert( '𝒳'.length ); // 2，大写数学符号 X
+alert( '😂'.length ); // 2，笑哭表情
+alert( '𩷶'.length ); // 2，罕见的中国象形文字 )
+```
+
+**注意：** 代理对在 JavaScript 被创建的时候并不存在，因此无法被编程语言正确处理
+
+实际上在上面的每个字符串中都只有一个符号，但 `length` 显示长度为 `2`
+
+`String.fromCodePoint` 和 `String.codePointAt` 是几种处理代理对的少数方法，它们最近才出现在编程语言中，之前只有 `String.fromCharCode` 和 `str.charCodeAt`，这些反复噶实际上与 `fromCodeCoint/codePointAt` 相同，但是不适用于代理对
+
+获取符号可能会非常麻烦，因为代理对被认为是两个字符
+
+```js
+alert( '𝒳'[0] ); // 奇怪的符号...
+alert( '𝒳'[1] ); // 奇怪的符号...
+```
+
+**注意：** 对代理对的各部分没有任何意义，上述代码中的 `alert` 显示的实际上是垃圾信息
+
+从技术角度来说，代理对也可以通过它们的代码检测到：如果一个字符的代码在 `0xd800..0xdbff` 范围内，那么它是代理对的一部分，下一个字符（第二部分）必须在 `0xdc00..0xdfff` 范围中，这些范围是按照标准专门为代理对保留的
+
+```js
+// charCodeAt 不理解代理对，所以它给出了代理对的代码
+
+alert( '𝒳'.charCodeAt(0).toString(16) ); // d835，在 0xd800 和 0xdbff 之间
+alert( '𝒳'.charCodeAt(1).toString(16) ); // dcb3, 在 0xdc00 和 0xdfff 之间
+```
+
+
+
+**变音符号与规范化**
+
+在许多语言中，都是一些由基本字符组成的符号，在其上方/下方有一个标记
+
+例如：字母 `a` 可以是 `àáâäãåā` 的基本字符，最常见的 “复合” 字符在 UTF-16 表中都有自己的代码，但不是全部，因为可能的组合太多
+
+为了支持任意组合，UTF-16 允许使用多个 Unicode 字符：基本字符紧跟 “装饰” 它的一个或多个 “标记” 字符
+
+例如，在 `S` 后跟有特殊的 dot above 字符（代码 `\u0307`），则显示 Ṡ
+
+```js
+alert( 'S\u0307' ); // Ṡ
+```
+
+如果需要再字母上方（或下方）添加额外的标记，只需要添加必要的标记字符即可
+
+```js
+alert( 'S\u0307\u0323' ); // Ṩ
+```
+
+这在提供良好灵活性的同时，也存在一个有趣的问题：两个视觉上看起来相同的字符，可以用不同的 Unicode 组合表示
+
+```js
+let s1 = 'S\u0307\u0323'; // Ṩ，S + 上点 + 下点
+let s2 = 'S\u0323\u0307'; // Ṩ，S + 下点 + 上点
+
+alert( `s1: ${s1}, s2: ${s2}` );
+
+alert( s1 == s2 ); // false，尽管字符看起来相同（?!）
+```
+
+为了解决这个问题，有一个 “Unicode 规范化” 算法，它将每个字符串都转化为单个 “通用” 格式
+
+它由 `str.normalize()` 实现
+
+```js
+alert( "S\u0307\u0323".normalize() == "S\u0323\u0307".normalize() ); // true
+```
+
+有趣的是，在实际情况下，`normalize()` 实际上将一个由 3 个字符组成的序列合并为一个：`\u1e68`（S 有两个点）
+
+```js
+alert( "S\u0307\u0323".normalize().length ); // 1
+alert( "S\u0307\u0323".normalize() == "\u1e68" ); // true
+```
+
+事实上，情况并非总是如此，因为符号 `Ṩ` 是 “常用” 的，所以 UTF-16 创建者把它包含在主表中并给了它对应的代码
+
+
+
+**数组**
+
+创建一个空数组有两种语法
+
+```js
+let arr = new Array();
+let arr = [];
+```
+
+绝大多数情况下使用的都是第二种语法
+
+
+
+**以逗号结尾**
+
+数组就像对象一样，可以以逗号结尾
+
+```js
+let fruits = [
+  "Apple",
+  "Orange",
+  "Plum",
+];
+```
+
+“逗号结尾” 的方式使得插入/移除项变得更加简单
+
+
+
+**使用 “at” 获取最后一个元素**
+
+假如需要获取数组中最后一个元素，可以显式地计算最后一个元素的索引，然后访问它
+
+```js
+let fruits = ["Apple", "Orange", "Plum"];
+
+alert( fruits[fruits.length-1] ); // Plum
+```
+
+可以使用一个更简短的语法
+
+```js
+alert( fruits.at(-1) ); // Plum
+```
+
+换句话说，`arr.at(i)`
+
+- 如果 `i >= 0`，则与 `arr[i]` 完全相同
+- 如果 `i` 为负数的情况，它则从数组的尾部向前数
+
+
+
+**pop/push,shift/unshift 方法**
+
+队列是最常见的使用数组的方法之一
+
+- `push` 在数组末端添加一个元素
+
+- `shift` 取出队列首端的一个元素，整个队列往前移，使得原先排第二的元素排在了第一
+
+  <img src="images/image-20240716060923851.png" alt="image-20240716060923851" style="zoom:67%;" />
+
+数组还有另一个用例，就是数据结构栈
+
+- `push` 在末端添加一个元素
+- `pop` 在末端取出一个元素
+
+所有新元素的添加和取出都是从 “末端” 开始的
+
+<img src="images/image-20240716061214632.png" alt="image-20240716061214632" style="zoom:67%;" />
+
+
+
+JavaScript 中的数组既可以用作队列，也可以用作栈，它们允许你从首端/末端来添加/删除元素
+
+允许这样操作的数据结构被称为双端队列
+
+
+
+**作用于数组末端的方法**
+
+- `pop` 取出并返回数组的最后一个元素
+
+  ```js
+  let fruits = ["Apple", "Orange", "Pear"];
+  
+  alert( fruits.pop() ); // 移除 "Pear" 然后 alert 显示出来
+  
+  alert( fruits ); // Apple, Orange
+  ```
+
+  `fruits.pop()` 和 `fruits.at(-1)` 都返回数组的最后一个元素，但是 `furits.pop()` 同时也删除了数组的最后一个元素，进而修改了原数组
+
+- `push` 在数组末端添加元素
+
+  ```js
+  let fruits = ['Apple', 'Orange'];
+  
+  fruits.push('Pear');
+  
+  alert( fruits ); // Apple, Orange, Pear
+  ```
+
+
+
+**作用于数组首端的方法**
+
+- `shift`
+
+  取出数组的第一个元素并返回它
+
+  ```js
+  let fruits = ["Apple", "Orange", "Pear"];
+  
+  alert( fruits.shift() ); // 移除 Apple 然后 alert 显示出来
+  
+  alert( fruits ); // Orange, Pear
+  ```
+
+- `unshift`
+
+  在数组的首端添加元素
+
+  ```js
+  let fruits = ["Orange", "Pear"];
+  
+  fruits.unshift('Apple');
+  
+  alert( fruits ); // Apple, Orange, Pear
+  ```
+
+  `push` 和 `unshift` 方法都可以一次添加多个元素
+
+  ```js
+  let fruits = ['Apple'];
+  
+  fruits.push("Orange", "Peach");
+  fruits.unshift("Pineapple", "Lemon");
+  
+  // ["Pineapple", "Lemon", "Apple", "Orange", "Peach"]
+  alert( fruits );
+  ```
+
+
+
+**内部**
+
+数组是一种特殊的对象，使用方括号来访问属性 `arr[0]` 实际上是来自于对象的语法，与 `obj[key]` 相同，其实 `arr` 是对象，而数字作为键（key）
+
+数组扩展了对象，提供了特殊的方法来处理有序的数据集合以及 `length` 属性，但从本质上来讲它依旧是一个对象
+
+数组也是通过引用来复制的
+
+```js
+let fruits = ["Banana"];
+
+let arr = fruits; // 通过引用复制 (两个变量引用的是相同的数组)
+
+alert( arr === fruits ); // true
+
+arr.push("Pear"); // 通过引用修改数组
+
+alert( fruits ); // Banana, Pear — 现在有 2 项了
+```
+
+数组真正特殊的是它们的内部实现，JavaScript 引擎尝试把这些元素一个接着一个地存储阿紫连续的内存区域，而且还有一些其它的优化，使得数组运行得非常块
+
+但是如果不像 “有序集合” 那样使用数组，而是像常规对象那样使用数组，这些就不生效了
+
+```js
+let fruits = []; // 创建一个数组
+
+fruits[99999] = 5; // 分配索引远大于数组长度的属性
+
+fruits.age = 25; // 创建一个具有任意名称的属性
+```
+
+上述代码都是可以的，因为数组是基于对象的，可以给它们添加任何属性
+
+**但这样使用 JavaScript 引擎会关闭针对数组的优化**
+
+请将数组视作用于有序数据的特殊结构，如果需要使用任意键值，推荐使用常规对象 `{}`
+
+
+
+**性能**
+
+`push/pop` 方法运行的比较快，而 `shift/unshift` 比较慢
+
+<img src="images/image-20240716063207939.png" alt="image-20240716063207939" style="zoom:67%;" />
+
+为什么作用于数组的末端会比首端快呢？
+
+```js
+fruits.shift(); // 从首端取出一个元素
+```
+
+值获取并移除索引 `0` 对应的元素是不够的，其它元素也需要重新被编号
+
+`shift` 操作必须做三件事：
+
+1. 移除索引为 `0` 的元素
+2. 把所有的元素向左移动，把索引 `1` 改为 `0`，`2` 改为 `1` 以此类推，对其重新编号
+3. 更新 `length` 属性
+
+**数组里的元素越多，移动它们要花的时间就越多，意味占用更多的内存操作**
+
+`unshift` 也是同样的，为了在数组的首端添加元素，首先需要将现有的元素向右移动，增加它们的索引值
+
+`push/pop` 操作不需要移动任何元素，所以会特别快
+
+
+
+**循环**
+
+遍历数组最古老的方式就是使用 `for` 循环
+
+```js
+let arr = ["Apple", "Orange", "Pear"];
+
+for (let i = 0; i < arr.length; i++) {
+  alert( arr[i] );
+}
+```
+
+但还有另外一种 `for..of`
+
+```js
+let fruits = ["Apple", "Orange", "Plum"];
+
+// 遍历数组元素
+for (let fruit of fruits) {
+  alert( fruit );
+}
+```
+
+`for..of` 不能获取当前元素的索引，只是获取元素值，但大多数情况下是够用的
+
+技术上来讲也可以使用 `for..in`，因为数组也是对象
+
+```js
+let arr = ["Apple", "Orange", "Pear"];
+
+for (let key in arr) {
+  alert( arr[key] ); // Apple, Orange, Pear
+}
+```
+
+但是这存在一些潜在的问题
+
+1. `for..in` 会循环遍历所有属性，不仅仅是这是数字属性
+
+   在浏览器和其它环境中有一种称为 “类数组” 的对象，它们看似是数组，它们有 `length` 和索引属性，但是也可能有其它非数字的属性和方法，但是通常是我们不需要的， `for..in` 循环会把它们都列出来
+
+2. `for..in` 循环适用于普通对象，并做了对应的优化，但是不适用于数组，因此速度要慢 10-100 倍，当然即使这样也依然非常快，只有在遇到瓶颈时可能会有问题
+
+通常来说，不应该使用 `for..in` 来处理数组
+
+
+
+**关于 length**
+
+在修改数组的时候，`length` 属性会自动更新，它实际上不是数组里元素的个数，而是最大数字索引值加一
+
+例如：一个数组里只有一个元素，但这个元素的索引值很大，那么这个数组的 `length` 也会很大
+
+```js
+let fruits = [];
+fruits[123] = 'Apple';
+
+alert( fruits.length ); // 124
+```
+
+但通常不会这样使用数组
+
+`length` 属性是可写的，如果手动增加它，不会发生任何事情，但是如果减少它，数据就会被截断，且该过程不可逆
+
+```js
+let arr = [1, 2, 3, 4, 5];
+
+arr.length = 2; // 截断到只剩 2 个元素
+alert( arr ); // [1, 2]
+
+arr.length = 5; // 又把 length 加回来
+alert( arr[3] ); // undefined：被截断的那些数值并没有回来
+```
+
+所以清空数组最简单的方法就是 `arr.length = 0;`
+
+
+
+**new Array()**
+
+这是创建数组的另一种语法
+
+```js
+let arr = new Array('Apple', 'Pear', 'etc');
+```
+
+它很少被使用，因为方括号 `[]` 更短更简洁，而且这种语法存在一个棘手的特性
+
+如果使用了单个参数（即数字）调用了 `new Array`，那么它会创建一个指定了长度，但是没有任何项的数组
+
+```js
+let arr = new Array(2); // 创建一个 length 为 2 的数组
+
+alert( arr[0] ); // undefined 没有元素
+
+alert( arr.length ); // 2
+```
+
+为了避免这种意外情况，通常应该使用方括号创建数组
+
+
+
+**多维数组**
+
+数组里的项也可以是数组，可以将其用于多维数组，例如存储矩阵
+
+```js
+let matrix = [
+  [1, 2, 3],
+  [4, 5, 6],
+  [7, 8, 9]
+];
+
+alert( matrix[1][1] ); // 最中间的那个数 5
+```
+
+
+
+**toString**
+
+数组有自己的 `toString` 方法的实现，会返回以逗号隔开的元素列表
+
+```js
+let arr = [1, 2, 3];
+
+alert( arr ); // 1,2,3
+alert( String(arr) === '1,2,3' ); // true
+alert( [] + 1 ); // 1
+alert( [1] + 1 ); // 11
+alert( [1,2] + 1 ); // 1,21
+```
+
+数组没有 `Symbol.toPrimitive`，也没有 `valueOf`，它们只能执行 `toString` 进行转换，所以这里 `[]` 就变成了一个空字符串，`[1]` 变成了 `1`，`[1,2]` 变成了 `1,2`
+
+
+
+**不要使用 == 比较数组**
+
+JavaScript 中的数组去其它的一些编程语言不同，不应该使用 `==` 运算符比较 JavaScript 中的数组
+
+该运算符不会对数组进行特殊处理，它会像处理任意对象那样处理数组
+
+如果使用 `==` 来比较数组，除非比较的两个引用是同一数组的变量，否则它们永远不相等
+
+```js
+alert( [] == [] ); // false
+alert( [0] == [0] ); // false
+```
+
+与原始类型的比较也可能会产生奇怪的结果
+
+```js
+alert( 0 == [] ); // true
+alert( '0' == [] ); // false
+```
+
+实际上转换为了如下代码进行比较
+
+```js
+// 在 [] 被转换为 '' 后
+alert( 0 == '' ); // true，因为 '' 被转换成了数字 0
+
+alert('0' == '' ); // false，没有进一步的类型转换，是不同的字符串
+```
+
+
+
+**数组方法**
+
+从数组中删除元素，数组是对象，可以尝试使用 `delete`
+
+```js
+let arr = ['I', 'go', 'home'];
+
+delete arr[1]; 删除了 'go'
+
+alert( arr[1] ); // undefined
+
+alert( arr.length ); // 3
+```
+
+通过使用 `delete` 删除数组元素但它有依然有 3 个元素
+
+因为 `delete obj.key` 是通过 `key` 来移除对应的值，对于对象来说是可以，但是对于数组来说，通常希望剩下的元素能够移动都占据被释放的位置就应该使用特殊的方法
+
+
+
+**splice**
+
+它可以添加，删除和插入元素
+
+```js
+arr.splice(start[, deleteCount, elem1, ..., elemN]);
+```
+
+它从索引 `start` 开始修改 `arr` ，删除 `deleteCount` 个元素并在当前位置插入 `elem1, ..., elemN`，最后返回被删除的元素所组成的数组
+
+
+
+负向索引是被允许的，它们从数组的末尾计算位置
+
+```js
+let arr = [1, 2, 5];
+
+arr.splice(-1, 0, 3, 4);
+
+alert( arr ); // 1,2,3,4,5
+```
+
+
+
+**slice**
+
+```js
+arr.slice([start], [end]);
+```
+
+它会返回一个新数组，将所有从索引 `start` 到 `end` (不包括 `end`) 的数组复制到一个新的数组，`start` 和 `end` 都可以是负数，这种情况下，从末尾计算索引
+
+```js
+let arr = ['t', 'e', 's', 't'];
+
+alert( arr.slice(1, 3) ); // e,s （复制到位置 1 到位置 3 的元素）
+
+alert( arr.slice(-2) ); // s,t (复制到位置 -2 到尾端的元素)
+```
+
+也可以不带参数地调用它：`arr.slice()` 会创建一个 `arr` 的副本，通常用于获取副本，以进行不影响原始数组的进一步转换
+
+
+
+**concat**
+
+`arr.concat` 创建一个新数组，其中包含来自于其他数组和其他项的值
+
+语法
+
+```js
+arr.concat(arg1, arg2...);
+```
+
+它接受任意数量的参数，数组或值都可以
+
+结果是一个包含来自于 `arr`，然后是 `arg1`，`arg` 的元素的新数组
+
+如果参数 `argN` 是一个数组，那么其中的所有元素都会被复制，否则复制参数本身
+
+```js
+let arr = [1, 2];
+
+alert( arr.concat([3, 4]) ); // 1,2,3,4
+
+alert( arr.concat([3, 4], [5, 6]) ); // 1,2,3,4,5,6
+
+alert( arr.concat([3, 4], 5, 6)); // 1,2,3,4,5,6
+```
+
+通常它只复制数组中的元素，其它对象，即使看起来跟数组一样，但仍然会被作为一个整体添加
+
+```js
+let arr = [1, 2];
+
+let arrayLike = {
+  0: 'something',
+  length: 1
+};
+
+alert( arr.concat(arrayLike) ); // 1,2,[object Object]
+```
+
+但是，如果类数组对象具有 `Symbol.isConcatSpreadable` 属性，那么它就会被 `concat` 当作一个数组来处理：此对象中的元素将会被添加
+
+```js
+let arr = [1, 2];
+
+let arrayLike = {
+  0: 'something',
+  1: 'else',
+  [Symbol.isConcatSpreadable]: true,
+  length: 2,
+};
+
+alert( arr.concat(arrayLike) ); // 1,2,something,else
+```
+
+
+
+**遍历：forEach**
+
+`arr.forEach` 方法允许为数组的每个元素都运行一个函数
+
+```js
+arr.forEach(function(item, index, array)) {
+// ...     
+}
+```
+
+这段代码更详细地介绍了它们在目标数组中的位置
+
+```js
+['Bilbo', 'Gandalf', 'Nazgul'].forEach((item, index, array)) => {
+  alert(`${item} is at index ${index} in ${array}`);
+}
+```
+
+**注意：** 该函数的结果（如果它有返回）会被抛弃和忽略
+
+
+
+**indexOf/lastIndexOf 和 includes**
+
+- `arr.indexOf(item, from)` 从索引 `from` 开始搜索 `item`，如果找到则返回索引，否则返回 `-1`
+- `arr.lastIndexOf(item, from)` 与 `indexOf(item, from)` 相同，但是从右向左找
+- `arr.includes(item, from)` 从索引 `from` 开始搜索 `item`，如果找到则返回 `true`，反之返回 `false`
+
+通常使用这另个方法只会传一个参数，传入 `item` 开始搜索，默认情况下，搜索是从头开始的
+
+**注意：** `indexOf` 和 `includes` 使用严格相等 `===` 进行比较的
+
+
+
+**方法 `includes` 可以正确处理 `NaN`**
+
+方法 `includes` 可以正确处理 `NaN`，这与 `indexOf` 不同
+
+```js
+const arr = [NaN];
+
+alert( arr.indexOf(NaN) ); // -1（错误，应该为 0）
+alert( arr.includes(NaN) ); // true（正确）
+```
+
+这是因为 `includes` 比较晚的时候才被添加到 JavaScript 中的，并且在内部使用了更新了的比较算法
+
+
+
+**find 和 findIndex/findLastIndex**
+
+在对象数组中找到具有特定条件的对象，可以使用 `arr.find` 方法
+
+```js
+const result = arr.find(function(item, index, array)) {
+	// 如果返回 true，则返回 item 并停止迭代
+  // 对于假值（fasly）的情况，则返回 undefined
+}
+```
+
+`arr.findIndex` 方法与 `arr.find` 具有相同的语法，但是它返回找到的元素的索引，而不是元素本身，如果没找到则返回 `-1`
+
+`arr.findLastIndex` 方法类似于 `findIndex`，但是从右向左搜索
+
+
+
+**filter**
+
+`find` 方法是使函数返回 `true` 第一个（单个）元素
+
+如果需要匹配的有很多，可以使用 `arr.filter(fn)`
+
+```js
+const results = arr.filter(function(item, index, array)) {
+	// 如果返回 true, item 被 push 到 results 中，迭代继续
+  // 如果什么都没找到，则返回空数组
+}
+```
+
+
+
+**map**
+
+对数组的每个元素都调用函数，并返回结果数组
+
+```js
+const result = arr.map(function(item, index, array) {
+  // 返回新值而不是当前元素
+})
+```
+
+
+
+**sort(fn)**
+
+`arr.sort` 方法对象数组进行 **原位( in - place)** 排序，更改元素的顺序，原位是指在此数组中，而非生成一个新的数组
+
+它会返回排序后的数组，但是返回值通常会被忽略，因为修改了 `arr` 本身
+
+```js
+const arr = [1, 2, 15];
+
+// 该方法重新排列 arr 的内容
+arr.sort();
+
+alert( arr ); // 1, 15 ,2
+```
+
+上述代码的顺序不对，是因为这些元素默认情况下按字符串进行排序，所有的元素都被转换为字符串，然后按照字典顺序进行比较，要使用自己的顺序排序，需要提供一个函数作为 `arr.sort()` 的参数
+
+```js
+function compare(a, b) {
+  if( a > b ) return 1; // 如果第一个值比第二个值大
+  if( a == b ) return 0; // 如果两个值相等
+  if( a < b ) return -1; // 如果第一个值比第二个值小
+}
+
+const arr = [ 1, 15, 2 ];
+
+arr.sort(compare);
+
+alert(arr); // 1, 2, 15
+```
+
+`arr.sort(fn)` 方法实现了通用的排序算法，它将遍历数组，使用提供的函数比较其元素并对其重新排序
+
+比较函数可以返回任何数字，实际上比较函数只需要返回一个数字
+
+- 正数表示 “大于”，表示当 a 应该排在 b 的后面
+- 负数表示 “小于”，表示当 a 应该排在 b 的前面
+
+
+
+使用箭头函数会更加简洁
+
+```js
+arr.sort( (a, b) => a - b );
+```
+
+
+
+使用 `localeCompare` for strings
+
+字符串的比较算法默认通过字母的代码比较字母，对于许多字母，最好使用 `str.localeCompare` 方法正确地对字母进行排序，例如 `Ö`，使用德语对几个国家/地区进行排序
+
+```js
+const countries = ['Österreich', 'Andorra', 'Vietnam'];
+
+alert( countries.sort( (a, b) => a > b ? 1 : -1 ) );  // Andorra, Vietnam, Österreich（错的）
+
+alert( countries.sort( (a, b) => a.localeCompare(b) ) ); // Andorra,Österreich,Vietnam (对的)
+```
+
+
+
+**reverse**
+
+`arr.reverse` 方法用于颠倒 `arr` 中元素的顺序，跟 `sort` 一样会改变原始数组元素的顺序，也会返回颠倒后的数组
+
+```js
+const arr = [1, 2, 3, 4, 5];
+arr.reverse();
+
+alert( arr ); // 5, 4, 3, 2, 1
+```
+
+
+
+**split 和 join**
+
+`str.split(delim)` 通过给定的分隔符 `delim` 将字符串分割成一个数组
+
+```js
+const names = 'Bilbo, Gandalf, Nazgul';
+
+const arr = names.split(', ');
+
+for (const name of arr) {
+  alert( `A message to ${name}.` ); // A message to Bilbo（和其他名字）
+}
+```
+
+`split` 方法有一个可选的第二个数字参数 —— 对数组的长度的限制，如果提供了，额外的元素会被忽略
+
+```js
+const names = 'Bilbo, Gandalf, Nazgul';
+
+alert( names.split(', ', 2) ); // Bilbo,Gandalf
+```
+
+调用带有空参数 `s` 的 `split(s)`，会将字符串拆分为字母数组
+
+```js
+const str = 'test';
+
+alert( str.split('') ); // t,e,s,t
+```
+
+
+
+`arr.join(glue)` 与 `split` 相反，它会在它们之间创建一串由 `glue` 粘合的 `arr` 项
+
+```js
+const arr = ['Bilbo', 'Gandalf', 'Nazgul'];
+
+const str = arr.join(';'); // 使用分号 ; 将数组粘合成字符串
+
+alert( str ); // Bilbo;Gandalf;Nazgul
+```
+
+
+
+**reduct/reductRight**
+
+用于根据数组计算单个值、
+
+语法：
+
+```js
+const value = arr.reduce(function(accumulator, item, index, array) {
+	// ...
+}, [initial]);
+```
+
+该函数一个接一个地应用于所有数组元素，并将其结果搬运到下一个调用
+
+参数：
+
+- `accumulator` —— 是上一个函数调用的结果，第一次等于 `initial`（如果提供了 `initial` 的话）
+- `item` —— 当前的数组元素
+- `index` —— 当前索引
+- `arr` —— 数组本身
+
+应用函数时，上一个函数调用的结果将作为第一个参数传递给下一个函数
+
+因此，第一个参数本质上是累加器，用于存储所有先前执行的组合结果，最后它成为 `reduce` 的结果
+
+```js
+const arr = [1, 2, 3, 4, 5];
+
+const result = arr.reduce((sum, current) => 5, 0);
+
+alert(result); // 15
+```
+
+传给 `reduce` 的函数仅使用了 2 个参数，通常这就足够了
+
+运行过程：
+
+1. 在第一次运行时，`sum` 的值为初始值 `initial`，等于 `0`，`current` 是第一个数组元素，等于 `1`，所以函数运行的结果是 `1`
+2. 在第二次运行时，`sum = 1`，将第二个数组元素 `2` 与其相加并返回
+3. 第三次运行时中，`sum = 3`，继续把下一个元素与其相加，以此类推......
+
+![image-20240807103410452](images/image-20240807103410452.png)
+
+|             | `sum` | `current` | `result` |
+| :---------- | :---- | :-------- | :------- |
+| 第 1 次调用 | `0`   | `1`       | `1`      |
+| 第 2 次调用 | `1`   | `2`       | `3`      |
+| 第 3 次调用 | `3`   | `3`       | `6`      |
+| 第 4 次调用 | `6`   | `4`       | `10`     |
+| 第 5 次调用 | `10`  | `5`       | `15`     |
+
+
+
+也可以省略初始值
+
+```js
+let arr = [1, 2, 3, 4, 5];
+
+// 删除 reduce 的初始值（没有 0）
+let result = arr.reduce((sum, current) => sum + current);
+
+alert( result ); // 15
+```
+
+如果没有初始值，那么 `reduce` 会将数组的第一个元素作为初始值，并从第二个元素开始迭代
+
+计算过程
+
+|             | `sum` | `current` | `result` |
+| :---------- | :---- | :-------- | :------- |
+| 第 1 次调用 | `1`   | `2`       | `3`      |
+| 第 2 次调用 | `3`   | `3`       | `6`      |
+| 第 3 次调用 | `6`   | `4`       | `10`     |
+| 第 4 次调用 | `10`  | `5`       | `15`     |
+
+但是如果不指定初始值使用需要非常小心，如果数组为空，那么在没有初始值的情况下调用 `reduce` 会导致错误
+
+```js
+let arr = [];
+
+// Error: Reduce of empty array with no initial value
+// 如果初始值存在，则 reduce 将为空 arr 返回它（即这个初始值）
+arr.reduce((sum, current) => sum + current);
+```
+
+**建议始终指定初始值**
+
+`arr.reduceRight` 和 `arr.reduce` 方法的功能一样，只是遍历从右到左
+
+
+
+**Array.isArray**
+
+数组是基于对象的，不构成单独的语言类型
+
+所以借助 `typeof` 不能帮助从数组中区分出普通对象
+
+```js
+alert( typeof {} ); // object
+alert( typeof [] ); // object
+```
+
+所以需要使用 `Array.isArray(value)` 来判断，如果 `value` 是一个数组，则返回 `true`，否则返回 `false`
+
+```js
+alert(Array.isArray({})); // false
+
+alert(Array.isArray([])); // true
+```
+
+
+
+**大多数方法都支持 thisArg**
+
+几乎所有调用函数的数组方法 —— 例如 `find`、`filter`、`map`，除了 `sort`，都接受一个可选的附加参数 `thisArg`
+
+该参数很少使用
+
+```js
+arr.find(func, thisArg);
+arr.filter(func, thisArg);
+arr.map(func, thisArg);
+// ...
+// thisArg 是可选的最后一个参数
+```
+
+`thisArg` 参数的值在 `func` 中变为 `this`
+
+例子：使用 `army` 对象方法作为过滤器，`thisArg` 用于传递上下文
+
+```js
+const army = {
+  minAge: 18,
+  maxAge: 27,
+  canJoin(user) {
+    return user.age >= this.minAge && user.age < this.maxAge;
+  }
+};
+
+const users = [
+  {age: 16},
+  {age: 20},
+  {age: 23},
+  {age: 30}
+];
+
+// 找到 army.canJoin 返回 true 的 user
+const soldiers = users.filter(army.conJoin, army);
+
+console.log(soldiers.length); // 2
+console.log(soldiers[0].age); // 20
+console.log(soldiers[1].age); // 23
+```
+
+可以使用 `users.filter(user => army.canJoin(user))` 替换 `users.filter(army.canJoin, army)` 的调用
