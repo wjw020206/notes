@@ -316,7 +316,7 @@ git stash pop
 ## 其他
 
 ```bash
-# 用前一个提交覆盖远程的新提交(撤销远程提交)
+# 用前一个提交覆盖远程的新提交(慎用，会覆盖提交记录)
 git push --force [remote] head~1:[branch-name]
 
 # 生成一个可供发布的压缩包
