@@ -1,6 +1,6 @@
 # GTD 时间管理
 
-视频地址：https://www.bilibili.com/video/BV1wE411176Q/?share_source=copy_web&vd_source=d3c14dcf9702f289acc35e0df5aeb358
+视频地址：https://www.bilibili.com/video/BV1wE411176Q
 
 
 
