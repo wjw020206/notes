@@ -83,6 +83,6 @@ Safari 浏览器（ Mac 平台专有）
 
 1. 需要先在浏览器的 “Advanced” 选项中勾选 “Show Develp menu in menu bar” 选项
 
-   ![image-20240909130435892](images/image-20240909130435892.png)
+   ![image-20240909131446997](images/image-20240909131446997.png)
 
 2. 通过使用 `Command` + `option` + `C` 控制打开或关闭控制台
