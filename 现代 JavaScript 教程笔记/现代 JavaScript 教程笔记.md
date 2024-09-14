@@ -36,3 +36,22 @@ alert( undefined == 0); // false
 
 
 
+## Symbol
+
+使用场景：
+
+- 设置对象的 “隐藏” 属性，例如：给第三库的对象设置一个隐藏属性，`Symbol` **始终是唯一**的，**不会与对象原有的属性冲突**
+
+  ```js
+  const user = {
+    name: 'CodePencil',
+  };
+  
+  const id = Symbol('id');
+  user[id] = '1';
+  
+  console.log(user[id]); // '1'
+  ```
+
+- 通过修改 `Symbol.*` 来改变一些内建行为，例如：通过修改 `Symbol.toPrimitive` 来改变对象类型转换内建行为
+
