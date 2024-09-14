@@ -9,7 +9,7 @@
 3. 在出现的对话框中输入如下命令
 
    ```
-   ext install Vue.vscode-typescript-vue-plugin
+   ext install 粘贴第一步复制的内容
    ```
 
    ![image-20240327152033091](images/image-20240327152033091.png)
