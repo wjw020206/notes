@@ -12,7 +12,7 @@ Clash for Windows 虽然名字中带有 Windows，但不仅限于 Windows
 
 目前原作者已经删库停更，感兴趣的可以看这篇文章 [Clash 删库跑路停更事件](https://jichanggo.com/clashforwindows%E5%88%A0%E5%BA%93%E8%B7%91%E8%B7%AF)
 
-Clash for Windows 的最后一个版本为 0.20.39
+Clash for Windows 的最后一个版本为 `0.20.39`
 
 
 
@@ -81,4 +81,10 @@ Clash for Windows 的最后一个版本为 0.20.39
 ![image-20240908161515053](images/image-20240908161515053.png)
 
 最后如果还是不行就需要联系代理服务的提供商，确认一下是不是他们那里出现问题，一般来说到这一步代理服务的提供商会帮你解决(也可能跑路了XD)
+
+
+
+### 节点可以正常使用，但浏览器里无法正常使用
+
+这种情况很大概率是浏览器里安装了网络代理相关的插件，同时开启网络代理插件会和 Clash for Windows 代理冲突，关闭浏览器的网络代理插件即可
 
