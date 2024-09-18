@@ -18,15 +18,15 @@ Clash for Windows 的最后一个版本为 `0.20.39`
 
 ## 安装
 
-- [Windows 版本下载](https://archive.org/download/clash_for_windows_pkg/Clash.for.Windows.Setup.0.20.39.exe)
+- [Windows 版本下载](https://github.com/lantongxue/clash_for_windows_pkg/releases/download/0.20.39/Clash.for.Windows.Setup.0.20.39.exe)
 
-- [MacOS(Intel 系列处理器) 版本下载](https://archive.org/download/clash_for_windows_pkg/Clash.for.Windows-0.20.39.dmg)
+- [MacOS(Intel 系列处理器) 版本下载](https://github.com/lantongxue/clash_for_windows_pkg/releases/download/0.20.39/Clash.for.Windows-0.20.39.dmg)
 
-- [MacOS(M 系列处理器) 版本下载](https://archive.org/download/clash_for_windows_pkg/Clash.for.Windows-0.20.39-arm64.dmg)
+- [MacOS(M 系列处理器) 版本下载](https://github.com/lantongxue/clash_for_windows_pkg/releases/download/0.20.39/Clash.for.Windows-0.20.39-arm64.dmg)
 
-更多版本访问 https://archive.org/download/clash_for_windows_pkg
+更多版本访问 https://github.com/lantongxue/clash_for_windows_pkg/releases/tag/0.20.39
 
-如果上述链接无法打开请访问备用链接 https://github.com/lantongxue/clash_for_windows_pkg/releases/tag/0.20.39
+如果上述链接无法打开请访问备用链接 https://archive.org/download/clash_for_windows_pkg
 
 ![image-20240908155300552](images/image-20240908155300552.png)
 
