@@ -6,9 +6,9 @@ Shadowrocket 只能用于 IOS(苹果) 系统， Android(安卓) 系统需要使�
 
 ## 前言
 
-因为 IOS 的封闭性，软件安装只能通过 App Store，但是由于 Shadowrocket 软件的特殊性，所以在 **App Store 中国区无法上架**
+因为 IOS 的封闭性，软件安装只能通过 App Store，但是由于 Shadowrocket 软件的特殊性，所以在**App Store 中国区无法上架**
 
-这个时候需要**使用 App Store 美区账号 **进行换区下载
+这个时候需要**使用 App Store 美区账号**进行换区下载
 
 **注意：** Shadowrocket 是**付费软件**
 
