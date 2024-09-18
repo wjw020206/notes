@@ -10,7 +10,7 @@ Clash for Android 只能用于 Android(安卓) 系统，IOS(苹果) 系统需要
 
 目前原作者已经删库停更，感兴趣的可以看这篇文章 [Clash 删库跑路停更事件](https://jichanggo.com/clashforwindows%E5%88%A0%E5%BA%93%E8%B7%91%E8%B7%AF)
 
-Clash for Windows 的最后一个版本为 `2.5.12`，测试版本为 `3.0.3`，**不推荐使用测试版本**
+Clash for Android 的最后一个版本为 `2.5.12`，测试版本为 `3.0.3`，**不推荐使用测试版本**
 
 
 
