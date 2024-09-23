@@ -144,7 +144,7 @@ alert( 0.1 + 0.2 === 0.3 ); // false
 
 
 
-### 数组方法
+### includes
 方法 `includes` 可以正确处理 `NaN`，`indexOf` 无法正确处理 `NaN`
 
 ```js
@@ -152,3 +152,32 @@ const arr = [NaN];
 alert( arr.indexOf(NaN) ); // -1（错误，应该是 0）
 alert( arr.includes(NaN) ); // true（正确）
 ```
+
+### sort
+方法 `sort` 默认情况下是**按字符串顺序进行排序**
+
+```js
+let arr = [ 1, 2, 15 ];
+
+arr.sort();
+
+alert( arr ); // 1, 15, 2
+```
+
+提供函数作为方法 `sort` 的参数
+
+```js
+let arr = [ 1, 2, 15 ];
+
+arr.sort( (a, b) => a - b );
+
+alert( arr ); // 1, 2, 15
+```
+
+为什么返回 `a - b` 就可以控制排序的顺序？
+
+因为 `sort` 方法通过传入的**比较函数的返回值**来决定两个元素的顺序
+
+- 正值：表示 `a` 应该排在 `b` 后面
+- 负值：表示 `a` 应该排在 `b` 前面
+- 零：表示两个元素相等，顺序不变
