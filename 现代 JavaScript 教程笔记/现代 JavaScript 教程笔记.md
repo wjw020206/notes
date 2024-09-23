@@ -141,3 +141,14 @@ alert( 0.1 + 0.2 === 0.3 ); // false
 - `for (let i = 0; i < arr.length; i++)` 运行速度最快，兼容旧版本浏览器
 - `for (let item of arr)` 现代语法，只能访问值，无法访问键
 - `for (let i in arr)` 数组中不要使用这个，因为会输出数组的所有属性，不只是是数字属性
+
+
+
+### 数组方法
+方法 `includes` 可以正确处理 `NaN`，`indexOf` 无法正确处理 `NaN`
+
+```js
+const arr = [NaN];
+alert( arr.indexOf(NaN) ); // -1（错误，应该是 0）
+alert( arr.includes(NaN) ); // true（正确）
+```
