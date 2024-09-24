@@ -181,3 +181,76 @@ alert( arr ); // 1, 2, 15
 - 正值：表示 `a` 应该排在 `b` 后面
 - 负值：表示 `a` 应该排在 `b` 前面
 - 零：表示两个元素相等，顺序不变
+
+
+
+## 可迭代（iterable）和类数组（array-like）
+
+
+
+### 可迭代（iterable）
+
+一个对象如果有实现 `Symbol.iterator` 方法可以被称为**可迭代对象**
+
+`obj[Symbol.iterator]()`  的结果被称为**迭代器（iterator）**
+
+迭代器中必须要有一个 `next()` 方法，它返回一个 `{ done: boolean, value: any }` 对象，当 `done` 的值为 `true` 时表示迭代结束
+
+可迭代对象可以应用于 `for..of`，`for..of` 启动时会先找 `[Symbol.iterator]` 方法，没有找到会报错，`for..of` 仅适用于 `[Symbol.iterator]` 返回的对象
+
+```js
+const range = {
+  from: 1,
+  to: 5,
+  [Symbol.iterator]() {
+    // 返回迭代器（含有 next 方法的对象）
+    return {
+      current: this.from,
+      last: this.to,
+      next() {
+        if(this.current <= this.last) {
+          return {
+            done: false,
+            value: this.current++,
+          }
+        }
+        return {
+          done: true,
+        }
+      }
+    }
+  }
+};
+
+for( item of range ) {
+  alert(item);
+}
+```
+
+
+
+### 类数组（array-like）
+
+类数组是有索引和 `length` 属性的对象
+
+```js
+const arrayLike = {
+  0: 'Hello',
+  1: 'World',
+  length: 2,
+};
+```
+
+
+
+## Array.from
+
+`Array.from` 可以接受一个**可迭代或者类数组的值**，将其转换为数组
+
+`Array.from` 可以正确处理 UTF-16 扩展字符
+
+```js
+const str = '𝒳😂';
+
+alert( Array.from(str) ); // 𝒳,😂
+```
