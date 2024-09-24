@@ -283,7 +283,7 @@ alert( Array.from(str) ); // 𝒳,😂
 ```js
 function unique(arr) {
   // 将数组转换为 Set，然后再转换为数组
-  return Array.from(new Set(arr));
+  return Array.from( new Set(arr) );
 }
 
 const arr = [ 'A', 'B', 'A', 'C', 'C', 'D' ];
