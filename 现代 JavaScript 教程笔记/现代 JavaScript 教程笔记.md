@@ -471,14 +471,18 @@ hash(1, 2);
 在指定时间内如果事件没有被再次触发，则执行一次回调函数；如果在时间内事件再次被触发了，则重新计时
 
 ```js
-/** 防抖装饰器 */
+/** 防抖装饰器
+ * @param {function} func 原始函数
+ * @param {number} ms 间隔时长(毫秒)
+ * @returns {function} 包装器
+ */
 function debounce(func, ms) {
   let timerId;
-  
-  return function() {
+
+  return function () {
     clearTimeout(timerId);
     timerId = setTimeout(() => func.apply(this, arguments), ms);
-  }
+  };
 }
 ```
 
@@ -491,31 +495,35 @@ function debounce(func, ms) {
 在规定时间间隔内，无论事件触发多少次，都只执行一次函数
 
 ```js
-/** 节流装饰器 */
+/** 节流装饰器
+ * @param {function} func 原始函数
+ * @param {number} ms 间隔时长(毫秒)
+ * @returns {function} 包装器
+ */
 function throttle(func, ms) {
   let isThrottled = false;
   let saveArgs;
   let saveThis;
-  
+
   return function wrapper() {
     // 如果处于冷却状态，则保存事件触发的 this 和参数
-    if(isThrottled) {
+    if (isThrottled) {
       saveArgs = arguments;
       saveThis = this;
       return;
     }
-    
+
     isThrottled = true;
     func.apply(this, arguments);
-    
+
     setTimeout(() => {
       isThrottled = false;
-      if(saveArgs) {
+      if (saveArgs) {
         wrapper.apply(saveThis, saveArgs);
         saveArgs = saveThis = null;
       }
     }, ms);
-  }
+  };
 }
 ```
 
