@@ -289,3 +289,237 @@ const arr = [ 'A', 'B', 'A', 'C', 'C', 'D' ];
 alert( unique(arr) ); // A,B,C,D
 ```
 
+
+
+## 词法环境（Lexical Environment）
+
+每个代码块、函数以及整个脚本**运行时**都会有一个内部的隐藏对象，这个对象称做词法环境
+
+这个对象包含以下两部分：
+
+- **环境记录** —— 存储所有局部变量作为其属性的对象，也包含了 `this` 等其它的信息
+- **对外部词法环境的引用**
+
+**全局词法环境：**与整个脚本相关联的词法环境对象，这个对象对外部词法环境的引用为 `null`
+
+
+
+### 变量声明
+
+在脚本开始执行时，词法环境会预先填充了所有的变量
+
+这些变量处于 “未初始化（Uninitialized）” 状态，在运行到 `let` 变量声明之前，都无法引用这个变量
+
+
+
+### 函数声明
+
+函数声明与变量声明不同，在脚本开始执行时，函数声明的初始化会立刻完成
+
+这也就是为什么下述代码可以正常使用原因
+
+```js
+// 在函数声明之前调用了函数
+sayHello();
+
+function sayHello() {
+  alert('Hello World');
+}
+```
+
+
+
+### 内部和外部的词法环境
+
+当函数运行时，会自动创建一个新的词法环境对象存储函数的局部变量和参数
+
+当代码中要访问一个变量时，首先会搜索内部的词法环境，如果没有找到会外部的词法环境，以此类推，直到全局词法环境
+
+
+
+### 闭包
+
+所有函数在 “诞生” 时都会有一个 `[[Environment]]` 隐藏属性**保存了对创建该函数的词法环境的引用**
+
+```js
+function makeCounter() {
+  let count = 0;
+  
+  return function() {
+    return count++;
+  }
+}
+
+let counter = makeCounter();
+```
+
+上述代码在执行 `makeCounter` 的过程中，返回了一个函数，此时只是创建了这个函数，该函数的 `[[Environment]]` 隐藏属性保存了对 `makeCounter` 的词法环境对象的引用
+
+所以当 `counter` 函数执行时，它的词法环境对外部词法环境的引用会从 `[[Environment]]` 隐藏属性中获取，由于内部词法环境没有 `count` 变量，会找到外部的词法环境（ `makeCounter` 的词法环境对象 ）中的 `count` 变量
+
+**闭包的定义：** 内部函数可以记住外部变量并访问这些变量，JavaScript 中因为每个函数创建时都有 `[[Environment]]`，所以每个函数都可以看作是闭包
+
+**注意：** 使用 `new Function` 创建的函数，它的 `[[Environment]]` 始终指向全局词法环境
+
+
+
+## 调度：setTimeout 和 setInterval
+
+`setTimeout` 和 `setInterval` 在调用后会返回一个**定时器标识符**
+
+使用 `clearTimeout` 和 `clearInterval` 并**不会使定时器标识符变量变为 `null`，只会清除对应标识符的定时器**
+
+
+
+### 嵌套的 setTimeout
+
+```js
+let timerId = setTimeout(function tick() {
+  timerId = setTimeout(tick, 2000);
+}, 2000);
+```
+
+嵌套的 `setTimeout` 相比直接使用 `setInterval` 的区别：
+
+- `setTimout` 更加灵活，可以根据当前执行的结果进行判断，以此改变下一次调度的可以与当前这一次不同，例如：增加下一次调度的时间间隔
+
+  ```js
+  let delay = 5000;
+  
+  let timerId = setTimeout(function request() {
+    // 根据执行的结果进行判断是否改变下一次调度的时间间隔
+    if(....) {
+      dealy *= 2;
+    }
+    
+    timerId = setTimeout(request, delay);
+  }, delay);
+  ```
+
+- 嵌套的 `setTimeout` 相较于 `setInterval` 可以更精确的设置两次执行之间的延时
+
+  - 使用 `setInterval` 时，函数执行的时间也要消耗一部分间隔时间，**如果函数的执行时间超过间隔时间，则当前函数执行完，立马进行下一次执行**
+  - 使用 `setTimeout` 时，只有当函数执行完之后才会进行下一次执行，因此两次执行之间的延时更精确
+
+
+
+## 装饰器模式（Decorator）
+
+可以在原有函数基础之上改变函数原有的行为，主要工作还是由原有函数完成
+
+装饰器一般用于增强原有函数的功能，可以添加多个，不用改变原有函数的代码
+
+**注意：** 如果原始函数有属性，装饰过后的函数将不再存在这些属性，需要使用 `Proxy` 和 `Reflect` 来创建装饰器的方法
+
+```js
+let worker = {
+  someMethod() {
+    return 1;
+  },
+  slow(x) {
+    // 可怕的 CPU 过载任务
+    alert("Called with " + x);
+    return x * this.someMethod();
+  }
+};
+
+/** 缓存 worker.slow 的调用结果的装饰器 */
+function cachingDecorator(func) {
+  const cache = new Map();
+  
+  return function(x) {
+    if( cache.has(x) ) return cache.get(x);
+    
+    // 此处如果不改变 this，默认 this 是 undefined，导致 someMethod 调用失败
+    const result = func.apply(this, x);
+    cache.set(x, result);
+    
+    return result;
+  }
+}
+
+worker.slow = cachingDecorator(worker.slow);
+```
+
+**注意：** 在接收任意数量的参数时，可以使用 ` func.apply(this, arugments)`
+
+
+
+### call/apply 的区别
+
+- `func.call` 期望一个参数列表
+- `func.apply` 期望一个参数**类数组对象**，`func.apply` 可能会更快，因为大多数 JavaScript 引擎在内部对其进行了优化
+
+
+
+### 借用一种方法
+
+```js
+function hash() {
+  alert( [].join.call(arguments) ); // 1,2
+}
+
+hash(1, 2);
+```
+
+上述代码中因为 `arguments` 不是数组(是可迭代对象也是类数组)，没有数组才有的 `join` 方法，此时可以从常规数组中使用 `join` 方法，并使用 `[].join.call` 在 `arguments` 的上下文中运行它
+
+
+
+### 防抖（Debounce）
+
+在指定时间内如果事件没有被再次触发，则执行一次回调函数；如果在时间内事件再次被触发了，则重新计时
+
+```js
+/** 防抖装饰器 */
+function debounce(func, ms) {
+  let timerId;
+  
+  return function() {
+    clearTimeout(timerId);
+    timerId = setTimeout(() => func.apply(this, arguments), ms);
+  }
+}
+```
+
+**场景：** 常用于需要等待用户操作完全停止后再进行处理的场景，如输入框搜索、窗口大小调整等
+
+
+
+### 节流（Throttle）
+
+在规定时间间隔内，无论事件触发多少次，都只执行一次函数
+
+```js
+/** 节流装饰器 */
+function throttle(func, ms) {
+  let isThrottled = false;
+  let saveArgs;
+  let saveThis;
+  
+  return function wrapper() {
+    // 如果处于冷却状态，则保存事件触发的 this 和参数
+    if(isThrottled) {
+      saveArgs = arguments;
+      saveThis = this;
+      return;
+    }
+    
+    isThrottled = true;
+    func.apply(this, arguments);
+    
+    setTimeout(() => {
+      isThrottled = false;
+      if(saveArgs) {
+        wrapper.apply(saveThis, saveArgs);
+        saveArgs = saveThis = null;
+      }
+    }, ms);
+  }
+}
+```
+
+**场景：** 常用于需要频繁但有规律执行某些操作的场景，如滚动监听、鼠标移动等
+
+
+
