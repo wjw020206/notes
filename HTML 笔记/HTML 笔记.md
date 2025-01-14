@@ -196,7 +196,7 @@ URL 是 “统一资源定位符”（Uniform Resource Locator）首字母的缩
 
 **URL 组成部分**
 
-```http
+```
 https://www.example.com:80/path/to/index.html?key1=value1&key2=value2#anchor
 ```
 
