@@ -498,3 +498,25 @@ https://www.example.com/index.html
 
 - 该属性值是枚举属性，使用时最好带上值
 - 不使用该属性时，由浏览器自行决定是否拼写检查
+
+
+
+**`data-` 属性**
+
+```html
+<a href="#" class="tooltip" data-tip="this is the tip!">我是链接</a>
+```
+
+**作用：** 用于在元素上放置自定义数据
+
+**⚠️ 注意：** `data-` 属性只能通过 CSS 或 JavaScript 利用
+
+
+
+**事件处理属性**
+
+```html
+<div onclick="alert('你好世界')">点我出现你好世界</div>
+```
+
+**作用：** 用于响应用户的操作，这些属性的值都是 JavaScript 代码，具体可以参考[事件处理属性列表](https://wangdoc.com/html/attribute#事件处理属性)
