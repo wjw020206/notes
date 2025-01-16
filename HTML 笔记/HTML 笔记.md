@@ -509,7 +509,7 @@ https://www.example.com/index.html
 
 **作用：** 用于在元素上放置自定义数据
 
-**⚠️ 注意：** `data-` 属性只能通过 CSS 或 JavaScript 利用
+**⚠️ 注意：** `data-` 属性只能通过 CSS 或 JavaScript 使用
 
 
 
