@@ -260,7 +260,7 @@ https://www.example.com/index.html
 
 ```html
 <head>
-	<base href="https://www.example.com/files/" target="_blank">
+  <base href="https://www.example.com/files/" target="_blank">
 </head>
 ```
 
@@ -345,7 +345,7 @@ https://www.example.com/index.html
 
 ```html
 <div title="我是title">
-	<p>鼠标放在我身上会显示title</p>
+  <p>鼠标放在我身上会显示title</p>
 </div>
 ```
 
@@ -483,7 +483,7 @@ https://www.example.com/index.html
 
 ```html
 <p contenteditable="true" spellcheck="true">
-	英语单词 separate 容易写错成 seperate。
+  英语单词 separate 容易写错成 seperate。
 </p>
 ```
 
