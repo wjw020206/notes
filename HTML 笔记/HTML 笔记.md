@@ -15,12 +15,12 @@
 ```html
 <!DOCTYPE html>
 <html lang="zh-CN">
-<head>
-  <meta charset="utf-8">
-  <title></title>
-</head>
-<body>
-</body>
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+  </head>
+  <body>
+  </body>
 </html>
 ```
 
@@ -460,7 +460,7 @@ https://www.example.com/index.html
 **⚠️ 注意：** 
 
 - `translate` 属性只适用于文本元素
-- 该属性值是枚举属性，使用时最好带上值
+- 该属性是枚举属性，使用时最好带上值
 
 
 
@@ -475,7 +475,7 @@ https://www.example.com/index.html
 - `true` 或空字符串：内容可以编辑
 - `false`：内容不可以编辑
 
-**⚠️ 注意：** 该属性值是枚举属性，使用时最好带上值
+**⚠️ 注意：** 该属性是枚举属性，使用时最好带上值
 
 
 
