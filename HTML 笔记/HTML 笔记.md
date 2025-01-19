@@ -1733,3 +1733,128 @@ HTML 提供了一套完整的解决方案
 
 `type` 属性用于填写图像文件的 MIME 类型，`srcset` 是对应的图像 URL，按 `<source>` 标签顺序依次判断浏览器是否支持，如果支持则加载对应格式的图片，如果都不支持则使用最后的 `<img>` 标签
 
+
+
+## `<a>` 标签
+
+```html
+<a href="https://github.com">Github</a>
+```
+
+**类型：** 行内元素
+
+**作用：** 表示一个可以跳转的链接，标签内部可以放置图片、元素、文本等
+
+有以下属性：
+
+- `href` 属性：链接指向的网址，值可以是 URL 或者锚点
+
+  ```html
+  <a href="#demo">我是锚点</a>
+  ```
+
+  锚点点击会滚动到当前页面锚点所在的位置
+
+- `hreflang` 属性：告诉搜索引擎链接指向网址所用的语言，没有实际功能
+
+  ```html
+  <a href="https://github.com" hreflang="en">Github</a>
+  ```
+
+  `hreflang="en"` 属性表明链接指向的网址的语言是英语
+
+  某个资源有多个语言版本，可以将 `hreflang` 设为 `x-default`，表示哪一个版本是默认语言
+
+  ```html
+  <a href="https://v2.vuejs.org/index.html" hreflang="en">English Vue</a>
+  <a href="https://v2.cn.vuejs.org" hreflang="x-default">Chinese Vue</a>
+  ```
+
+- `title` 属性：鼠标移动到链接上时提示的文字
+
+  ```html
+  <a href="https://github.com" title="你好，Github">Github</a>
+  ```
+
+  ![image-20250119150532225](images/image-20250119150532225.png)
+
+- `target` 属性：用于指定链接的打开方式
+
+  ```html
+  <a href="https://github.com" target="_blank">Github</a>
+  ```
+
+  有以下几个值：
+
+  - `_self`：当前窗口打开，默认值
+  - `_blank`：新窗口打开
+  - `_parent`：上层窗口打开，通常用于父窗口打开子窗口，或者 `<iframe>` 里的链接，如果当前窗口没有父窗口，这个值等价于 `_self`
+  - `_top`：顶层窗口打开，如果当前窗口就是顶层窗口，这个值等价于 `_self`
+  - 窗口名，例如：`target="test"`，如果 test 窗口已经打开则取代里面的网页显示，反之创建一个名为 `test` 的窗口并打开页面
+
+  **⚠️ 注意：** 使用 `target` 属性时最好配合 `rel="noreferrer"` 一起使用，可以避免请求头里携带当前网址，避免安全风险
+
+-  `rel` 属性：用于说明链接和当前文档之间的关系
+
+  ```html
+  <a href="https://github.com/wjw020206" rel="author">CodePencil</a>
+  ```
+
+  具体属性值可以参考[rel属性值列表](https://wangdoc.com/html/a#rel)
+
+- `referrerpolicy` 属性：用于精确设置点击链接时发送 HTTP 头信息的 `Referer` 字段的行为，具体属性值可以参考[referrerPolicy属性值列表](https://developer.mozilla.org/zh-CN/docs/Web/API/HTMLAnchorElement/referrerPolicy#%E5%80%BC)
+
+- `ping` 属性：用于跟踪用户的行为，该属性的值是一个网址的 URL，用户点击时会向这个网址发送一个 POST 请求（包含点击的行为发生的页面的链接以及链接所指向页面的链接），FireFox 浏览器不支持该属性，无法发送任何自定义的数据，不推荐使用
+
+- `type` 属性：给出网址的 MIME 类型，没有实际功能
+
+  ```html
+  <a href="avatar.jpg" type="image/jpeg">头像图片</a>
+  ```
+
+- `download` 属性：表示当前链接用于下载而不是跳转到另一个 URL
+
+  ```html
+  <a href="avatar.jpg" download>下载头像图片</a>
+  ```
+
+  如果 `download` 属性设置了值，例如：`download="demo.jpg"`，下载的文件名变为 `demo.jpg`，如果服务器的 HTTP 响应头信息里设置的 `Content-Disposition` 与 `download` 属性里设置的文件名不一致，按照 `Content-Disposition` 来
+
+  有些地址是数据地址，不是真实的网址，例如下述代码：
+
+  ```html
+  <a href="data:,Hello%2C%20World!" download="hello.txt">点击下载</a>
+  ```
+
+  这时可以使用 `download` 属性指定文件名，上述 `hello.txt` 文件点击下载后文本内容就是 `Hello, World!`
+
+
+
+**邮箱链接**
+
+链接地址指向一个邮箱，使用 `mailto` 协议，点击链接浏览器会打开默认的邮件程序
+
+```html
+<a href="mailto:contact@example.com">联系我们</a>
+```
+
+除了邮箱地址，还可以通过 URL 参数的形式指定邮件的几个要素，具体可以参考[邮箱要素列表](https://wangdoc.com/html/a#%E9%82%AE%E4%BB%B6%E9%93%BE%E6%8E%A5)
+
+也可以不指定邮箱地址，让用户自己在邮箱程序中选择转发的联系人
+
+```html
+<a href="mailto:">转发</a>
+```
+
+
+
+**电话链接**
+
+链接地址指向一个电话号码，使用 `tel` 协议，在手机点击链接会唤起拨号界面，可以直接拨打指定号码
+
+```html
+<a href="tel:13412345678">13412345678</a>
+```
+
+
+
