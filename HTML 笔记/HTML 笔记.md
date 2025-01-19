@@ -1508,7 +1508,228 @@ HTML 为了解决上述问题允许使用 Unicode 码点表示字符，浏览器
 
 
 
+## 图像标签
 
 
 
+**`<img>` 标签**
+
+```html
+<img src="avatar.jpg">
+```
+
+![image-20250119074834915](images/image-20250119074834915.png)
+
+**类型：** 行内元素
+
+**作用：** 用于插入图片，`src` 属性用于指定图片的网址
+
+图像默认以原始大小显示，如果图片很大与文字处于同一行，图片会把当前行的行高撑高，图片和文字底部对齐
+
+```html
+<p>
+  <img src="avatar.jpg">
+  我是文字
+</p>
+```
+
+![image-20250119075137280](images/image-20250119075137280.png)
+
+
+
+`<img>` 标签有以下属性：
+
+- `alt` 属性：用于图片无法正常显示时的提示文本
+
+  ```html
+  <img src="avatar.jpg" alt="头像图片">
+  ```
+
+  ![image-20250119075704362](images/image-20250119075704362.png)
+
+- `width` 和 `height` 属性：网页图片默认以图片原始大小插入，通过 `width` 和 `height` 可以指定图片的宽度和高度，单位可以是百分比或者像素
+
+  ```html
+  <img src="avatar.jpg" width="100" height="100">
+  ```
+
+  ![image-20250119080032349](images/image-20250119080032349.png)
+
+  **⚠️ 注意：** 
+
+  - 一旦设置了这两个属性，不管图片是否加载成功，浏览器都会在网页中为图片预留出这个大小的空间，图片大小可以使用 CSS 控制，一般情况不建议使用这两个属性
+  - 这两个属性如果只设置其中一个，浏览器会根据图片原始大小比例自动设置宽度或高度
+
+- `referrerpolicy` 属性：`<img>` 标签加载图片会发送 HTTP 请求，默认会带有 `refer` 请求头信息，该属性可以对这个行为进行设置
+
+- `crossorigin` 属性：当网页和图片属于不同的网站时，网页加载图片会导致跨域请求，如果对方服务器要求跨源认证，可以使用该属性进行告诉浏览器是否采用跨域形式下载图片，打开了该属性，就会在 HTTP 请求头中添加 `origin` 字段，给出请求发出的域名，`crossorigin` 属性可以设置以下两个值：
+
+  - `anonymous`：跨域请求不带有用户凭证（通常是 Cookie）
+  - `use-credentials`：跨域请求带有用户凭证
+
+  ```html
+  <img src="avatar.jpg" crossorigin>
+  ```
+
+  等价于
+
+  ```html
+  <img src="avatar.jpg" crossorigin="anonymous">
+  ```
+
+
+- `loading` 属性：控制图片的加载方式，浏览器的默认行为是只要解析到 `<img>` 标签就立马下载图片，该属性有以下三个取值：
+
+  - `auto`：浏览器默认行为，等同于不使用 `loading` 属性
+  - `lazy`：启用懒加载，只有图片进入视口可见区域时才会加载，节省流量带宽
+  - `eager`：立即加载资源，无论图片在哪个位置
+
+  ```html
+  <img src="avatar.jpg" loading="lazy" width="200" height="200">
+  ```
+
+  **⚠️ 注意：** 图片的懒加载可能会导致页面布局重新排列，使用 `loading` 属性时最好指定图片的宽度和高度
+
+
+
+**`<figure>` 和 `<figcation>` 标签**
+
+```html
+<figure>
+  <img src="avatar.jpg" width="100" />
+  <figcaption>CodePencil的头像</figcaption>
+</figure>
+```
+
+![image-20250119083905842](images/image-20250119083905842.png)
+
+**类型：** 块级元素
+
+**作用：** `<figure>` 作为一个图像区块，用于将图片和相关信息封装在一起，`<figcation>` 标签是它的可选子元素，表示图片的文本描述，通常用于放置标题，可以有多个，也是块级元素
+
+`<figure>` 除了图像，还可以封装引言、代码、诗歌等，等同于一个将主体和相关信息封装在一起的语义封装容器
+
+```html
+<figure>
+  <figcaption>JavaScript 代码示例</figcaption>
+  <p><code>console.log('你好，世界');</code></p>
+</figure>
+```
+
+![image-20250119084346397](images/image-20250119084346397.png)
+
+
+
+**响应式图像**
+
+为什么有响应式图像的需求？
+
+因为通常直接使用 `<img>` 标签插入图片存在以下三个问题：
+
+- 桌面端显示的图片尺寸和体积对移动端来说过大，加载慢（体积问题）
+- 桌面端显示的图片在移动端上显示有些模糊（像素密度问题）
+- 桌面端显示的图片放在移动端上容易缺失重点， 部分细节无法看清（视觉风格问题）
+
+
+
+如何解决上面的三个问题？
+
+HTML 提供了一套完整的解决方案
+
+首先 `<img>` 标签引入了 `srcset` 属性，该属性可以指定多张图片来适应不同像素密度的屏幕，值是以逗号分隔的字符串，当没有适合的像素比或者不支持 `srcset` 属性时会使用 `src` 属性中的图片
+
+**格式：** 图像 URL + 空格 + 像素密度倍数 + 字母 `x`，`1x` 表示单倍像素比，可以省略
+
+```html
+<img srcset="https://dummyimage.com/320,
+             https://dummyimage.com/480 1.5x,
+             https://dummyimage.com/640 2x"
+     src="https://dummyimage.com/320">
+```
+
+- 在1.25 倍像素比下显示 480 宽度的图片，浏览器选择最接近的像素比
+
+  ![image-20250119095636107](images/image-20250119095636107.png)
+
+- 在 2 倍像素比下显示 640 宽度的图片
+
+  ![image-20250119095918893](images/image-20250119095918893.png)
+
+上述步骤解决了像素问题
+
+如何解决图片尺寸和体积以及视觉风格的问题
+
+第一步：使用 `srcset` 属性列出所有可用的图像，该属性的值是以逗号分隔的字符串
+
+**格式：** 图像 URL + 空格 + 宽度描述符（图像原始宽度 + `w`）
+
+```html
+<img srcset="https://dummyimage.com/320 320w,
+             https://dummyimage.com/480 480w,
+             https://dummyimage.com/640 640w"
+     src="https://dummyimage.com/320">
+```
+
+第二步：使用 `sizes` 属性列出不同设备的图像显示宽度，该属性的值是以逗号分隔的字符串
+
+```html
+<img srcset="https://dummyimage.com/320 320w,
+             https://dummyimage.com/480 480w,
+             https://dummyimage.com/640 640w"
+     sizes="(max-width: 320px) 320px,
+      (max-width: 480px) 480px,
+      640px"
+     src="https://dummyimage.com/320">
+```
+
+屏幕宽度为 320px 时
+
+当像素比为 1 时，执行 `(max-width: 320px) 320px` 返回 320px 并与像素比相乘得到320px，会加载 320px 的图片
+
+但当像素比为 2 时，返回的 320px 与 像素比 2 相乘得到 640px，会加载 640px 的图片
+
+屏幕宽度为 1000px 并且像素比为 1 时，会加载最后一档的 640px，与像素比相乘得到 640px 的图片
+
+**⚠️ 注意：** `sizes` 属性必须和 `srcset` 属性搭配使用，单独使用 `sizes` 属性无效，如果省略 `sizes` 属性单独使用 `srcset` 属性，浏览器根据实际图像宽度显示
+
+
+
+**`<picture>` 标签**
+
+```html
+<picture>
+  <source media="(max-width: 500px)"
+          srcset="https://dummyimage.com/500, https://dummyimage.com/1000 2x">
+  <source media="(max-width: 501px)"
+          srcset="https://dummyimage.com/501, https://dummyimage.com/1002 2x">
+  <img src="https://dummyimage.com/500">
+</picture>
+```
+
+![image-20250119140634990](images/image-20250119140634990.png)
+
+![image-20250119140719660](images/image-20250119140719660.png)
+
+**类型：** 行内元素
+
+**作用：** `<img>` 标签的 `srcset` 属性解决了像素密度的问题，`sizes` 属性解决了图片尺寸与屏幕大小适配的问题，要同时解决像素密度和屏幕大小适配问题需要使用 `<picture>` 标签，内部的标签有 `<source>` 和 `<img>`
+
+`<source>` 标签有以下属性：
+
+- `media` 属性：用于给出媒体查询表达式，`sizes` 属性依旧可以用，但因为有了该属性就不用了
+- `srcset` 属性：与 `<img>` 的 `srcset` 属性相同，**可以同时指定1倍图和2倍图**
+
+按照 `<source>` 标签的顺序来判断当前设备是否满足媒体查询条件，满足就加载对应图片，如果都不满足或者不支持 `<pircture>` 标签则加载最后的 `<img>` 标签
+
+`<picture>` 还可以用来加载不同格式的图像
+
+```html
+<picture>
+  <source type="image/svg+xml" srcset="logo.xml">
+  <source type="image/webp" srcset="logo.webp"> 
+  <img src="logo.png" alt="ACME Corp">
+</picture>
+```
+
+`type` 属性用于填写图像文件的 MIME 类型，`srcset` 是对应的图像 URL，按 `<source>` 标签顺序依次判断浏览器是否支持，如果支持则加载对应格式的图片，如果都不支持则使用最后的 `<img>` 标签
 
