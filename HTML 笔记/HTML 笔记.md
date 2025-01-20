@@ -1984,7 +1984,7 @@ HTML 提供了一套完整的解决方案
 <link href="mobile.css" rel="stylesheet" media="screen and (max-width: 600px)">
 ```
 
-上述代码，打印时加载 print.css 文件，当屏幕宽度小于 600px 时，才会加载 mobile.css 文件
+上述代码，打印时加载 print.css 文件，当屏幕宽度小于等于 600px 时，才会加载 mobile.css 文件
 
 
 
