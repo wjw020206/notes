@@ -1992,3 +1992,68 @@ HTML 提供了一套完整的解决方案
 
 具体可以参考[其他属性列表](https://wangdoc.com/html/link#其他属性)
 
+
+
+## `<script>` 标签
+
+```html
+<script>
+  console.log('Hello World');
+</script>
+```
+
+**作用：** 用于加载脚本代码
+
+有以下几个属性：
+
+- `src` 属性：用于加载外部脚本代码
+
+  ```html
+  <script src="main.js"></script>
+  ```
+
+- `type` 属性：用于设置脚本的类型，默认值是 `text/javascript`，可以省略，下述是完整写法
+
+  ```html
+  <script type="text/javascript" src="main.js"></script>
+  ```
+
+  `type` 属性可以设置为 `module`，表示是一个 ES6 模块，不是传统脚本
+
+  ```html
+  <script type="module" src="main.js"></script>
+  ```
+
+  对于不支持 ES6 模块的浏览器，可以设置为 `nomodule` 属性兼容老的浏览器，下述代码在不支持 ES6 模块的浏览器中会加载 fallback.js 而不会加载 main.js，反之只会加载 main.js
+
+  ```html
+  <script type="module" src="main.js"></script>
+  <script nomodule src="fallback.js"></script>
+  ```
+
+- `async` 属性：指定 JavaScript 代码为异步代码，加载的时候不会阻塞页面，JavaScript 代码默认是同步执行
+
+- `defer` 属性：指定 JavaScript 代码不会立即执行，在页面解析完成之后才执行
+
+- `crossorigin` 属性：采用跨域的方式加载外部脚本，在 HTTP 请求头中会添加 `origin` 字段
+
+- `integrity` 属性：给出外部脚本的哈希值，只有哈希值相同才会执行脚本，防止脚本被篡改
+
+- `nonce` 属性：一个密码随机数，由服务器在 HTTP 头信息里给出，每次加载脚本都不一样，浏览器会检查是否带有正确的 `nonce`，如果没有则不会执行代码
+
+- `referrerpolicy` 属性：配置 HTTP 请求的 `Referer` 字段处理方法
+
+
+
+## `<noscript>` 标签
+
+```html
+<noscript>
+  您的浏览器不能执行 JavaScript，页面无法正常显示。
+</noscript>
+```
+
+**作用：** 用于当浏览器不支持或者关闭 JavaScript 时，所要显示的内容
+
+
+
