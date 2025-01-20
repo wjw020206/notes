@@ -1863,3 +1863,132 @@ HTML 提供了一套完整的解决方案
 
 
 
+## `<link>` 标签
+
+**作用：** 用于当前网页与外部资源联系起来，通常放在 `<head>` 标签中，通常用来做以下几件事：
+
+- 加载 CSS 样式表
+
+  ```html
+  <link rel="stylesheet" type="text/css" href="theme.css">
+  ```
+
+- 加载 favicon 图标文件
+
+  ```html
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  ```
+
+- 在手机上访问时，网站通常需要提供不同分辨率的图标文件
+
+  ```html
+  <link rel="apple-touch-icon-precomposed" sizes="114x114" href="favicon114.png">
+  <link rel="apple-touch-icon-precomposed" sizes="72x72" href="favicon72.png">
+  ```
+
+  上述代码为苹果手机指定不同分辨率的图标文件
+
+- 提供文档的相关链接，例如文档的 RSS 地址
+
+  ```html
+  <link rel="alternate" type="application/atom+xml" href="/blog/news/atom">
+  ```
+
+有以下常用的属性：
+
+- `rel` 属性：**是 `<link>` 标签必须的属性**，当做对 `href` 属性资源链接的说明，取值可以参考[rel 属性列表](https://wangdoc.com/html/link#rel-属性)
+
+- `hreflang` 属性：表示 `href` 属性所链接的资源使用的语言，用法与 `<a>` 标签的 `hreflang` 属性相同
+
+  ```html
+  <link href="https://example.com" rel="alternate" hreflang="x-default">
+  <link href="https://example.com/de" rel="alternate" hreflang="de">
+  ```
+
+
+
+**资源的预加载**
+
+**作用：** 浏览器预先下载资源，缓存起来，**等到需要使用的时候不需要下载立即就可以用**
+
+主要有以下五种类型：
+
+- `preload`：告诉浏览器尽快下载并缓存资源，**优先级高，浏览器一定会下载，下载后不会对资源执行任何操作，只作为缓存**
+
+  ```html
+  <link rel="preload" href="image.png" as="image">
+  ```
+
+  **优点：**
+
+  - 允许指定预加载资源的类型，通过 `as` 属性指定资源类型
+
+    ```html
+    <link rel="preload" href="style.css" as="style">
+    <link rel="preload" href="main.js" as="script">
+    ```
+
+    `as` 属性的值可以参考[as属性值列表](https://developer.mozilla.org/zh-CN/docs/Web/HTML/Element/link#as)
+
+    **⚠️ 注意：** 
+
+    - 如果 `as` 属性指定这些值以外或者浏览器不认识的值，浏览器会以低优先级下载
+    - 当设置了 `rel="preload"` 后，`as` 属性必须要有
+
+    还可以指定 `type` 属性，进一步明确 `MIME` 类型
+
+    ```html
+    <link rel="preload" href="demo.mp4" as="video" type="video/mp4">
+    ```
+
+  - 允许配置 `onload` 事件回调
+
+    ```html
+    <link rel="preload" as="style" href="style.css" onload="this.rel='stylesheet'">
+    ```
+
+    上述代码中，`onload` 指定的回调函数会在 style.css 下载完成后立即插入页面
+
+- `prefetch`：预下载资源作为缓存用于后续的页面，**优先级较低，浏览器不一定会下载**，例如：网速很慢时
+
+  ```html
+  <link rel="prefetch" href="https://www.example.com/">
+  ```
+
+- `preconnect`：要求浏览器提前与某个域名建立 TCP 连接，适用于很快就要请求该域名的情况
+
+  ```html
+  <link rel="preconnect" href="https://www.example.com/">
+  ```
+
+- `dns-prefetch`：要求浏览器提前对某个域名进行 DNS 解析
+
+  ```html
+  <link rel="dns-prefetch" href="https://example.com/">
+  ```
+
+- `prerender`：要求浏览器加载某个页面时，提前渲染它，例如：当用户点击指向该页面的链接时，会立即呈现页面
+
+  ```html
+  <link rel="prerender" href="https://example.com/">
+  ```
+
+
+
+**media 属性**
+
+用于设置外部资源生效的媒体条件
+
+```html
+<link href="print.css" rel="stylesheet" media="print">
+<link href="mobile.css" rel="stylesheet" media="screen and (max-width: 600px)">
+```
+
+上述代码，打印时加载 print.css 文件，当屏幕宽度小于 600px 时，才会加载 mobile.css 文件
+
+
+
+**其它属性**
+
+具体可以参考[其他属性列表](https://wangdoc.com/html/link#其他属性)
+
