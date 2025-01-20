@@ -2057,3 +2057,140 @@ HTML 提供了一套完整的解决方案
 
 
 
+## 多媒体标签
+
+
+
+**`<video>` 标签**
+
+```html
+<video src="example.mp4" controls>
+  <p>你的浏览器不支持 HTML5 视频，请下载<a href="example.mp4">视频文件</a>。</p>
+</video>
+```
+
+**类型：** 块级元素
+
+**作用：** 用于放置视频
+
+`<video>` 标签的属性具体可以参考 [video 属性列表 ](https://wangdoc.com/html/multimedia#video)
+
+为了避免浏览器不支持视频格式的问题，可以使用 `<source>` 标签放置同一个视频的多种格式
+
+```html
+<video controls>
+  <source src="example.mp4" type="video/mp4">
+  <source src="example.webm" type="video/webm">
+  <p>你的浏览器不支持 HTML5 视频，请下载<a href="example.mp4">视频文件</a>。</p>
+</video>
+```
+
+`type` 属性是 MIME 类型，上述代码如果浏览器支持 mp4，就不会再往下执行，如果所有视频格式都不支持，则显示提示
+
+
+
+**`<audio>` 标签**
+
+```html
+<audio controls>
+  <source src="example.mp3" type="audio/mp3">
+  <source src="example.ogg" type="audio/ogg">
+  <p>你的浏览器不支持 HTML5 音频，请直接下载<a href="example.mp3">音频文件</a>。</p>
+</audio>
+```
+
+**类型：** 块级元素
+
+**作用：** 用于放置音频，用法与 `<video>` 标签类似，标签属性可以参考 [audio 属性列表](https://wangdoc.com/html/multimedia#audio)
+
+
+
+**`<track>` 标签**
+
+```html
+<video controls src="sample.mp4">
+   <track label="英文" kind="subtitles" src="subtitles_en.vtt" srclang="en">
+   <track label="中文" kind="subtitles" src="subtitles_cn.vtt" srclang="cn" default>
+</video>
+```
+
+**作用：** 用于指定视频的字幕，**放置与 `<video>` 标签内部**，字幕文件格式是 `.vtt` 文件
+
+该标签有以下属性：
+
+- `label`：播放器显示的字幕名称，供用户选择
+- `kind`：字幕的类型，有以下两种类型：
+  - `subtitles`：表示使用翻译后的字幕，例如：英文视频中显示中文字幕
+  - `captions`：表示使用没翻译的字幕，例如：英文视频中显示英文字幕
+- `src`：vtt 字幕文件的网址
+- `srclang`：字幕的语言，**必须是有效的语言代码**
+- `default`：布尔属性，表示是否默认打开
+
+
+
+**`<source>` 标签**
+
+**作用：** 放置在 `<picture>`、`<video>`、`<audio>` 标签的内部，用于指定一项外部资源
+
+有以下常用属性：
+
+- `type`：指定外部资源的 MIME 类型
+- `src`：指定源文件，用于 `<video>` 和 `<audio>`
+- `srcset`：指定不同条件下加载不同的图片文件，用于 `<picture>`
+- `media`：指定媒体查询的表达式，用于 `<picture>`
+- `sizes`：指定不同设备的显示大小，用于 `<picture>`，**必须和 `srcset` 一起使用**
+
+
+
+**`<embed>` 标签**
+
+```html
+<embed type="video/quicktime" src="movie.mov" width="640" height="480" />
+```
+
+**类型：** 行内元素
+
+**作用：** 用于嵌入外部内容，外部内容的样式通常是由浏览器插件负责控制，上述代码如果浏览器没有安装 quicktime 插件，视频就无法播放
+
+`<embed>` 标签具有如下属性：
+
+- `height`：显示高度，单位为像素，不允许百分比
+- `width`：显示宽度，单位为像素，不允许百分比
+- `src`：嵌入的资源的 URL
+- `type`：嵌入资源的 MIME 类型
+
+**⚠️ 注意：** 大多数现代浏览器已经取消了对浏览器插件的支持，**谨慎使用**
+
+
+
+**`<object>` 标签和 `<param>` 标签**
+
+```html
+<object type="application/pdf"
+    data="https://interactive-examples.mdn.mozilla.net/media/examples/In-CC0.pdf"
+    width="250"
+    height="200">
+</object>
+```
+
+![image-20250120135928146](images/image-20250120135928146.png)
+
+**作用：** 与 `<embed>` 标签类似，插入外部资源，由浏览器插件处理，**可以作为 `<embed>` 标签的替代品，有标准化行为**，无历史问题，只限于插入少数几种通用资源，上述代码在页面中插入了 PDF 文件
+
+`<object>` 具有如下属性：
+
+- `data`：嵌入的资源的 URL
+- `form`：当前网页中相关联表单的`id`属性（如果有的话）
+- `height`：资源的显示高度，单位为像素，不能使用百分比
+- `width`：资源的显示宽度，单位为像素，不能使用百分比
+- `type`：资源的 MIME 类型
+- `typemustmatch`：布尔属性，表示 `data` 属性与 `type` 属性是否必须匹配
+
+`<object>` 内部可以使用 `<param>` 标签，用于传递给浏览器插件运行所需要的参数
+
+```html
+<object data="movie.swf" type="application/x-shockwave-flash">
+  <param name="foo" value="bar">
+</object>
+```
+
