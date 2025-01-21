@@ -2273,3 +2273,284 @@ HTML 提供了一套完整的解决方案
 - `<iframe>` 的宽度和高度为 4 像素或更小
 - `<iframe>` 的样式设置为 `display: none` 或者 `visibility: hidden`
 - 使用定位坐标为负 `X` 或 `Y`，将 `<iframe>` 放置在屏幕外
+
+
+
+## 表格标签
+
+
+
+**`<table>`、`<caption>` 标签**
+
+```html
+<table>
+  <caption>示例表格</caption>
+</table>
+```
+
+**类型：** 两个标签都是块级元素
+
+**作用：** 
+
+- `<table>`  所有表格的内容都要放在这个标签中
+- `<caption>` 标签表示表格的标题，是 `<table>` 标签第一个子元素，是可选的
+
+
+
+**`<thead>`、`<tbody>`、`<tfoot>` 标签** 
+
+```html
+<table>
+  <thead></thead>
+  <tbody></tbody>
+  <tfoot></tfoot>
+</table>
+```
+
+**类型：** 这三个标签都块级元素
+
+**作用：**
+
+- `<thead>` 表示表头
+- `<tbody>` 表示表体，在大型表格中可以使用多个 `<tbody>`，表示连续的多个部分
+- `<tfoot>` 表示表尾
+
+三个标签都是可选的
+
+**⚠️ 注意：** 最好按照上述代码的标签顺序去使用
+
+
+
+**`<colgroup>`、`<col>` 标签**
+
+```html
+<table>
+  <colgroup>
+    <col>
+    <col>
+    <col>
+  </colgroup>
+</table>
+```
+
+**作用：** 
+
+- `<colgroup>` 用于包含一组列的定义
+- `<col>` 是 `<colgroup>` 的子元素，用来定义表格的一列，**没有子元素，主要用来声明表结构，为表格附加样式**
+
+上述代码中表示表格有 3 列
+
+```html
+<table>
+  <colgroup>
+    <col class="red">
+    <col class="green">
+    <col class="blue">
+  </colgroup>
+  <tr>
+    <td>1</td>
+    <td>2</td>
+    <td>3</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>5</td>
+    <td>6</td>
+  </tr>
+</table>
+```
+
+![image-20250121133226887](images/image-20250121133226887.png)
+
+上述代码通过每列的 `class` 指定了背景颜色
+
+`<col>` 标签有一个 `span` 属性，值为正整数，默认值为 `1`，如果大于 `1` 表示该列的宽度包含连续多列
+
+```html
+<table>
+  <colgroup>
+    <col class="red" />
+    <col span="2" class="green" />
+    <col class="blue" />
+  </colgroup>
+  <tr>
+    <td>1</td>
+    <td>2</td>
+    <td>3</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>5</td>
+    <td>6</td>
+  </tr>
+</table>
+```
+
+![image-20250121133631019](images/image-20250121133631019.png)
+
+上述代码，虽然表头只定义了 3 列，但实际数据有 4 列，第 2 列连续跨了 2 列，图中第 3 列因为没有数据所以没显示
+
+
+
+**`<tr>` 标签**
+
+```html
+<table>
+  <tr></tr>
+  <tr></tr>
+</table>
+```
+
+**作用：** 表示表格的一行，如果表格有 `<thead>`、`<tbody>`、`<tfoot>`，就放在这些容器元素中，反之直接放在 `<table>` 中
+
+上述代码表示表格总共有 2 行
+
+
+
+**`<th>`、`<td>` 标签**
+
+```html
+<table>
+  <tr>
+    <th>学号</th><th>姓名</th>
+  </tr>
+  <tr>
+    <td>001</td><td>张三</td>
+  </tr>
+  <tr>
+    <td>002</td><td>李四</td>
+  </tr>
+</table>
+```
+
+![image-20250121140118516](images/image-20250121140118516.png)
+
+**作用：**
+
+- `<th>` 表示标题单元格，默认内部文字加粗
+- `<td>` 表示数据单元格
+
+
+
+**colspan 和 rowspan 属性**
+
+单元格通过 `colspan` 和 `rowspan` 属性配置跨多列和跨多行
+
+- `colspan` 值类型为非负整数，表示跨越的列数，默认值为 1
+- `rowspan` 值类型为非负整数，表示跨越的行数，默认值为 1
+
+```html
+<table>
+  <tr>
+    <td colspan="2">A</td>
+    <td>B</td>
+  </tr>
+  <tr>
+    <td>A</td>
+    <td>B</td>
+    <td>C</td>
+  </tr>
+</table>
+```
+
+![image-20250121140638794](images/image-20250121140638794.png)
+
+
+
+**headers 属性**
+
+表格单元格很多时，源码里会看不清哪个单元格对应哪个表头，这时可以使用 `headers` 属性设置对应表头的 `id`
+
+```html
+<table>
+  <tr>
+    <th id="no">学号</th><th id="names">姓名</th>
+  </tr>
+  <tr>
+    <td headers="no">001</td><td headers="names">张三</td>
+  </tr>
+  <tr>
+    <td headers="no">002</td><td headers="names">李四</td>
+  </tr>
+</table>
+```
+
+上述代码中，标题栏 `<th>` 设置了 `id` 属性，后面的 `<td>` 单元格通过 `headers` 对应这些 `id` 属性
+
+如果有一个单元格跨多列的情况时，`headers` 属性可以是以空格分隔的字符串，来对应多个 `id` 属性的值
+
+
+
+**scope 属性**
+
+该属性只有 `<th>` 支持，表示该 `<th>` 单元格是行的标题还是列的标题
+
+```html
+<table>
+  <tr>
+    <th scope="col">姓名</th>
+    <th scope="col">学号</th>
+    <th scope="col">性别</th>
+  </tr>
+  <tr>
+    <th scope="row">张三</th>
+    <td>001</td>
+    <td>男</td>
+  </tr>
+  <tr>
+    <th scope="row">李四</th>
+    <td>002</td>
+    <td>男</td>
+  </tr>
+</table>
+```
+
+![image-20250121141958838](images/image-20250121141958838.png)
+
+上述代码中，第一行是列的标题，所以 `scope` 属性都是 `col`，第一列是行的标题，所以 `scope` 属性都是 `row`
+
+`scope` 属性可以取以下的值：
+
+- `row`：该行的所有单元格，都与该标题单元格相关
+- `col`：该列的所有单元格，都与该标题单元格相关
+- `rowgroup`：多行组成的一个行组的所有单元格，都与该标题单元格相关，可以与 `rowspan` 属性配合使用
+- `colgroup`：多列组成的一个列组的所有单元格，都与该标题单元格相关，可以与 `colspan` 属性配合使用
+- `auto`：默认值，表示由浏览器自行决定
+
+下述代码是具体的例子：
+
+```html
+<table>
+  <thead>
+    <tr>
+      <th scope="col">海报名称</th>
+      <th scope="col">颜色</th>
+      <th colspan="3" scope="colgroup">尺寸</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="3" scope="rowgroup">Zodiac</th>
+      <th scope="row">Full color</th>
+      <td>A2</td>
+      <td>A3</td>
+      <td>A4</td>
+    </tr>
+    <tr>
+      <th scope="row">Black and white</th>
+      <td>A1</td>
+      <td>A2</td>
+      <td>A3</td>
+    </tr>
+    <tr>
+      <th scope="row">Sepia</th>
+      <td>A3</td>
+      <td>A4</td>
+      <td>A5</td>
+    </tr>
+  </tbody>
+</table>
+```
+
+![image-20250121142501512](images/image-20250121142501512.png)
+
