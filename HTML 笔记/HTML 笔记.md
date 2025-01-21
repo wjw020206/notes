@@ -2179,7 +2179,7 @@ HTML 提供了一套完整的解决方案
 
 `<object>` 具有如下属性：
 
-- `data`：嵌入的资源的 URL
+- `data`：嵌入资源的 URL
 - `form`：当前网页中相关联表单的`id`属性（如果有的话）
 - `height`：资源的显示高度，单位为像素，不能使用百分比
 - `width`：资源的显示宽度，单位为像素，不能使用百分比
@@ -2194,3 +2194,82 @@ HTML 提供了一套完整的解决方案
 </object>
 ```
 
+
+
+## `<iframe>` 标签
+
+```html
+<iframe src="https://www.example.com"
+        width="100%"
+        height="500"
+        frameborder="0"
+        allowfullscreen
+        sandbox>
+  <p><a href="https://www.example.com">点击打开嵌入页面</a></p>
+</iframe>
+```
+
+**类型：** 行内元素
+
+**作用：** 在网页中嵌入其它网页
+
+当浏览器不支持时，会显示内部的子元素，例如：上述代码会显示一个链接
+
+该标签具有以下属性：
+
+- `allowfullscreen`：允许嵌入的网页全屏显示，需要全屏 API 的支持
+- `frameborder`：是否绘制边框，`0` 为不绘制，`1` 为绘制（默认值），**建议使用 CSS 来设置边框的样式**
+- `src`：要嵌入网页的 URL
+- `width`：显示区域的宽度
+- `height`：显示区域的高度
+- `sandbox`：配置嵌入网页的权限
+- `importance`：浏览器下载嵌入网页的优先级，可以设置以下值：
+  - `height`：高优先级
+  - `low`：低优先级
+  - `auto`：表示由浏览器自行决定
+- `name`：内嵌窗口的名称，用于 `<a>`、`<form>`、`<base>` 的 `target` 属性
+- `referrerpolicy`：配置请求嵌入网页时发送的 HTTP 请求的 `Referer` 字段，具体设置与 `<a>` 标签配置相同
+
+
+
+**sandbox 属性**
+
+`<iframe>` 嵌入的网页默认是由正常权限，例如：执行脚本、提交表单、弹出窗口，因此存在安全风险，为了限制安全风险，HTML 提供一个 `sandbox` 属性，用于配置 `<iframe>` 嵌入的网页的权限，类似于沙箱环境
+
+```html
+<iframe src="https://www.example.com" sandbox></iframe>
+```
+
+该属性可以当做布尔属性使用，上述代码表示开启所有的限制
+
+该属性也可以设置具体的值，可以同时设置多个，以空格分隔，未设置某一项表示不具有该权限，例如：
+
+```html
+<iframe src="https://www.example.com" sandbox="allow-same-origin allow-popups"></iframe>
+```
+
+具体设置的值可以参考 [sandbox 属性列表](https://wangdoc.com/html/iframe#sandbox-属性)
+
+**⚠️ 注意：** **不要同时设置 `allow-scripts` 和 `allow-same-origin`**，这会使嵌入的网页可以改变和删除 `sandbox` 属性
+
+
+
+**loading 属性**
+
+`<iframe>` 指定的网页会立马加载，可以通过 `loading` 属性配置懒加载，只有当 `<iframe>` 滚动进入视口后才加载
+
+```html
+<iframe src="https://www.example.com" loading="lazy"></iframe>
+```
+
+该属性可以取以下几个值：
+
+- `auto`：浏览器的默认行为，相当于不使用 `loading` 属性
+- `lazy`：`<iframe>` 进入视口时加载网页
+- `eager`：立即加载资源，不管在页面的什么位置
+
+**⚠️ 注意：** 如果 `<iframe>` 是隐藏的，则 `loading` 属性无效，将会立即加载，在 Chrome 浏览器中，满足以下任意一个条件则视为隐藏：
+
+- `<iframe>` 的宽度和高度为 4 像素或更小
+- `<iframe>` 的样式设置为 `display: none` 或者 `visibility: hidden`
+- 使用定位坐标为负 `X` 或 `Y`，将 `<iframe>` 放置在屏幕外
