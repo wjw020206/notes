@@ -2578,3 +2578,154 @@ HTML 提供了一套完整的解决方案
 
 **作用：** 用来定义一个表单，所有表单内容都放在这个容器中
 
+文本输入框的 `name` 属性是 `user` 表示提交表单会向服务器发送一个键名为 `user` 的键值对，键值为这个控件 `value`  属性的值
+
+在输入框中输入 `CodePencil` 然后点击提交，会向服务器 `https://example.com/api` 发送一个 POST 请求，发送的数据为 `user=CodePencil`
+
+- `enctype` 属性：当指定了 POST 方法提交数据时，浏览器给出的数据的 MIME 类型，可以取以下的值：
+
+  - `application/x-www-form-urlencoded ` 是默认类型，**控件名和控件值都要经过转义**，转义规则如下：
+
+    - 空格转为 `+` 号
+    - 非数字和非字母转为 `%HH` 的形式
+    - 换行转换为 CR LF
+
+    控件名和控件值之间使用 `=` 分隔，键值对之间使用 `&` 连接
+
+  -  `multipart/form-data` 主要用于文件上传，上传大文件时会将文件分成好几块，每一块的 HTTP 请求头信息里都有 `Content-Disposition` 属性，值为 `form-data`
+
+    ```html
+    <form action="https://example.com/api"
+          enctype="multipart/form-data"
+          method="post">
+      用户名：<input type="text" name="submit-name"><br>
+      文件：<input type="file" name="files"><br>
+      <input type="submit" value="上传"> <input type="reset" value="清除">
+    </form>
+    ```
+
+    ![image-20250122145051113](images/image-20250122145051113.png)
+
+    上述代码输入用户名 `Larry`，选中 `file1.txt` 文件点击上传，浏览器发送实际的数据如下：
+
+    ```
+    Content-type: multipart/form-data; boundary=----WebKitFormBoundarysoLu4ES35sndarUK
+    
+    ------WebKitFormBoundarysoLu4ES35sndarUK
+    Content-Disposition: form-data; name="submit-name"
+    
+    Larry
+    ------WebKitFormBoundarysoLu4ES35sndarUK
+    Content-Disposition: form-data; name="files"; filename="file1.txt"
+    Content-Type: text/plain
+    
+    ------WebKitFormBoundarysoLu4ES35sndarUK--
+    ```
+
+    `Content-Type` 用于告诉服务器数据的格式是 `multipart/form-data`（即多个数据块）
+
+    每个数据块分隔的标志是 `----WebKitFormBoundarysoLu4ES35sndarUK`
+
+    每个数据块第一行是 `Content-Disposition`，其中 `name` 字段表示数据块的控件名，`filename` 属性给出的是文件名 `file1.txt`，数据体是`file1.txt`的内容
+
+`<form>` 标签其它的属性可以参考 [form 属性列表](https://wangdoc.com/html/form#简介)
+
+
+
+**`<fieldset>` 和 `<legend>` 标签**
+
+```html
+<form>
+  <fieldset>
+    <p>年龄：<input type="text" name="age"></p>
+    <p>性别：<input type="text" name="gender"></p>
+  </fieldset>
+</form>
+```
+
+![image-20250122145858556](images/image-20250122145858556.png)
+
+**类型：** `<fieldset>` 标签是块级元素
+
+**作用：** 表示控件的集合，用于将多个控件组合成一组
+
+`<fieldset>` 有如下属性：
+
+- `disabled`：布尔属性，一旦设置整个 `<fieldset>` 内的控件都不可用，显示灰色状态
+
+  ![image-20250122150117805](images/image-20250122150117805.png)
+
+- `form`：指定控件所属的 `<form>`，它的值等于 `<form>` 标签的 `id` 属性
+
+- `name`：该控件组的名称
+
+`<legend>` 标签用于设置 `<fieldset>` 标签的标题，会嵌入显示在 `<fieldset>` 的上边框
+
+```html
+<form>
+  <fieldset>
+    <legend>个人信息</legend>
+    <p>年龄：<input type="text" name="age"></p>
+    <p>性别：<input type="text" name="gender"></p>
+  </fieldset>
+</form>
+```
+
+![image-20250122150520135](images/image-20250122150520135.png)
+
+
+
+**`<label>` 标签**
+
+```html
+<label for="user">用户名：</label>
+<input type="text" name="user" id="user">
+```
+
+![image-20250122150732112](images/image-20250122150732112.png)
+
+**类型：** 行内元素
+
+**作用：** 提供控件的文字说明
+
+`<label>` 标签的优势可以通过点击文字来选中对应的控件，非常适合小的不易点击的控件，点击文字可以触发控件本身的 `click` 事件
+
+`<label>` 标签具有如下属性：
+
+- `for`：关联控件的 `id` 属性
+- `form`：关联 `<form>` 的 `id` 属性，设置了该属性后，`<label>` 可以放置在页面的任何位置，反之只能放在 `<form>` 标签内部
+
+控件也可以放在 `<label>` 标签内部，这样就不用给控件设置 `id` 属性
+
+```html
+<label>用户名：
+  <input type="text" name="user">
+</label>
+```
+
+一个控件可以关联多个 `<label>` 标签
+
+```html
+<label for="username">用户名：</label>
+<input type="text" id="username" name="username">
+<label for="username"><abbr title="required">*</abbr></label>
+```
+
+![image-20250122153132234](images/image-20250122153132234.png)
+
+
+
+**`<input>` 标签**
+
+```html
+<input>
+<!-- 等同于 -->
+<input type="text">
+```
+
+**类型：** 行内元素
+
+**作用：** 用来接收用户的输入
+
+`<input>` 标签有多种类型，类型取决于 `type` 属性的值，默认值为 `text`
+
