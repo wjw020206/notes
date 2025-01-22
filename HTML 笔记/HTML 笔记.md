@@ -2554,3 +2554,27 @@ HTML 提供了一套完整的解决方案
 
 ![image-20250121142501512](images/image-20250121142501512.png)
 
+
+
+## 表单标签
+
+表单是用户输入信息与网页交互的一种形式，表单内有很多小部件，这些小部件被称为控件
+
+
+
+**`<form>` 标签**
+
+```html
+<form action="https://example.com/api" method="post">
+  <label for="post-name">用户名：</label>
+  <input id="post-name" type="text" name="user">
+  <input type="submit" value="提交">
+</form>
+```
+
+![image-20250122090439165](images/image-20250122090439165.png)
+
+**类型：** 块级元素
+
+**作用：** 用来定义一个表单，所有表单内容都放在这个容器中
+
