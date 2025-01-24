@@ -3426,3 +3426,121 @@ HTML 提供了一套完整的解决方案
 
 **⚠️ 注意：** `<meter>` 标签的子元素只有在浏览器不支持 `<meter>` 标签时才会显示
 
+
+
+## 其它标签
+
+
+
+**`<dialog>` 标签**
+
+**作用：** 用于表示一个可关闭的对话框
+
+```html
+<dialog open>
+  Hello world
+</dialog>
+```
+
+![image-20250124084736982](images/image-20250124084736982.png)
+
+**⚠️ 注意：** `<dialog>` 对话框**默认情况下是隐藏的**，需要加上 `open` 属性对话框才会显示
+
+`<dialog>` 标签内部可以放入其它 HTML 元素
+
+```html
+<dialog open>
+  <form method="dialog">
+    <input type="text">
+    <button type="submit" value="foo">提交</button>
+  </form>
+</dialog>
+```
+
+![image-20250124084938725](images/image-20250124084938725.png)
+
+**⚠️ 注意：** 上述代码中的 `<form>` 标签的 `method` 属性为 `dialog`，这时点击提交，对话框会消失，但表单数据不会提交到服务器，会将表单元素的 `returnValue` 属性设置为提交按钮的 `value` 属性，例如上述代码是 `foo`
+
+`<dialog>` 标签的 JavaScript API 提供两个方法：
+
+```js
+const modal = document.querySelector('dialog');
+
+modal.showModal(); // 对话框显示
+modal.close(); // 对话框关闭
+```
+
+- `Dialog.showModal()` 打开对话框，相当于增加 `open` 属性，会有一个透明层，用于阻止用户和对话框外部的内容进行交互
+
+- `Dialog.show()` 打开对话框，相当于增加 `open` 属性，但是没有透明层
+
+- `Dialog.close()` 关闭对话框，相当于移除 `open` 属性，该方法可以接受一个字符串作为参数，用于传递信息
+
+  ```js
+  // 对话框关闭
+  modal.close('Hello World');
+  modal.returnValue // 'Hello World'
+  ```
+
+`<dialog>` 标签有两个事件可以监听：
+
+- `close` 对话框被关闭时触发
+- `cancel` 用户按下 `Esc` 键关闭对话框时触发
+
+
+
+**`<details>`、`<summary>` 标签**
+
+**类型：** `<details>` 是块级元素
+
+**作用：** 用于折叠内容，鼠标点击可以切换折叠状态
+
+```html
+<details>你好，世界！</details>
+```
+
+折叠状态：
+
+![image-20250124113919877](images/image-20250124113919877.png)
+
+展开状态：
+
+![image-20250124113926796](images/image-20250124113926796.png)
+
+`<details>` 标签的 `open` 属性用于默认打开折叠
+
+`<summary>` 标签用来设置折叠内容的标题
+
+```html
+<details>
+  <summary>我是标题</summary>
+  你好，世界！
+</details>
+```
+
+折叠状态：
+
+![image-20250124114423533](images/image-20250124114423533.png)
+
+展开状态：
+
+![image-20250124114350573](images/image-20250124114350573.png)
+
+
+
+`<details>` 标签有一个 `toggle` 事件，打开和关闭折叠时都会触发这个事件
+
+```js
+details.addEventListener('toggle', event => {
+  if (details.open) {
+    /* 展开状况 */
+  } else {
+    /* 折叠状态 */
+  }
+});
+```
+
+
+
+
+
