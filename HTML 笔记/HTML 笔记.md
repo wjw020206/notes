@@ -2762,7 +2762,7 @@ HTML 提供了一套完整的解决方案
 
     ![image-20250122174531029](images/image-20250122174531029.png)
 
-  - `placeholder`：配置输入值为空时的提示文本，如果输入有值则隐藏提示文本
+  - `placeholder`：输入为空时显示的提示文字
 
   - `readonly`：布尔属性，表示输入框是只读的，用户不能输入
 
@@ -2787,3 +2787,642 @@ HTML 提供了一套完整的解决方案
   ```
 
   ![image-20250122175827898](images/image-20250122175827898.png)
+  
+- `submit` 表示表单的提交按钮，用户点击时会将表单提交给服务器
+
+  ```html
+  <input type="submit" value="提交">
+  ```
+
+  ![image-20250123075229427](images/image-20250123075229427.png)
+
+  该按钮有如下属性，用来配置 `<form>` 标签相应的设置
+
+  - `formaction`：提交表单数据的服务器 URL
+  - `formenctype`：表单数据的编码类型
+  - `formmethod`：提交表单所使用的 HTTP 方法（`get` 或 `post`）
+  - `formnovalidate`：一个布尔值，配置数据提交给服务器前是否要忽略表单校验
+  - `formtarget`：收到服务器返回的数据后，在哪一个窗口显示
+
+- `image` 表示将图像文件作为表单的提交按钮，行为和 `submit` 类型一致
+
+  ```html
+  <input type="image" alt="登录" src="avatar.jpg">
+  ```
+
+  ![image-20250123080243984](images/image-20250123080243984.png)
+
+  该按钮有如下属性：
+
+  - `alt`：图像无法加载时显示的文字
+  - `src`：加载图像的 URL
+  - `width`：图像显示的宽度，单位：像素
+  - `height`：图像显示的高度，单位：像素
+
+  - `formaction`：提交表单数据的服务器 URL
+  - `formenctype`：表单数据的编码类型
+  - `formmethod`：提交表单所使用的 HTTP 方法（`get` 或 `post`）
+  - `formnovalidate`：一个布尔值，配置数据提交给服务器前是否要忽略表单校验
+  - `formtarget`：收到服务器返回的数据后，在哪一个窗口显示
+
+  用户点击图像按钮提交时，会额外提交两个参数 `x` 和 `y` 到服务器，表示鼠标点击的位置，例如：`x=34&y=54`
+
+  ![image-20250123080609749](images/image-20250123080609749.png)
+
+  当给按钮设置了 `name` 属性时，提交就会以 `name` 属性的值作为坐标的前缀，例如：`position.x=69&position.y=42`
+
+  ```html
+  <input type="image" alt="登录" src="avatar.jpg" name="position">
+  ```
+
+  ![image-20250123080800278](images/image-20250123080800278.png)
+
+- `reset` 表示重置按钮，用户点击后会让表单控件的值都重置为初始值，**⚠️ 注意：** 该按钮用处不大，点错了会重置用户输入的数据，**不建议使用**
+
+  ```html
+  <input type="reset" value="重置">
+  ```
+
+  ![image-20250123081033658](images/image-20250123081033658.png)
+
+- `checkbox` 表示复选框，允许选择和取消选择
+
+  ```html
+  <input type="checkbox" id="agreement" name="agreement" checked>
+  <label for="agreement">是否同意</label>
+  ```
+
+  ![image-20250123081231148](images/image-20250123081231148.png)
+
+  该控件的 `value` 属性默认值为 `on`，表示选中复选框时，会提交 `agreement=on` 参数，如果没有选中不会有该项
+
+  多个复选框可以放在 `<fieldset>` 中
+
+  ```html
+  <fieldset style="width: 100px">
+    <legend>你的兴趣</legend>
+    <div>
+      <input type="checkbox" id="coding" name="interest" value="coding">
+      <label for="coding">编码</label>
+    </div>
+    <div>
+      <input type="checkbox" id="read" name="interest" value="read">
+      <label for="read">阅读</label>
+    </div>
+  </fieldset>
+  ```
+
+  ![image-20250123081606373](images/image-20250123081606373.png)
+
+  如果同时选中两个复选框，提交时会有两个 `name` 属性参数，例如： `interest=coding&interest=read`
+
+- `radio` 表示单选框， 表示一组选项中只能选择一个
+
+  ```html
+  <fieldset style="width: 100px">
+    <legend>性别</legend>
+    <div>
+      <input type="radio" id="male" name="gender" value="male">
+      <label for="male">男</label>
+    </div>
+    <div>
+      <input type="radio" id="female" name="gender" value="female">
+      <label for="female">女</label>
+    </div>
+  </fieldset>
+  ```
+
+  ![image-20250123081912099](images/image-20250123081912099.png)
+
+  该控件的属性如下：
+
+  - `checked`：布尔属性，表示是否默认选中当前值
+  - `value`：用户选中项时，提交到服务器的值，默认为 `on`
+
+  **⚠️ 注意：**  多个单选框的 `name` 属性应该是一致的
+
+- `email` 表示只能输入电子邮箱的输入框，表单提交前会自动校验是否符合电子邮箱格式，不符合会显示提示，无法提交到服务器
+
+  ```html
+  <form>
+    <input type="email">
+    <input type="submit">
+  </form>
+  ```
+
+  ![image-20250123083048904](images/image-20250123083048904.png)
+
+  该控件有一个 `multiple` 的布尔属性，一旦设置，就表示该输入框可以输入多个逗号分隔的电子邮箱
+
+  ```html
+  <input type="email" multiple required>
+  ```
+
+  **⚠️ 注意：** 如果同时设置了 `multiple` 属性和 `required` 属性，零个电子邮箱是允许的
+
+  该控件的属性如下：
+
+  - `maxlength`：可输入的最大字符数
+  - `minlength`：可输入的最小字符数
+  - `multiple`：布尔属性，是否允许输入多个以逗号分隔的电子邮箱
+  - `pattern`：输入必须匹配的正则表达式
+  - `placeholder`：输入为空时显示的提示文字
+  - `readonly`：布尔属性，设置输入框是否只读
+  - `size`：一个非负整数，表示输入框显示长度为多少字符
+  - `spellcheck`：是否对输入内容启用拼写检查，可能值为 `true` 或 `false`
+
+  该控件的 `list` 属性还可以搭配 `<datalist>` 标签，提供输入备选项
+
+  ```html
+  <input type="email" list="defaultEmails">
+  <datalist id="defaultEmails">
+    <option value="jbond007@mi6.defence.gov.uk">
+    <option value="jbourne@unknown.net">
+    <option value="nfury@shield.org">
+    <option value="tony@starkindustries.com">
+    <option value="hulk@grrrrrrrr.arg">
+  </datalist>
+  ```
+
+  ![image-20250123085002512](images/image-20250123085002512.png)
+
+- `password` 表示密码输入框，用户输入会被遮挡，字符通常以 `*` 或者点 `·` 显示
+
+  ```html
+  <input type="password">
+  ```
+
+  ![image-20250123085242863](images/image-20250123085242863.png)
+
+  不同浏览器对输入框的显示会有差异，常见的处理方式是用户每输入一个字符，现在输入框中显示一秒，然后再遮挡该字符
+
+  如果用户输入包含换行符（`U+000A`）和回车符（`U+000D`），浏览器会自动将这两个字符过滤掉
+
+  该控件可配置的属性如下：
+
+  - `maxlength`：可以输入的最大字符数
+  - `minlength`：可以输入的最少字符数
+  - `pattern`：输入必须匹配的正则表达式
+  - `placeholder`：输入为空时显示的提示文字
+  - `readonly`：布尔属性，该输入框是否只读
+  - `size`：一个非负整数，表示输入框的显示长度为多少个字符
+  - `autocomplete`：是否允许自动填充，可能的值有 `on`（允许自动填充）、`off`（不允许自动填充）、`current-password`（填入当前网站保存的密码）、`new-password`（自动生成一个随机密码）
+  - `inputmode`：允许用户输入的数据类型，可能的值有 `none`（不使用系统输入法）、`text`（标准文本输入）、`decimal`（数字，包含小数）、`numeric`（数字0-9）等
+
+- `file` 表示文件选择框，允许用户选择一个或者多个文件，用于文件上传功能
+
+  ```html
+  <input type="file" id="avatar" name="avatar" accept="image/png, image/jpeg">
+  ```
+
+  ![image-20250123085726508](images/image-20250123085726508.png)
+
+  该类型控件可配置的属性如下：
+
+  - `accept`：允许选择文件的类型，使用逗号分隔，可以使用 MIME 类型，例如：`image/jpeg`，也可以是有文件后缀名，例如：`.png`，还可以使用 `image/*` 表示任何图片文件
+  - `capture`：用于捕获图像和视频数据的源，可能有如下的值：
+    - `user` 面向用户的摄像头或麦克风
+    - `environment` 外接的摄像头或麦克风
+  - `multiple`：布尔属性，是否允许用户选择多个文件
+
+- `hidden` 表示一个不显示在页面的控件，用户无法输入它的值，用来向服务器传递一些隐藏信息，例如让每个表单生成一个独一无二的编号，防止伪表单的提交
+
+  ```html
+  <input name="prodId" type="hidden" value="xm234jq">
+  ```
+
+  上述代码表示用户提交表单时会将 `prodId=xm234jq` 提交给服务器
+
+- `number` 表示一个数字输入框，只能输入数字，浏览器通常会在右侧显示一个上下可以点击的箭头
+
+  ```html
+  <input type="number" id="age" name="age">
+  ```
+
+  ![image-20250123091906815](images/image-20250123091906815.png)
+
+  该控件可以接收任何数值，包括小数和整数，可以通过 `step` 属性，限定只接受整数
+
+  该控件有如下属性：
+
+  - `max`：允许输入的最大数值
+  - `min`：允许输入的最小数值
+  - `placeholder`：用户输入为空时显示的提示文字
+  - `readonly`：布尔属性，表示该控件是否为只读
+  - `step`：点击向上或向下箭头时，数值每次的变化步长值，当输入的值不符合步长值的设定，浏览器会自动四舍五入到最近似的值，默认步长值为 `1`
+
+- `range` 表示一个滑块控件，用户拖动滑块，选择给定范围中的值
+
+  ```html
+  <input type="range" id="start" name="volume" min="0" max="11">
+  ```
+
+  ![image-20250123092529880](images/image-20250123092529880.png)
+
+  该控件有如下属性：
+
+  - `max`：允许的最大值，默认为 100
+  - `min`：允许的最小值，默认为 0
+  - `step`：步长值，默认为 1
+
+  `value` 属性用于配置滑块的初始值（也就是滑块的位置），如果没有 `value` 属性，滑块默认会停在最大值和最小值的中间，如果 `max`、`min`、`value` 属性都没有配置，默认 `value` 属性值为 50
+
+  该控件通过 `list` 属性还可以与 `<datalist>` 标签配合使用，在滑动区产生刻度
+
+  ```html
+  <input type="range" list="tickmarks">
+  <datalist id="tickmarks">
+    <option value="0" label="0%">
+    <option value="10">
+    <option value="20">
+    <option value="30">
+    <option value="40">
+    <option value="50" label="50%">
+    <option value="60">
+    <option value="70">
+    <option value="80">
+    <option value="90">
+    <option value="100" label="100%">
+  </datalist>
+  ```
+
+  ![image-20250123112958963](images/image-20250123112958963.png)
+
+  上面的代码会在 0 ~ 100 之间产生 11 个刻度，其中 `0%`、`50%` 和 `100%` 的位置会有文字提示，不过浏览器可能不支持，例如：Chrome
+
+  **⚠️ 注意：** 
+
+  - 拖动产生的数值是不精准的，如果需要精准值，不建议使用这个控件
+  - 浏览器生成的都是水平滑块，要生成垂直滑块需要使用 CSS 改变滑块区域的方向
+
+- `url` 表示只能输入网址的输入框，在提交表单前，浏览器会自动检查网址格式是否正确，如果不正确则无法提交
+
+  ```html
+  <input type="url">
+  ```
+
+  ![image-20250123130531782](images/image-20250123130531782.png)
+
+  该控件的属性如下：
+
+  - `maxlength`：允许的最大字符数
+  - `minlength`：允许的最少字符串
+  - `pattern`：输入内容必须匹配的正则表达式
+  - `placeholder`：输入为空时显示的提示文字
+  - `readonly`：布尔属性，表示是否只读
+  - `size`：一个非负整数，表示该输入框显示宽度为多少个字符
+  - `spellcheck`：是否启动拼写检查，可能的值为 `true`（启用）和 `false`（不启用）
+
+  该控件通过 `list` 属性与 `<datalist>` 标签配合使用如下：
+
+  ```html
+  <input id="myURL" name="myURL" type="url" list="defaultURLs">
+  <datalist id="defaultURLs">
+    <option value="https://developer.mozilla.org/" label="MDN Web Docs">
+    <option value="http://www.google.com/" label="Google">
+    <option value="http://www.microsoft.com/" label="Microsoft">
+    <option value="https://www.mozilla.org/" label="Mozilla">
+    <option value="http://w3.org/" label="W3C">
+  </datalist>
+  ```
+
+  ![image-20250123130917197](images/image-20250123130917197.png)
+
+  上述代码中 `label` 表示文本标签
+
+- `tel` 表示只能输入电话号码的输入框，因为全世界的手机号格式都一样，因此没有默认的校验模式，需要自定义验证
+
+  ```html
+  <input type="tel">
+  ```
+
+  ![image-20250123131321713](images/image-20250123131321713.png)
+
+  该控件的属性如下：
+
+  - `maxlength`：允许的最大字符数
+  - `minlength`：允许的最少字符串
+  - `pattern`：输入内容必须匹配的正则表达式
+  - `placeholder`：输入为空时显示的提示文字
+  - `readonly`：布尔属性，表示是否只读
+  - `size`：一个非负整数，表示该输入框显示宽度为多少个字符
+
+- `color` 表示选择颜色的控件，它的颜色值格式为 `#rrggbb` 十六进制的格式，如果没有指定 `value` 属性，默认值为 `#000000`（黑色）
+
+  ```html
+  <input type="color">
+  ```
+
+  ![image-20250123132006550](images/image-20250123132006550.png)
+
+- `date` 表示只能输入日期的输入框，**只能输入年月日，不能输入时分秒**，输入格式为 `YYYY-MM-DD`
+
+  ```html
+  <input type="date">
+  ```
+
+  ![image-20250123132340141](images/image-20250123132340141.png)
+
+  该控件有以下属性：
+
+  - `max`：可以允许的最晚日期，格式为 `YYYY-MM-DD`
+  - `min`：可以允许的最早日期，格式为 `YYYY-MM-DD`
+  - `step`：步长值，一个数字，以天为单位
+
+- `time` 表示只能输入时间的输入框，**只能输入时分秒，不能输入年月日**，输入格式为 `hh:mm`，如果包含秒数为 `hh:mm:ss`
+
+  ```html
+  <input type="time">
+  ```
+
+  ![image-20250123132804354](images/image-20250123132804354.png)
+
+  该控件有以下属性：
+
+  - `max`：允许的最晚时间
+  - `min`：允许的最早时间
+  - `readonly`：布尔属性，表示是否只读
+  - `step`：步长值，单位为秒
+
+- `month` 表示只能输入年份和月份的输入框，格式为 `YYYY-MM`
+
+  ```html
+  <input type="month">
+  ```
+
+  ![image-20250123133056210](images/image-20250123133056210.png)
+
+  该控件有以下属性：
+
+  - `max`：允许的最晚时间，格式为 `YYYY-MM`
+  - `min`：允许的最早时间，格式为 `YYYY-MM`
+  - `readonly`：布尔属性，表示是否只读
+  - `step`：步长值，单位为月
+
+- `week` 表示输入一年中第几周的输入框，格式为 `YYYY-Www`，例如 `2025-W10` 表示 2025 年第 10 周
+
+  ```html
+  <input type="week">
+  ```
+
+  ![image-20250123133339521](images/image-20250123133339521.png)
+
+  该控件有以下属性：
+
+  - `max`：允许的最晚时间，格式为 `YYYY-Www`
+  - `min`：允许的最早时间，格式为 `YYYY-Www`
+  - `readonly`：布尔属性，表示是否只读
+  - `step`：步长值，单位为周
+
+- `datetime-local` 表示时间输入框，让用户输入年月日和时分，格式为 `YYYY-MM-ddThh:mm`，例如：`2025-01-23T13:38`
+
+  ```html
+  <input type="datetime-local">
+  ```
+
+  ![image-20250123133721817](images/image-20250123133721817.png)
+
+  该控件有以下属性：
+
+  - `max`：允许的最晚时间，格式为 `YYYY-MM-ddThh:mm`
+  - `min`：允许的最早时间，格式为 `YYYY-MM-ddThh:mm`
+  - `step`：步长值，单位为秒，默认值是 60
+
+  **⚠️ 注意：** 该控件不支持秒
+
+
+
+**`<button>` 标签**
+
+```html
+<button>点击</button>
+```
+
+![image-20250123134042673](images/image-20250123134042673.png)
+
+**类型：** 行内元素
+
+**作用：** 生成一个可以点击的按钮，没有默认行为
+
+`<button>` 标签内部可以放置图像形成图像按钮，具体的属性参考 [button 属性列表](https://wangdoc.com/html/form#button)
+
+
+
+**`<select>` 标签**
+
+```html
+<select>
+  <option value="">--请选择一项框架--</option>
+  <option value="vue">Vue.js</option>
+  <option value="react">React.js</option>
+  <option value="angular">Angular</option>
+  <option value="others">其它</option>
+</select>
+```
+
+![image-20250123134555299](images/image-20250123134555299.png)
+
+**类型：** 行内元素
+
+**作用：** 生成一个下拉菜单
+
+菜单项由 `<option>` 标签给出，选中的 `<option>` 的 `value` 属性就是要发送给服务器的值
+
+`<option>` 标签有一个布尔属性 `selected`，用于设置下拉菜单的默认值，例如：
+
+```html
+<select>
+  <option value="">--请选择一项框架--</option>
+  <option value="vue" selected>Vue.js</option>
+  <option value="react">React.js</option>
+  <option value="angular">Angular</option>
+  <option value="others">其它</option>
+</select>
+```
+
+![image-20250123134934016](images/image-20250123134934016.png)
+
+该控件具有如下属性：
+
+- `autofocus`：布尔属性，页面加载时是否自动获得焦点
+- `disabled`：布尔属性，是否禁用
+- `form`：关联表单的 `id` 属性
+- `multiple`：布尔属性，是否启用多选，可能需要按住 `Shift` 或其他功能键，选中多项
+- `name`：控件名
+- `required`：布尔属性，是否为必填
+- `size`：设置了 `multiple` 属性时，页面显示时一次可见的行数，其他行需要滚动查看
+
+
+
+**`<option>`、`<optgroup>` 标签**
+
+**作用：** `<option>` 用在 `<select>`、`<optgroup>`、`<datalist>` 里面，表示一个菜单项
+
+`<option>` 标签具有如下属性：
+
+- `disabled`：布尔属性，是否禁用该项
+- `label`：该项的说明，如果省略，则等于该项的文本内容
+- `selected`：布尔属性，是否为默认值，一组菜单中，只能有一个菜单项设置该属性
+- `value`：该项提交到服务器的值，如果省略，则等于该项的文本内容
+
+`<optgroup>` 标签用于菜单项的分组，通常用在 `<select>` 标签的内部
+
+```html
+<select>
+  <optgroup label="前端基础">
+    <option value="html">HTML</option>
+    <option value="css">CSS</option>
+    <option value="javascript">JavaScript</option>
+  </optgroup>
+  <optgroup label="前端框架">
+    <option value="vue">Vue.js</option>
+    <option value="react">React.js</option>
+    <option value="angular">Angular</option>
+    <option value="others">Others</option>
+  </optgroup>
+</select>
+```
+
+![image-20250124075353469](images/image-20250124075353469.png)
+
+`<optgroup>` 具有如下属性：
+
+- `disabled`：布尔设置，是否禁用该组，一旦设置，该组所有的菜单项都不可选
+- `label`：菜单项分组的标题
+
+
+
+**`<datalist>` 标签**
+
+**作用：** 用于为指定控件提供一组相关数据，通常用于输入的提示
+
+`<datalist>` 标签内部使用 `<option>` 标签来生成每个菜单项
+
+指定控件通过 `list` 属性关联 `<datalist>` 标签的 `id` 属性
+
+```html
+<input type="text" list="frame">
+<datalist id="frame">
+  <option value="Vue.js"></option>
+  <option value="React.js"></option>
+  <option value="Angular"></option>
+  <option value="Others"></option>
+</datalist>
+```
+
+![image-20250124075901767](images/image-20250124075901767.png)
+
+会自动匹配用户已经输入的字符，缩小选择范围
+
+![image-20250124075934682](images/image-20250124075934682.png)
+
+`<option>` 可以配置 `label`，以此在每个选项下显示另外的文本
+
+```html
+<input type="text" list="frame" />
+<datalist id="frame">
+  <option value="Vue.js" label="我是Vue"></option>
+  <option value="React.js" label="我是React"></option>
+  <option value="Angular" label="我是Angular"></option>
+  <option value="Others" label="我是Others"></option>
+</datalist>
+```
+
+![image-20250124080320325](images/image-20250124080320325.png)
+
+
+
+**`<textarea>` 标签**
+
+**类型：** 块级元素
+
+**作用：** 用于生成多行的文本框
+
+```html
+<textarea name="story" rows="5" cols="33">
+  我是默认文本
+</textarea
+```
+
+![image-20250124080524378](images/image-20250124080524378.png)
+
+该标签具体属性可以参考 [textarea 标签属性列表](https://wangdoc.com/html/form#textarea)
+
+
+
+**`<output>` 标签**
+
+**类型：** 行内元素
+
+**作用：** 用于显示用户操作的结果
+
+```html
+<input type="number" name="a" value="10"> +
+<input type="number" name="b" value="10"> =
+<output name="result">20</output>
+```
+
+![image-20250124080845623](images/image-20250124080845623.png)
+
+该标签具有如下属性：
+
+- `for`：关联控件的 `id` 属性，表示为该控件的操作结果
+- `form`：关联表单的 `id` 属性
+- `name`：控件的名称
+
+
+
+**`<progress>` 标签**
+
+**类型：** 行内元素
+
+**作用：** 用于生成一个进度条
+
+```html
+<progress max="100" value="70">70%</progress>
+```
+
+![image-20250124081219283](images/image-20250124081219283.png)
+
+该控件具有如下属性：
+
+- `max`：进度条的最大值，应该是一个大于 0 的浮点数，默认值为 1
+
+- `value`：进度条的当前值。它必须是 0 和 `max` 属性之间的一个有效浮点数，如果省略了 `max` 属性，该值则必须在 0 和 1 之间，如果省略了`value` 属性，则进度条会出现滚动，表明正在进行中，无法知道完成的进度
+
+  ```html
+  <progress max="100">70%</progress>
+  ```
+
+  ![image-20250124081720060](images/image-20250124081720060.gif)
+
+
+
+**`<meter>` 标签**
+
+**类型：** 行内元素
+
+**作用：** 用来显示已知范围内的一个值，适合任务的当前进度、磁盘已用空间、充电量等场景
+
+```html
+<p>当前烤箱温度是 <meter min="200" max="500" value="350">350 度</meter></p>
+```
+
+![image-20250124083038047](images/image-20250124083038047.png)
+
+该标签具有如下属性：
+
+- `min`：范围的下限，必须小于 `max` 属性，如果省略，则默认为 0
+- `max`：范围的上限，必须大于 `min` 属性，如果省略，则默认为 1
+- `value`：当前值，必须在 `min` 属性和 `max` 属性之间，如果省略，则默认值为 0
+- `low`：表示“低端”的上限门槛值，必须大于 `min` 属性，小于 `high` 属性和 `max` 属性，如果省略，则等于 `min` 属性
+- `high`：表示“高端”的下限门槛值，必须小于 `max` 属性，大于 `low` 属性和 `min` 属性。如果省略，则等于 `max` 属性
+- `optimum`：指定最佳值，必须在 `min` 属性和 `max` 属性之间，它应该与 `low` 属性和 `high` 属性一起使用
+  - 如果 `optimum` 小于 `low` 属性，则表示“低端”是最佳范围
+  - 如果  `optimum` 如果大于 `high` 属性，则表示“高端”是最佳范围
+  - 如果 `optimum` 在 `low` 和 `high` 之间，则表示“中间地带”是最佳范围
+  - 如果省略 `optimum`，则等于 `min` 和 `max` 的中间值
+- `form`：关联表单的 `id` 属性
+
+**⚠️ 注意：** `<meter>` 标签的子元素只有在浏览器不支持 `<meter>` 标签时才会显示
+
