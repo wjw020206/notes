@@ -258,5 +258,88 @@ three.js
    });
    ```
 
+
+
+## 光源对物体表面的影响
+
+生活中的物体表面的**明暗效果**受到光照的影响，Three.js 中的通过模拟光照 `Light` 对网格模型 `Mesh` 表面影响
+
+
+
+Three.js 中不是所有的材质都是受光照的
+
+![image-20250207145556026](images/image-20250207145556026.png)
+
+基础网格材质(不受光照影响)
+
+```js
+const material = new THREE.MeshBasicMaterial({
+  color: 0x00ffff, // 设置材质颜色
+});
+```
+
+![image-20250207145706492](images/image-20250207145706492.png)
+
+
+
+漫反射材质(受光照影响)
+
+```js
+// 定义网格材质
+const material = new THREE.MeshLambertMaterial({
+  color: 0x00ffff, // 设置材质颜色
+});
+```
+
+![image-20250207145822232](images/image-20250207145822232.png)
+
+**⚠️ 注意：** 如果使用受光照影响材质，未设置光源则物体全黑不可见
+
+
+
+Three.js 中提供以下四种光源：
+
+![image-20250207150029160](images/image-20250207150029160.png)
+
+各种光源光线的方向如下：
+
+![image-20250207150052781](images/image-20250207150052781.png)
+
+1. 创建光源对象
+
+   ```js
+   const pointLight = new THREE.PointLight(0xffffff, 1.0); // 创建一个点光源
+   ```
+
+   `PointLight` 构造函数第一个参数为光源的颜色，默认值 `0xffffff` 白色，第二个参数为光照强度，默认值为 `1.0`，也可以通过修改光源对象的 `intensity` 属性值来配置光照强度
+
+   ```js
+   pointLight.intensity = 10.0; // 设置光照强度为10.0
+   ```
+
+2. 配置光源的衰减度
+
+   ```js
+   pointLight.decay = 0.0;
+   ```
+
+   默认情况下光源随着距离的改变会逐渐衰减，`decay` 可以配置衰减值，默认是 2.0，**不希望衰减可以设置 0.0**
+
+3. 配置光源的位置
+
+   ```js
+   pointLight.position.set(400, 200, 300);
+   ```
+
+4. 将光源添加到场景中
+
+   ```js
+   scene.add(pointLight);
+   ```
+
    
+
+
+
+
 
