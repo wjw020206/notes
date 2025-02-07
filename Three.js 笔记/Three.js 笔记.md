@@ -230,7 +230,7 @@ three.js
 - 绿色代表 Y 轴
 - 蓝色代表 Z 轴
 
-顺序与 R G B 一致，其中三个轴相交的点为坐标原点 `(0,0,0)`
+顺序与 R G B 一致，其中三个轴相交的点为坐标原点 `(0, 0, 0)`
 
 **⚠️ 注意：** Three.js 的三维坐标系中默认 Y 轴朝上
 
@@ -263,8 +263,6 @@ three.js
 ## 光源对物体表面的影响
 
 生活中的物体表面的**明暗效果**受到光照的影响，Three.js 中的通过模拟光照 `Light` 对网格模型 `Mesh` 表面影响
-
-
 
 Three.js 中不是所有的材质都是受光照的
 
@@ -339,7 +337,41 @@ Three.js 中提供以下四种光源：
 
    
 
+## 相机轨道控件
 
+开发调试或者展示模型时，需要通过使用相机轨道控件 OrbitControls 实现旋转缩放的预览效果
+
+ OrbitControls 的使用
+
+- 旋转：拖动鼠标左键
+- 缩放：滚动鼠标中键
+- 平移：拖动鼠标右键
+
+
+
+1. 引入扩展库 OrbitControls.js
+
+   ```js
+   import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+   ```
+
+2. 创建相机控件轨道控制器对象
+
+   ```js
+   const controls = new OrbitControls(camera, renderer.domElement);
+   ```
+
+   `OrbitControls` 构造函数接收两个参数，第一个参数为要控制的相机对象，第二个参数为用于绑定监听事件的元素
+
+3. 通过 `change` 事件监听相机位置的改变，当相机位置发送改变时重新渲染
+
+   ```js
+   controls.addEventListener('change', function () {
+       renderer.render(scene, camera); // 执行渲染操作
+   });
+   ```
+
+   
 
 
 
