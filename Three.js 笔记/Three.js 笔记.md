@@ -91,11 +91,11 @@ three.js
 
 
 
-## 创建 3D 场景
+## 创建虚拟场景
 
 用于模拟生活中真实的三维场景
 
-1. 使用 `Scene` 创建三维场景
+1. 使用 `Scene` 创建虚拟场景
 
    ```js
    const scene = new THREE.Scene();
@@ -143,5 +143,79 @@ three.js
 
 用于模拟观察场景的视角
 
+![image-20250207131326478](images/image-20250207131326478.png)
+
+1. 定义相机
+
+   Three.js 中提供两种相机：
+
+   - 正投影相机 [OrthographicCamera](https://threejs.org/docs/index.html?q=Camera#api/zh/cameras/OrthographicCamera) 
+
+   - 透视投影相机 [PerspectiveCamera](https://threejs.org/docs/index.html?q=PerspectiveCamera#api/zh/cameras/PerspectiveCamera)
+
+     ```js
+     const width = 800;
+     const height = 500;
+     
+     const camera = new THREE.PerspectiveCamera(30, width / height, 0.1, 3000); // 创建一个透视投影相机对象
+     ```
+
+     `PerspectiveCamera` 构造函数参数如下：
+
+     | 参数   | 含义                                                         | 默认值 |
+     | :----- | :----------------------------------------------------------- | :----- |
+     | fov    | 相机视锥体竖直方向视野角度                                   | 50     |
+     | aspect | 相机视锥体水平方向和竖直方向长度比，一般设置为 Canvas 画布宽高比 width / height | 1      |
+     | near   | 相机视锥体近裁截面相对相机距离                               | 0.1    |
+     | far    | 相机视锥体远裁截面相对相机距离，far-near 构成了视锥体高度方向 | 2000   |
+
+     ![image-20250207131921651](images/image-20250207131921651.png)
+
+     **⚠️ 注意：** 视锥体外的模型是不可见的
+
+2. 定义相机的位置
+
+   ```js
+   camera.position.set(200, 200, 200);
+   ```
+
+3. 定义相机的视线
+
+   ```js
+   camera.lookAt(0, 0, 0); // 指向坐标原点
+   camera.lookAt(0, 10, 0);   // 指向y轴上的坐标一点
+   camera.lookAt(mesh.position); // 指向网格模型的位置
+   ```
 
 
+
+## 创建渲染器
+
+用于指定虚拟相机和虚拟场景进行渲染
+
+1. 创建一个渲染器
+
+   ```js
+   // 创建一个WebGL渲染器对象
+   const renderer = new THREE.WebGLRenderer();
+   ```
+
+2. 设置渲染器输出的 Canvas 画布的大小
+
+   ```js
+   renderer.setSize(width, height);
+   ```
+
+3. 执行渲染操作，生成 Canvas 画布
+
+   ```js
+   renderer.render(scene, camera); // 指定相机和场景进行渲染
+   ```
+
+4. 将 Canvas 画布添加到页面中
+
+   ```js
+   document.body.appendChild(renderer.domElement);
+   ```
+
+   

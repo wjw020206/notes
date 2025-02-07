@@ -17,7 +17,7 @@ const material = new THREE.MeshBasicMaterial({
 const mesh = new THREE.Mesh(geometry, material);
 
 // 第三步：定义物体的位置
-mesh.position.set(0, 10, 0);
+mesh.position.set(0, 0, 0);
 
 // 第四步：将物体添加到三维场景中
 scene.add(mesh);
@@ -28,12 +28,24 @@ scene.add(mesh);
 const width = 800;
 const height = 500;
 
-const camera = new THREE.PerspectiveCamera(30, width / height, 0.1, 3000); // 创建一个透视投影相机对象
+// 创建一个透视投影相机对象
+const camera = new THREE.PerspectiveCamera(30, width / height, 0.1, 3000);
 
 // 第二步：定义相机的位置
 camera.position.set(200, 200, 200);
 
 // 第三步：定义相机的视线(目标点的坐标)
 camera.lookAt(0, 0, 0); // 坐标原点
-// camera.lookAt(0, 10, 0);   // y轴上的坐标原点
-// camera.lookAt(mesh.position); // 指向网格模型的位置
+
+// 创建渲染器
+// 第一步：创建一个WebGL渲染器对象
+const renderer = new THREE.WebGLRenderer();
+
+// 第二步：设置渲染区域的尺寸
+renderer.setSize(width, height); // 设置Canvas画布的大小
+
+// 第三步：执行渲染操作，生成Canvas画布
+renderer.render(scene, camera); // 指定相机和场景进行渲染
+
+// 第四步：将Canvas画布添加到页面中
+document.body.appendChild(renderer.domElement);
