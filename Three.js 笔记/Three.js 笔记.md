@@ -218,4 +218,45 @@ three.js
    document.body.appendChild(renderer.domElement);
    ```
 
+
+
+## 三维坐标系
+
+用于显示辅助观察坐标系的参考线，便于观察和调试，如下图：
+
+![image-20250207140853460](images/image-20250207140853460.png)
+
+- 红色代表 X 轴
+- 绿色代表 Y 轴
+- 蓝色代表 Z 轴
+
+顺序与 R G B 一致，其中三个轴相交的点为坐标原点 `(0,0,0)`
+
+**⚠️ 注意：** Three.js 的三维坐标系中默认 Y 轴朝上
+
+1. 通过 `AxesHelper` 创建辅助观察坐标系
+
+   ```js
+   const axesHelper = new THREE.AxesHelper(150);
+   ```
+
+   `AxesHelper` 构造函数的参数为线段的长度，默认值为 `1`，通常数值定义大于物体的大小即可
+
+2. 将辅助观察坐标系添加到场景中
+
+   ```js
+   scene.add(axesHelper);
+   ```
+
+3. 通过将物体的材质设置为半透明，这样才能看到坐标原点
+
+   ```js
+   const material = new THREE.MeshBasicMaterial({
+       color: 0x0000ff,  // 设置材质颜色
+       transparent:true, // 开启透明
+       opacity:0.5,      // 设置透明度
+   });
+   ```
+
    
+
