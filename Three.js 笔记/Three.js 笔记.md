@@ -260,7 +260,7 @@ three.js
 
 
 
-## 光源对物体表面的影响
+## Three.js 光源
 
 生活中的物体表面的**明暗效果**受到光照的影响，Three.js 中的通过模拟光照 `Light` 对网格模型 `Mesh` 表面影响
 
@@ -303,6 +303,30 @@ Three.js 中提供以下四种光源：
 
 ![image-20250207150052781](images/image-20250207150052781.png)
 
+### 环境光
+
+没有特定的方向，用于改变整体场景的光照亮暗
+
+1. 创建光源对象
+
+   ```js
+   const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+   ```
+
+2. 将光源添加到场景中
+
+   ```js
+   scene.add(ambientLight);
+   ```
+
+
+
+
+
+### 点光源
+
+确定一个点的坐标，由这个点出发向四周散发光线
+
 1. 创建光源对象
 
    ```js
@@ -321,7 +345,7 @@ Three.js 中提供以下四种光源：
    pointLight.decay = 0.0;
    ```
 
-   默认情况下光源随着距离的改变会逐渐衰减，`decay` 可以配置衰减值，默认是 2.0，**不希望衰减可以设置 0.0**
+   默认情况下点光源随着距离的改变会逐渐衰减，`decay` 可以配置衰减值，默认是 2.0，**不希望衰减可以设置 0.0**
 
 3. 配置光源的位置
 
@@ -335,7 +359,75 @@ Three.js 中提供以下四种光源：
    scene.add(pointLight);
    ```
 
-   
+可以使用 `PointLightHelper` 点光源辅助观察，用于参考点光源的位置
+
+```js
+const pointLightHelper = new THREE.PointLightHelper(pointLight, 10);
+scene.add(pointLightHelper);
+```
+
+`PointLightHelper` 构造函数第一个参数为点光源对象，第二个参数为点光源辅助观察大小，下图中白色区域就是点光源辅助观察
+
+![image-20250207172846180](images/image-20250207172846180.png)
+
+**特点：**
+
+- **光源位置：** 点光源从一个特定的位置向四周均匀的发射光线
+- **光照衰减：** 点光源的光照强度会随着距离光源的距离的增加而衰减
+- **产生阴影：** 点光源可以产生阴影，通过配置 `castShadow` 属性控制是否启用阴影
+- **全向光照：** 点光源向四周发射光线，适用于局部小范围的光源
+
+
+
+### 平行光
+
+确定光源的起始坐标以及目标指向对象的坐标，两点确定一个方向，光线沿着方向发射
+
+1. 创建光源对象
+
+   ```js
+   const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0); // 创建一个平行光
+   ```
+
+2. 配置光源的位置
+
+   ```js
+   directionalLight.position.set(100, 100, 100);
+   ```
+
+3. 配置目标的位置
+
+   ```js
+   directionalLight.target = mesh; // 指定网格模型为目标的位置
+   ```
+
+   **⚠️ 注意：** 如果省略这行代码，目标位置默认为坐标原点
+
+4. 将光源添加到场景中
+
+   ```js
+   scene.add(directionalLight);
+   ```
+
+可以使用 `DirectionalLightHelper` 平行光辅助观察，用于参考点光源的位置
+
+```js
+const directionalLightHelper = new THREE.DirectionalLightHelper(directionalLight, 5, 0xff0000);
+scene.add(directionalLightHelper);
+```
+
+`DirectionalLightHelper` 构造函数第一个参数为平行光对象，第二个参数为平行光辅助观察大小，第三个参数为平行光辅助观察的颜色，下图中的红色区域就是平行光辅助观察
+
+![image-20250207174602378](images/image-20250207174602378.png)
+
+**特点：**
+
+- **方向性：** 平行光具有固定的方向，所有物体接收到的光线都是平行的，用于模拟太阳光等远离物体的光源
+- **没有衰减：** 平行光光照强度始终是均匀的，没有衰减
+- **产生阴影：** 平行光可以产生阴影，可以控制阴影的质量、透明度和偏移量等参数
+- **用于模拟自然光：**  平行光常常用于模拟太阳光、月光或任何远处的恒定光源
+
+
 
 ## 相机轨道控件
 
