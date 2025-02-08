@@ -470,7 +470,86 @@ scene.add(directionalLightHelper);
    });
    ```
 
-   
+
+
+
+## 动画循环渲染
+
+通过使用 `window.requestAnimationFrame` API 实现动画的渲染
+
+`window.requestAnimationFrame` API 用于向浏览器请求下个动画帧时执行回调
+
+```js
+let i = 0;
+function render() {
+  i += 1;
+  console.log('执行次数' + i);
+  requestAnimationFrame(render);// 请求再次执行函数 render
+}
+render();
+```
+
+**⚠️ 注意：** `window.requestAnimationFrame` 每秒调用函数执行的次数可能会超过 60 次，例如电脑显卡、显示器支持 144 hz 的刷新率，`window.requestAnimationFrame` 每秒执行的上限可能会接近 144 次
+
+
+
+**模型旋转动画**
+
+```js
+// 渲染函数
+function render() {
+  renderer.render(scene, camera); // 执行渲染操作
+  mesh.rotateY(0.01);// 每次绕y轴旋转0.01弧度
+  requestAnimationFrame(render);// 请求再次执行渲染函数render，渲染下一帧
+}
+render();
+```
+
+**⚠️ 注意：** `mesh.rotateY(0.01);` 中的 `0.01` 是弧度而非度数
+
+
+
+**计算两帧渲染时间间隔和帧率**
+
+```js
+const clock = new THREE.Clock();
+// 渲染循环
+function render() {
+  const spt = clock.getDelta() * 1000; // 毫秒，clock.getDelta() 返回时间间隔为秒
+  console.log('两帧渲染时间间隔(毫秒)', spt);
+  console.log('帧率FPS', 1000 / spt);
+  // 渲染
+  renderer.render(scene, camera);
+  // 绕Y轴旋转的弧度值(非度数)
+  mesh.rotateY(0.01);
+  // 向浏览器请求再次执行渲染函数 render，在下一帧时渲染
+  requestAnimationFrame(render);
+}
+render();
+```
+
+
+
+**渲染循环和相机轨道控件**
+
+当使用了渲染循环之后，**不需要**再监听相机轨道控件的 `change` 事件来执行 `renderer.render(scene, camera);`
+
+```js
+// 渲染循环
+function render() {
+  // 渲染
+  renderer.render(scene, camera);
+  // 绕Y轴旋转的弧度值(非度数)
+  mesh.rotateY(0.01);
+  // 向浏览器请求再次执行渲染函数 render，在下一帧时渲染
+  requestAnimationFrame(render);
+}
+render();
+
+new OrbitControls(camera, renderer.domElement);
+```
+
+因为 ` renderer.render(scene, camera);` 一直在执行，就不需要再监听 `change` 事件来执行了
 
 
 

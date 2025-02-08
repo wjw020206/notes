@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      let i = 0;
+      function render() {
+        // 通常是60HZ，每秒执行60次，requestAnimationFrame将render函数加入浏览器渲染队列，等待下一次重绘时执行
+        // 每秒执行60次不一定做的到，取决于代码的性能和浏览器的性能
+        i += 1;
+        console.log('i', i);
+        requestAnimationFrame(render);
+      }
+
+      render();
+    </script>
+  </body>
+</html>
