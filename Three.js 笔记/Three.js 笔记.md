@@ -641,4 +641,4 @@ new OrbitControls(camera, renderer.domElement);
    render();
    ```
 
-   
+**⚠️ 注意：** 性能监视器默认位置在页面的左上角，可以通过 CSS 改变位置，点击性能监视器可以切换模式
