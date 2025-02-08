@@ -642,3 +642,32 @@ new OrbitControls(camera, renderer.domElement);
    ```
 
 **⚠️ 注意：** 性能监视器默认位置在页面的左上角，可以通过 CSS 改变位置，点击性能监视器可以切换模式
+
+
+
+**压力测试**
+
+可以通过创建多个模型，通过观察性能监视器来测试设备性能
+
+```js
+// 批量创建长方体
+const num = 1000;
+for (let i = 0; i < num; i++) {
+  const geometry = new THREE.BoxGeometry(5, 5, 5);
+  const material = new THREE.MeshLambertMaterial({
+    color: '0x00ffff',
+  });
+  // 使用几何体和材质创建网格模型
+  const mesh = new THREE.Mesh(geometry, material);
+  
+  // 生成随机位置
+  const x = (Math.random() - 0.5) * 200;
+  const y = (Math.random() - 0.5) * 200;
+  const z = (Math.random() - 0.5) * 200;
+
+  mesh.position.set(x, y, z);
+  scene.add(mesh);
+}
+```
+
+通过调整 `num` 个数来测试设备性能的极限
