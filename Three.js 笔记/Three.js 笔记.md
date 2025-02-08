@@ -553,3 +553,92 @@ new OrbitControls(camera, renderer.domElement);
 
 
 
+## Canvas画布全屏
+
+想要全屏渲染模型需要执行以下几个步骤：
+
+1. 调整渲染器输出 Canvas 画布的大小以及相机观察范围长宽比
+
+   ```js
+   const width = window.innerWidth;   // 文档区域宽度
+   const height = window.innerHeight; // 文档区域高度
+   
+   const camera = new THREE.PerspectiveCamera(30, width / height, 1, 3000);
+   const renderer = new THREE.WebGLRenderer();
+   renderer.setSize(width, height); // 设置Canvas画布的大小
+   ```
+
+2. 配置布局的 CSS
+
+   ```css
+   body {
+     overflow: hidden; /* 隐藏滚动条 */
+     margin: 0; /* 去除body标签默认的外边距 */
+   }
+   ```
+
+3. 监听窗口的 `onresize` 事件，当窗口大小发生变化时更新相机和画布的参数
+
+   ```js
+   // 窗口大小发生改变时触发
+   window.onresize = function () {
+     // 更新canvas画布的尺寸
+     renderer.setSize(window.innerWidth, window.innerHeight);
+     // 更新相机的观察范围长宽比
+     camera.aspect = window.innerWidth / window.innerHeight;
+     // 通知Three.js更新相机投影矩阵
+     camera.updateProjectionMatrix();
+   };
+   ```
+
+   
+
+## Stats 查看渲染帧率
+
+通过使用 `stats.js` 库可以查看 Three.js 当前的渲染性能
+
+![image-20250208141744695](images/image-20250208141744695.png)
+
+1. 引入 Stats
+
+   ```js
+   import Stats from 'three/addons/libs/stats.module.js';
+   ```
+
+2. 创建性能监视器
+
+   ```js
+   const stats = new Stats();
+   ```
+
+3. 设置性能监视器模式
+
+   ```js
+   stats.setMode(0);
+   ```
+
+   参数如下：
+
+   - `0` 表示显示渲染帧率，一秒渲染次数，**默认模式**
+   - `1` 表示显示渲染周期，渲染一帧多长时间(单位：毫秒 ms)
+
+4. 将性能监视器添加到页面中
+
+   ```js
+   document.body.appendChild(stats.domElement);
+   ```
+
+5. 在渲染函数中调用 `update` 方法来刷新时间
+
+   ```js
+   // 渲染函数
+   function render() {
+   	// 来刷新时间
+   	stats.update();
+   	renderer.render(scene, camera);
+   	requestAnimationFrame(render);
+   }
+   render();
+   ```
+
+   
