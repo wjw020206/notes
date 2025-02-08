@@ -30,25 +30,25 @@ const axesHelper = new THREE.AxesHelper(100);
 // 将三维坐标轴添加到三维场景中
 scene.add(axesHelper);
 
-// // 创建一个光源对象 点光源
-// const pointLight = new THREE.PointLight(0xffffff, 1.0);
-// // 改变光源对象的intensity也可以改变光照强度
-// // pointLight.intensity = 10.0;
+// 创建一个光源对象 点光源
+const pointLight = new THREE.PointLight(0xffffff, 1.0);
+// 改变光源对象的intensity也可以改变光照强度
+// pointLight.intensity = 10.0;
 
-// // 默认情况下光源随着距离的改变会逐渐衰减，decay可以配置衰减值，默认是2.0，不希望衰减可以设置0.0
-// pointLight.decay = 0.0;
+// 默认情况下光源随着距离的改变会逐渐衰减，decay可以配置衰减值，默认是2.0，不希望衰减可以设置0.0
+pointLight.decay = 0.0;
 
-// // 设置光源的位置
-// pointLight.position.set(100, 100, 100); // 点光源的位置设置在X轴上
+// 设置光源的位置
+pointLight.position.set(100, 100, 100); // 点光源的位置设置在X轴上
 
-// // 将光源添加到场景中
-// scene.add(pointLight);
+// 将光源添加到场景中
+scene.add(pointLight);
 
-// // 可视化点光源
-// const pointLightHelper = new THREE.PointLightHelper(pointLight, 10);
+// 可视化点光源
+const pointLightHelper = new THREE.PointLightHelper(pointLight, 10);
 
-// // 将光源添加到场景中
-// scene.add(pointLightHelper);
+// 将光源添加到场景中
+scene.add(pointLightHelper);
 
 // 添加一个环境光
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
@@ -56,20 +56,20 @@ const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
 // 将光源添加到场景中
 scene.add(ambientLight);
 
-// // 添加一个平行光
-// const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
-// directionalLight.position.set(100, 100, 100);
-// // directionalLight.target = mesh; // 不设置目标默认为坐标原点
-// scene.add(directionalLight);
+// 添加一个平行光
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
+directionalLight.position.set(100, 100, 100);
+// directionalLight.target = mesh; // 不设置目标默认为坐标原点
+scene.add(directionalLight);
 
-// // 可视化平行光
-// const directionalLightHelper = new THREE.DirectionalLightHelper(
-//   directionalLight,
-//   5,
-//   0xff0000
-// );
+// 可视化平行光
+const directionalLightHelper = new THREE.DirectionalLightHelper(
+  directionalLight,
+  5,
+  0xff0000
+);
 
-// scene.add(directionalLightHelper);
+scene.add(directionalLightHelper);
 
 // 创建虚拟相机
 // 第一步：创建一个虚拟相机对象
