@@ -318,6 +318,8 @@ Three.js 中提供以下四种光源：
    ```js
    scene.add(ambientLight);
    ```
+   
+   ![image-20250208083327369](images/image-20250208083327369.png)
 
 **特点：**
 

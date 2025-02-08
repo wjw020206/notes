@@ -50,26 +50,26 @@ scene.add(axesHelper);
 // // 将光源添加到场景中
 // scene.add(pointLightHelper);
 
-// // 添加一个环境光
-// const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+// 添加一个环境光
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
 
-// // 将光源添加到场景中
-// scene.add(ambientLight);
+// 将光源添加到场景中
+scene.add(ambientLight);
 
-// 添加一个平行光
-const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
-directionalLight.position.set(100, 100, 100);
-// directionalLight.target = mesh; // 不设置目标默认为坐标原点
-scene.add(directionalLight);
+// // 添加一个平行光
+// const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
+// directionalLight.position.set(100, 100, 100);
+// // directionalLight.target = mesh; // 不设置目标默认为坐标原点
+// scene.add(directionalLight);
 
-// 可视化平行光
-const directionalLightHelper = new THREE.DirectionalLightHelper(
-  directionalLight,
-  5,
-  0xff0000
-);
+// // 可视化平行光
+// const directionalLightHelper = new THREE.DirectionalLightHelper(
+//   directionalLight,
+//   5,
+//   0xff0000
+// );
 
-scene.add(directionalLightHelper);
+// scene.add(directionalLightHelper);
 
 // 创建虚拟相机
 // 第一步：创建一个虚拟相机对象
