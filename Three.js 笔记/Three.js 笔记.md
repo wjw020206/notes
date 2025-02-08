@@ -152,25 +152,26 @@ three.js
    - 正投影相机 [OrthographicCamera](https://threejs.org/docs/index.html?q=Camera#api/zh/cameras/OrthographicCamera) 
 
    - 透视投影相机 [PerspectiveCamera](https://threejs.org/docs/index.html?q=PerspectiveCamera#api/zh/cameras/PerspectiveCamera)
-
+     **特点：** 透视投影相机中的物体近大远小，随着相机视角 `fov` 的增大，渲染范围更大，近大远小的视觉效果更明显
+     
      ```js
      const width = 800;
      const height = 500;
      
      const camera = new THREE.PerspectiveCamera(30, width / height, 0.1, 3000); // 创建一个透视投影相机对象
      ```
-
+     
      `PerspectiveCamera` 构造函数参数如下：
-
+     
      | 参数   | 含义                                                         | 默认值 |
      | :----- | :----------------------------------------------------------- | :----- |
      | fov    | 相机视锥体竖直方向视野角度                                   | 50     |
      | aspect | 相机视锥体水平方向和竖直方向长度比，一般设置为 Canvas 画布宽高比 width / height | 1      |
      | near   | 相机视锥体近裁截面相对相机距离                               | 0.1    |
      | far    | 相机视锥体远裁截面相对相机距离，far-near 构成了视锥体高度方向 | 2000   |
-
+     
      ![image-20250207131921651](images/image-20250207131921651.png)
-
+     
      **⚠️ 注意：** 视锥体外的模型是不可见的
 
 2. 定义相机的位置
@@ -470,6 +471,13 @@ scene.add(directionalLightHelper);
    });
    ```
 
+
+**⚠️ 注意：** `OrbitControls` 会影响相机 ` lookAt` 设置，导致不生效，因为 `OrbitControls` 默认会设置为 `(0, 0, 0)`，此时需要使用手动设置`OrbitControls` 的目标参数
+
+```js
+controls.target.set(1000, 0, 1000); // 设置观察目标点
+controls.update(); // 更新
+```
 
 
 
