@@ -3,20 +3,24 @@ h1 {
   margin-bottom: 10px;
 }
 
-#main-nav {
+.nav {
   margin-top: 10px;
   list-style: none;
   padding-left: 0;
 }
 
-#main-nav li {
+.nav li {
   display: inline-block;
 }
 
-#main-nav a {
+.nav a {
   color: white;
   background-color: #13a4a4;
   padding: 5px;
   border-radius: 2px;
   text-decoration: none;
+}
+
+.nav .featured {
+  background-color: orange;
 }
