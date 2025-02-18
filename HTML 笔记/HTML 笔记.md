@@ -1,5 +1,7 @@
 #  HTML 笔记
 
+HTML 英文全称为 **Hyper Text Markup Language**，中文翻译为 “超文本标记语言”
+
 
 
 ## 网页三要素
