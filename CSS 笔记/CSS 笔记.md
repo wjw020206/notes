@@ -107,7 +107,101 @@ body {
 
 当两个声明的来源和选择器优先级相同，这时哪个声明最晚出现，则使用哪个声明
 
+**⚠️ 注意： 给链接添加样式时一定要按照正确的顺序书写选择器**
 
+**❌ 错误的顺序**
+
+```css
+a:hover {
+  text-decoration: underline;
+}
+
+a:link {
+  color: blue;
+  text-decoration: none;
+}
+
+a:visited {
+  color: purple;
+}
+
+a:active {
+  color: red;
+}
+```
+
+![image-20250219074724302](images/image-20250219074724302.png)
+
+此时 `a:hover` 的样式被 `a:link` 的样式覆盖，导致鼠标悬浮链接时不显示下划线
+
+
+
+**✔️正确的顺序**
+
+```css
+a:link {
+  color: blue;
+  text-decoration: none;
+}
+
+a:visited {
+  color: purple;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+a:active {
+  color: red;
+}
+```
+
+![image-20250219075335931](images/image-20250219075335931.png)
+
+顺序记忆口诀：“LoVe/HAte”（“爱/恨”），其中 L 表示 `link`，V 表示 `visited`，H 表示 `hover`，`A` 表示 `active`
+
+
+
+**层叠值**
+
+一个声明在样式表来源、选择器优先级、以及源码顺序中胜出，最终使用的值被称为 “层叠值”
+
+元素的每个属性最多只有一个层叠值，元素上一个属性都没指定，则该属性没有层叠值
+
+```css
+p {
+  margin-top: 20px; /* 外部样式 */
+}
+
+#main p {
+  margin-top: 30px; /* 内部样式 */
+}
+
+p {
+  margin-top: 40px; /* 内联样式 */
+}
+```
+
+上述代码中，因为样式来源中内联样式的优先级最高，所以 `<p>` 元素的 `margin-top` 属性的层叠值为 `40px`
+
+
+
+### 最佳实践
+
+处理层叠时的建议：
+
+1. 不使用 ID 选择器来添加样式：因为 ID 选择器优先级过高，需要使用其它的 ID 选择器或者 `!important` 才能覆盖
+2. 不使用 `!important`：比 ID 选择器更难覆盖，要覆盖就需要添加 `!important`，当很多声明都添加了 `!important` 时，就又会从样式表来源、选择器优先级以及源码顺序来比较了
+
+**⚠️ 注意：** 在特殊情况中，上述两条建议不必死板遵守
+
+
+
+创建用于分发的 NPM 包的建议：
+
+1. 不要在 JavaScript 中使用行内样式：会导致想修改属性需要使用 `!important`
+2. 在包中包含一个样式表，通过 JavaScript 来给元素添加或删除类：方便用户可以编辑其中的样式
 
 
 
