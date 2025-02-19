@@ -205,3 +205,19 @@ p {
 
 
 
+## 继承
+
+如果一个属性没有层叠值，则可能会继承祖先元素的值，继承是顺着 DOM 树向下传递的
+
+![image-20250219111249767](images/image-20250219111249767.png)
+
+例如在 `<body>` 标签中添加 `font-family` 属性，则 `<body>` 标签内的所有元素都会继承这个字体
+
+```css
+body {
+  font-family: sans-serif;
+}
+```
+
+**⚠️ 注意： 不是所有的属性都是能被继承的**，通常只有文本相关属性（例如：`color`、`font-family`、`font-style` 等）、列表相关属性（例如：`list-style`、`list-style-image` 等）以及表格的边框属性（例如：`border-collapse` 和 `border-spacing`）等可以被继承
+

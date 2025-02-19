@@ -58,6 +58,9 @@ h1 {
 
 .footer a {
   /* 从页脚处继承颜色 */
-  color: inherit;
+  /* color: inherit; */
+
+  /* 使用属性的默认值 */
+  color: initial;
   text-decoration: underline;
 }
