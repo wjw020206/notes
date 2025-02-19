@@ -1,3 +1,21 @@
+/* 链接的顺序 */
+a:link {
+  color: blue;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+a:visited {
+  color: purple;
+}
+
+a:active {
+  color: red;
+}
+
 h1 {
   color: #2f4f4f;
   margin-bottom: 10px;

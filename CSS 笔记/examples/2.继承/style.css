@@ -3,6 +3,23 @@ body {
   font-family: sans-serif;
 }
 
+a:link {
+  color: blue;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+a:visited {
+  color: purple;
+}
+
+a:active {
+  color: red;
+}
+
 h1 {
   color: #2f4f4f;
   margin-bottom: 10px;
@@ -28,4 +45,19 @@ h1 {
 
 .nav .featured {
   background-color: orange;
+}
+
+.footer {
+  /* 设置页脚文字颜色 */
+  color: #666;
+  background-color: #ccc;
+  padding: 15px 0;
+  text-align: center;
+  font-size: 14px;
+}
+
+.footer a {
+  /* 从页脚处继承颜色 */
+  color: inherit;
+  text-decoration: underline;
 }
