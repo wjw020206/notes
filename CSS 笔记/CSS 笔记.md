@@ -225,7 +225,7 @@ body {
 
 ## 特殊值
 
-**`inherit`**
+**inherit**
 
 `inherit` 用于继承父元素的属性值
 
@@ -248,7 +248,7 @@ a:link {
 
 
 
-**`initial`**
+**initial**
 
 `initial` 用于将某个属性的值重置为默认值
 
