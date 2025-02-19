@@ -221,3 +221,47 @@ body {
 
 **⚠️ 注意： 不是所有的属性都是能被继承的**，通常只有文本相关属性（例如：`color`、`font-family`、`font-style` 等）、列表相关属性（例如：`list-style`、`list-style-image` 等）以及表格的边框属性（例如：`border-collapse` 和 `border-spacing`）等可以被继承
 
+
+
+## 特殊值
+
+**`inherit`**
+
+`inherit` 用于继承父元素的属性值
+
+```css
+a:link {
+  color: blue;
+}
+
+.footer {
+  color: #666;
+}
+
+.footer a {
+  /* 该属性值会继承父元素的值，此处继承的层叠值为#666 */
+  color: inherit;
+}
+```
+
+**⚠️ 注意：** `inherit` 可以使任何属性的值强制继承父元素的值，例如继承父元素的外边距，**但是这样很少使用**
+
+
+
+**`initial`**
+
+`initial` 用于将某个属性的值重置为默认值
+
+```js
+a:link {
+  color: blue;
+}
+
+.footer a {
+  /* 该属性值会重置为默认值，color的默认值通常为black */
+  color: initial;
+}
+```
+
+**⚠️ 注意：** `display` 属性的默认值为 `inline`，而**不是根据元素类型来确定 `display` 属性的默认值**
+

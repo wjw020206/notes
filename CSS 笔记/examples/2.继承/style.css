@@ -48,6 +48,7 @@ h1 {
 }
 
 .footer {
+  display: initial;
   /* 设置页脚文字颜色 */
   color: #666;
   background-color: #ccc;
