@@ -554,3 +554,176 @@ ul {
    ```
 
 2. 对于第二个缺点，平常开发的时候需要习惯 “模糊” 值，不要刻意在意具体是多少像素，**重点是它比默认字号要稍微大或小一点**，如果显示效果不理想，就可以调整它的值，以达到合适的显示效果
+
+
+
+### 视口的相对单位
+
+**视口：** 浏览器窗口中可见部分的区域，不包括浏览器的地址栏、工具栏、状态栏
+
+有以下单位：
+
+- `vh` 视口高度的 1/100
+- `vw` 视口宽度的 1/100
+- `vmin` 视口宽、高中最小一边的 1/100
+- `vmax` 视口宽、高中最大一边的 1/100
+
+视口相对单位适合用于填满整个屏幕的大图，例如给图片高度设置 `100vh`
+
+
+
+**使用 `vw` 定义字号**
+
+在一个元素上使用 `vw` 单位指定字号，可以在不同视口宽度下平滑的过度字号，但是**不推荐使用**
+
+存在以下问题：
+
+1. 在小屏幕中字号变得过小，在大屏幕上字号变得过大
+2. 无法精确控制在不同设备上的表现，因为 `vw` 依赖视口的宽度
+3. 在浏览器宽度调整时会导致布局频繁变化，影响体验
+
+
+
+### calc()
+
+`calc()` 函数可以对两个及以上的值进行四则运算（加、减、乘、除），括号内的值可以是不同单位的数值
+
+```css
+:root {
+  font-size: calc(0.5em + 1vw);
+}
+```
+
+**⚠️ 注意：加号和减号运算符两边必须要有空格**，建议在每个操作符前后都添加一个空格
+
+
+
+### 无单位的数值和行高
+
+部分属性支持无单位数值，例如：`z-index`、`line-height`、`font-weight` 等，任何长度单位（`px`、`em`、`rem` 等）都可以使用无单位的 `0`，无单位的 `0` 不能用于角度、时间等相关的值
+
+`line-height` 属性的值既可以有单位，也可以没有单位，**两者主要的差异在继承方式上**
+
+```html
+<body>
+  <p class="about-us">
+    We have built partnerships with small farms around the world to
+    hand-select beans at the peak of season. We then carefully roast in small
+    batches to maximize their potential.
+  </p>
+</body>
+```
+
+- 值无单位的情况
+
+  ```css
+  body {
+    line-height: 1.2;
+  }
+  
+  .about-us {
+  	font-size: 2em; /* 值为16px*2=32px */
+    /* 继承了父元素1.2声明值进行计算，此时line-height属性的值为1.2*32px=38.4px */
+  }
+  ```
+  
+  ![image-20250222141717832](images/image-20250222141717832.png)
+  
+- 值有单位的情况
+
+  ```css
+  body {
+    line-height: 1.2em; /* 值为16px*1.2=19.2px */
+  }
+  
+  .about-us {
+  	font-size: 2em; /* 值为16px*2=32px */
+    /* 继承了父元素的计算值，此时line-height属性的值为19.2px */
+  }
+  ```
+  
+  ![image-20250222141754852](images/image-20250222141754852.png)
+
+**建议：** 可以在 `<body>` 元素上设置一个无单位数值的行高，之后就无需修改了，如果部分元素行高需要调整可以单独覆盖
+
+
+
+### 自定义属性（CSS 变量）
+
+CSS Variables 全称为 Custom Properties for Cascading Variables，中文翻译过来就是层叠变量的自定义属性，简称自定义属性也叫 CSS 变量
+
+**⚠️ 注意：** 自定义属性与 Scss、Less 等 CSS 预处理器的内置变量是不同的，前者是运行在浏览器环境，可以动态变化，后者只在预处理器编译阶段运行，最终生成的是静态的 CSS 代码，无法在浏览器运行时更改
+
+
+
+**定义一个 CSS 变量**
+
+```css
+:root {
+  --main-font: Helvetica, Arial, sans-serif;
+}
+```
+
+**⚠️ 注意：变量名前必须要有两个连字符 `--`**，用来和 CSS 属性区分，`--` 后面的部分可以跟字母、数字、连字符、下划线
+
+
+
+**引用 CSS 变量**
+
+```css
+p {
+  font-family: var(--main-font);
+}
+```
+
+通过 `var()` 函数对变量进行引用，可以接收两个参数，第一个参数为变量名，第二个参数为备用值，当第一个参数的变量没有被定义时，会使用第二个备用值
+
+```css
+:root {
+  --main-font: Helvetica, Arial, sans-serif;
+}
+
+p {
+  color: var(--main-color, blue); /* 此时值为 blue */
+}
+```
+
+**⚠️ 注意：** 如果没有提供备用值，并且第一个参数的变量没有被定义，则 `var()` 函数计算出来是一个**非法值**，这是对应的属性值会变成其初始值，类似于 `initial` 的效果
+
+在引用自定义属性时，尽量为不支持的浏览器提供回退方案
+
+```css
+p {
+  color: black;
+  color: var(--main-color, blue); /* 支持自定义属性时会覆盖之前的声明 */
+}
+```
+
+**⚠️ 注意：** 很难对**动态的自定义属性**提供回退方案
+
+
+
+**使用 JavaScript 访问自定义属性**
+
+```js
+const rootElement = document.documentElement; // 获取根元素
+const styles = getComputedStyle(rootElement); // 获取根元素的样式对象
+const mainColor = styles.getPropertyValue('--main-bg'); // 从样式对象上读取自定义属性的值
+console.log(mainColor); // 打印值
+```
+
+
+
+**使用 JavaScript 修改自定义属性**
+
+```js
+const rootElement = document.documentElement; // 获取根元素
+rootElement.style.setProperty('--main-bg', '#cdf'); // 修改自定义属性的值
+```
+
+
+
+
+
+
+

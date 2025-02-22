@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      :root {
+        --main-bg: #fff;
+        --main-color: #000;
+      }
+
+      .panel {
+        font-size: 1rem;
+        padding: 1em;
+        border: 1px solid #999;
+        border-radius: 0.5em;
+        background-color: var(--main-bg);
+        color: var(--main-color);
+      }
+
+      .panel > h2 {
+        margin-top: 0;
+        font-size: 0.8em;
+        font-weight: bold;
+        text-transform: uppercase;
+      }
+
+      .dark {
+        margin-top: 2em;
+        padding: 1em;
+        background-color: #999;
+        --main-bg: #333;
+        --main-color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="panel">
+      <h2>Single-origin</h2>
+      <div class="body">
+        We have built partnerships with small farms around the world to
+        hand-select beans at the peak of season. We then careful roast in small
+        batches to maximize their potential.
+      </div>
+    </div>
+
+    <aside class="dark">
+      <div class="panel">
+        <h2>Single-origin</h2>
+        <div class="body">
+          We have built partnerships with small farms around the world to
+          hand-select beans at the peak of season. We then careful roast in
+          small batches to maximize their potential.
+        </div>
+      </div>
+    </aside>
+
+    <!-- <script>
+      // 使用JavaScript访问自定义属性
+      const rootElement = document.documentElement;
+      const styles = getComputedStyle(rootElement);
+      const mainColor = styles.getPropertyValue('--main-bg');
+      console.log(mainColor);
+    </script> -->
+    <script>
+      // 使用JavaScript修改自定义属性
+      const rootElement = document.documentElement;
+      rootElement.style.setProperty('--main-bg', '#cdf');
+    </script>
+  </body>
+</html>

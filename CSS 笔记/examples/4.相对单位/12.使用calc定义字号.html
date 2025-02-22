@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      :root {
+        font-size: calc(0.5em + 1vw);
+      }
+
+      .panel {
+        font-size: 1rem;
+        padding: 1em;
+        border-radius: 0.5rem;
+        border: 1px solid #999;
+      }
+
+      .panel + .panel {
+        margin-top: 1em;
+      }
+
+      .panel.large {
+        font-size: 1.2rem;
+      }
+
+      .panel > h2 {
+        margin-top: 0;
+        font-size: 0.8em;
+        font-weight: bold;
+        text-transform: uppercase;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="panel">
+      <h2>Single-origin</h2>
+      <div class="panel-body">
+        We have built partnerships with small farms around the world to
+        hand-select beans at the peak of season. We then carefully roast in
+        <a href="/batch-size">small batches</a> to maximize their potential.
+      </div>
+    </div>
+    <div class="panel large">
+      <h2>Single-origin</h2>
+      <div class="panel-body">
+        We have built partnerships with small farms around the world to
+        hand-select beans at the peak of season. We then carefully roast in
+        <a href="/batch-size">small batches</a> to maximize their potential.
+      </div>
+    </div>
+  </body>
+</html>

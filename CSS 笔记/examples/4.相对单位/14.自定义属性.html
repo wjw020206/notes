@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      :root {
+        /* 定义变量 */
+        --main-font: Helvetica, Arial, sans-serif;
+        --brand-color: #369;
+      }
+
+      p {
+        /* 引用变量 */
+        font-family: var(--main-font);
+        color: var(--secondary-color, blue);
+      }
+    </style>
+  </head>
+  <body>
+    <p>我是文本</p>
+  </body>
+</html>
