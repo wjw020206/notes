@@ -622,7 +622,7 @@ ul {
   }
   
   .about-us {
-  	font-size: 2em; /* 值为16px*2=32px */
+    font-size: 2em; /* 值为16px*2=32px */
     /* 继承了父元素1.2声明值进行计算，此时line-height属性的值为1.2*32px=38.4px */
   }
   ```
@@ -637,7 +637,7 @@ ul {
   }
   
   .about-us {
-  	font-size: 2em; /* 值为16px*2=32px */
+    font-size: 2em; /* 值为16px*2=32px */
     /* 继承了父元素的计算值，此时line-height属性的值为19.2px */
   }
   ```
