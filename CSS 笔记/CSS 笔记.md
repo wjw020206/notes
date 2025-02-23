@@ -612,12 +612,12 @@ ul {
   - 包含块是最近的**块级祖先元素**的内容区域
   - 如果没有块级祖先元素，则包含块为初始包含块
 - **绝对定位 `position: absolute`**
-  - 包含块是最近的**定位祖先元素（即 `position` 为 `relative`、`absolute`、`fixed` 或 `sticky` 的元素）**的 **padding box**（内容区域 + padding）
+  - 包含块是最近的 **定位祖先元素（即 `position` 为 `relative`、`absolute`、`fixed` 或 `sticky` 的元素）** 的 **padding box**（内容区域 + padding）
   - 如果没有定位祖先元素，则包含块是初始包含块
 - **固定定位 `position: fixed`**
   - 包含块是初始包含块
 - **粘性定位 `position: sticky`**
-  - 包含块是最近的**滚动祖先元素（即 `position` 为 `overflow: auto` 或 `overflow: scroll` 的元素）**的内容区域
+  - 包含块是最近的 **滚动祖先元素（即 `position` 为 `overflow: auto` 或 `overflow: scroll` 的元素）** 的内容区域
   - 如果没有滚动祖先元素，则包含块是初始包含块
 
 
