@@ -584,6 +584,44 @@ ul {
 
 
 
+### 百分比
+
+- 当元素使用百分比（`%`）设置**宽度**时，是基于元素**包含块的宽度**进行计算
+
+- 当元素使用百分比（`%`）设置**高度**时，是基于元素**包含块的高度**进行计算
+
+
+
+**包含块**
+
+包含块是一个元素在计算尺寸（如宽度、高度、边距、定位时）所参考的矩形区域
+
+
+
+**初始化包含块**
+
+如果一个元素没有明确的包含块（如：`<html>` 和元素使用了 `position: fixed` 或 `position: absolute`，并且没有定位祖先元素），则它的包含块为初始包含块，**初始包含块的大小通常等于视口的大小**
+
+
+
+**包含块的确定规则：**
+
+包含块的确定取决于元素的 `position` 属性
+
+- **静态定位 `position: static` 和相对定位 `position: relative`**
+  - 包含块是最近的**块级祖先元素**的内容区域
+  - 如果没有块级祖先元素，则包含块为初始包含块
+- **绝对定位 `position: absolute`**
+  - 包含块是最近的**定位祖先元素（即 `position` 为 `relative`、`absolute`、`fixed` 或 `sticky` 的元素）**的 **padding box**（内容区域 + padding）
+  - 如果没有定位祖先元素，则包含块是初始包含块
+- **固定定位 `position: fixed`**
+  - 包含块是初始包含块
+- **粘性定位 `position: sticky`**
+  - 包含块是最近的**滚动祖先元素（即 `position` 为 `overflow: auto` 或 `overflow: scroll` 的元素）**的内容区域
+  - 如果没有滚动祖先元素，则包含块是初始包含块
+
+
+
 ### calc()
 
 `calc()` 函数可以对两个及以上的值进行四则运算（加、减、乘、除），括号内的值可以是不同单位的数值
@@ -720,6 +758,275 @@ console.log(mainColor); // 打印值
 const rootElement = document.documentElement; // 获取根元素
 rootElement.style.setProperty('--main-bg', '#cdf'); // 修改自定义属性的值
 ```
+
+
+
+## 盒模型
+
+W3C 标准盒子模型（content-box）计算：
+
+![image-20250223101753471](images/image-20250223101753471.png)
+
+- 总宽度：内容宽度 + 左右内边距 + 左右边框
+- 总高度：内容高度 + 上下内边距 + 上下边框
+
+
+
+IE 盒子模型（border-box）计算：
+
+![image-20250223101850781](images/image-20250223101850781.png)
+
+- 总宽度：内容宽度（已包含左右内边距和边框）
+- 总高度：内容高度（已包含上下内边距和边框）
+
+
+
+**在开发中建议将如下代码放在样式表的开头**，以此调整全局元素的盒模型为 `border-box`，便于开发
+
+```css
+:root {
+  box-sizing: border-box;
+}
+
+*,
+::before,
+::after {
+  box-sizing: inherit;
+}
+```
+
+上述代码使用继承方式，是为了便于调整第三方组件的盒子模型，如果使用 `*` 会导致第三方组件内部的所有子元素都是 `border-box`，导致难以调整
+
+ **⚠️ 注意：** 
+
+- `*` 选择器不会选中伪元素选择器，所以这里需要加上 `::before` 和 `::after` 选择器
+
+- 第三方组件如果用的不是 IE 盒子模型，使用上述代码可能会导致样式出现问题，可以使用如下代码对第三方组件单独修改盒子模型
+
+  ```css
+  /* 调整第三方组件根元素的盒子模型 */
+  .third-party-component {
+    box-sizing: content-box;
+  }
+  ```
+
+
+
+### 列之间添加间隔
+
+![image-20250223103418537](images/image-20250223103418537.png)
+
+假设一个界面有两列，一列宽度为 `70%`，另一列的宽度为 `30%`，两列之间需要有间隔，有如下三种方式可以添加
+
+
+
+**使用百分比外边距添加间隔**
+
+```css
+.main {
+  float: left;
+  width: 70%;
+  background-color: #fff;
+  border-radius: 0.5em;
+}
+
+.sidebar {
+  float: left;
+  /* 从宽度中减去1% */
+  width: 29%;
+  /* 将1%作为间隔 */
+  margin-left: 1%;
+  padding: 1.5em;
+  background-color: #fff;
+  border-radius: 0.5em;
+}
+```
+
+![image-20250223103331307](images/image-20250223103331307.png)
+
+ **⚠️ 注意：** 这样无法使用别的单位精确控制间距
+
+
+
+**使用calc函数外边距添加间隔**
+
+```css
+.main {
+  float: left;
+  width: 70%;
+  background-color: #fff;
+  border-radius: 0.5em;
+}
+
+.sidebar {
+  float: left;
+  /* 从宽度中减去1.5em */
+  width: calc(30% - 1.5em);
+  /* 将1.5em宽度作为间隔 */
+  margin-left: 1.5em;
+  padding: 1.5em;
+  background-color: #fff;
+  border-radius: 0.5em;
+}
+```
+
+这样的代码看起来比第一种使用 `29%` 意图更加清晰
+
+![image-20250223103716499](images/image-20250223103716499.png)
+
+
+
+### 元素高度问题
+
+元素处理高度与处理宽度是不一样的，普通文档流是为有限的宽度和无限的高度设计的
+
+**普通文档流：** 是指网页元素的默认布局行为，行内元素跟随文字的方向从左到右排列，到达容器边缘时换行，块级元素会占据一整行，前后都有换行
+
+ **⚠️ 注意：除非别无选择，否则不要明确设置元素的高度，设置高度一定会导致更复杂的情况**
+
+
+
+**溢出行为**
+
+当给元素设置高度时，内容可能会溢出容器，渲染到父容器的外面，此时可以使用 `overflow` 属性来设置溢出行为
+
+建议给 `overflow` 属性设置 `auto`，在内容溢出的时候才显示滚动条
+
+![image-20250223105038567](images/image-20250223105038567.png)
+
+ **⚠️ 注意：** 当文本内容没有空格、连字符（`-`）或其他可换行字符时，浏览器不会对内容进行换行，这种文本称为**长文本**，例如 URL 就是长文本，浏览器将长文本视为一个整体，不会在中间换行，此时会导致内容水平溢出
+
+
+
+**百分比高度问题**
+
+![image-20250223142800747](images/image-20250223142800747.png)
+
+想要实现如上图的等高列，左侧部分内容撑开高度，右侧部分高度自适应与左侧相同高度，**无法用过给右侧部分添加 `height: 100%` 达到效果**，以下有两个备选方案
+
+用百分比指定高度存在问题，百分比参考的是元素包含块的大小，但是包含块的高度通常是由子元素的高度决定的，这样就造成的死循环，浏览器无法处理，会忽略这个声明，想让百分比高度生效，必须给父元素明确一个高度
+
+
+
+**使用 CSS 表格布局实现等高列（兼容 IE8+）**
+
+```html
+<div class="wrapper">
+  <div class="container">
+    <main class="main">
+      <h2>Come join us!</h2>
+      <p>
+        The Franklin Running club meets at 6:00pm every Thursday at the town
+        square. Runs are three to five miles, at your own pace.
+      </p>
+    </main>
+    <aside class="sidebar">
+      <div class="widget"></div>
+      <div class="widget"></div>
+    </aside>
+  </div>
+</div>
+```
+
+```css
+.wrapper {
+  /* 使用父外边距抵消表格边框外部水平方向的间距 */
+  margin-left: -1.5em;
+  margin-right: -1.5em;
+}
+
+.container {
+  /* 让容器布局像表格一样 */
+  display: table;
+  /* 默认情况，display:table元素宽度不会扩展到100%，所以需要指定宽度 */
+  width: 100%;
+  /* 设置表格单元格水平方向的间距，副作用：会导致表格边框外部水平方向也会有1.5em的间距 */
+  border-spacing: 1.5em 0;
+}
+
+.main {
+  /* 让列布局像表格的单元格一样 */
+  display: table-cell;
+  width: 70%;
+  background-color: #fff;
+  border-radius: 0.5em;
+}
+
+.sidebar {
+  /* 让列布局像表格的单元格一样 */
+  display: table-cell;
+  width: 30%;
+  /* 外边距不会在display: table-cell上起效果*/
+  margin-left: 1.5em;
+  padding: 1.5em;
+  background-color: #fff;
+  border-radius: 0.5em;
+}
+```
+
+**缺点：** 需要额外的包装元素使用负外边距抵消 `border-spacing` 属性的副作用
+
+
+
+**使用Flexbox弹性盒子布局实现等高列（兼容 IE10+）**
+
+```html
+<div class="container">
+  <main class="main">
+    <h2>Come join us!</h2>
+    <p>
+      The Franklin Running club meets at 6:00pm every Thursday at the town
+      square. Runs are three to five miles, at your own pace.
+    </p>
+  </main>
+  <aside class="sidebar">
+    <div class="widget"></div>
+    <div class="widget"></div>
+  </aside>
+</div>
+```
+
+```css
+.container {
+  /* 使用弹性盒子布局 */
+  display: flex;
+}
+
+.main {
+  width: 70%;
+  background-color: #fff;
+  border-radius: 0.5em;
+}
+
+.sidebar {
+  width: 30%;
+  /* 虽然使用了外边距导致宽度超出了100%，弹性盒子布局会自行妥善处理 */
+  margin-left: 1.5em;
+  padding: 1.5em;
+  background-color: #fff;
+  border-radius: 0.5em;
+}
+```
+
+弹性盒子布局中，子元素高度默认是等高的，**推荐 IE10+ 的浏览器使用弹性盒子布局**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
