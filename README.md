@@ -12,3 +12,4 @@
 10. [常用 git 命令清单](https://github.com/wjw020206/notes/blob/main/%E5%B8%B8%E7%94%A8git%E5%91%BD%E4%BB%A4%E6%B8%85%E5%8D%95/%E5%B8%B8%E7%94%A8git%E5%91%BD%E4%BB%A4%E6%B8%85%E5%8D%95.md)
 11. [常用杂项命令](https://github.com/wjw020206/notes/blob/main/%E5%B8%B8%E7%94%A8%E6%9D%82%E9%A1%B9%E5%91%BD%E4%BB%A4/%E5%B8%B8%E7%94%A8%E6%9D%82%E9%A1%B9%E5%91%BD%E4%BB%A4.md)
 12. [现代 JavaScript 教程笔记](https://github.com/wjw020206/notes/blob/main/%E7%8E%B0%E4%BB%A3%20JavaScript%20%E6%95%99%E7%A8%8B%E7%AC%94%E8%AE%B0/%E7%8E%B0%E4%BB%A3%20JavaScript%20%E6%95%99%E7%A8%8B%E7%AC%94%E8%AE%B0.md)
+13. [认知觉醒读书笔记](https://github.com/wjw020206/notes/blob/main/%E8%AE%A4%E7%9F%A5%E8%A7%89%E9%86%92%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E8%AE%A4%E7%9F%A5%E8%A7%89%E9%86%92%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0.md)
