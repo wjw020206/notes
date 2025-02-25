@@ -52,6 +52,15 @@
         background-color: #eee;
         border-radius: 0.5em;
       }
+
+      .clearfix::after {
+        /* 将伪元素的display设置为非inline值 */
+        display: block;
+        /* 旧版的Opera浏览器中有个隐藏的 bug，需要添加一个空格字符才能解决，建议保留 */
+        content: ' ';
+        /* 清除浮动 */
+        clear: both;
+      }
     </style>
   </head>
   <body>

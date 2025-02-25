@@ -621,7 +621,7 @@ ul {
 - **固定定位 `position: fixed`**
   - 包含块是初始包含块
 - **粘性定位 `position: sticky`**
-  - 包含块是最近的 **滚动祖先元素（即 `position` 为 `overflow: auto` 或 `overflow: scroll` 的元素）** 的内容区域
+  - 包含块是最近的 **滚动祖先元素（即 `overflow: auto` 或 `overflow: scroll` 的元素）** 的内容区域
   - 如果没有滚动祖先元素，则包含块是初始包含块
 
 
