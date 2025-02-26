@@ -1314,3 +1314,36 @@ body * + * {
 
 ### BFC
 
+BFC 的全称是**块级格式化上下文（block formatting context）**，是一块独立渲染的区域，内部的元素**不会影响**外部的元素，反之亦然
+
+右侧文字容器使用 BFC 前
+
+![image-20250226174736357](images/image-20250226174736357.png)
+
+右侧文字容器使用 BFC 后
+
+![image-20250226174806579](images/image-20250226174806579.png)
+
+
+
+BFC 的主要作用包括如下：
+
+- **防止外边距重叠：** BFC 中内部的元素不会和外部的元素（包括 BFC 自身）的外边距产生折叠
+- **清除浮动：** BFC 中可以包含浮动元素，高度不会塌陷
+- **阻止元素被外部浮动元素覆盖：** BFC 容器内的元素不会与外部浮动元素重叠
+- **独立布局：** BFC 内部的布局（如浮动元素、定位元素、外边距等）不会被外部元素（如外部浮动元素影响其它元素的字体环绕）影响，反之亦然
+
+
+
+**给元素添加以下任意属性都会创建 BFC**
+
+- `float` 属性：`left` 或 `right`，不为 `none` 即可
+- `overflow` 属性：`hidden`、`auto` 或 `scroll`，不为 `visible` 即可
+- `display` 属性：`inline-block`、`table-cell`、`table-caption`、`flex`、`inline-flex`、`grid` 或 ` inline-grid`，拥有这些属性的元素称为块级容器（block container）
+- `position` 属性：`absolute` 或 `position: fixed`
+
+**⚠️ 注意：** 
+
+- 网页的根元素 `<html>` 也创建了一个顶级的 BFC
+- 部分情况下 BFC 中的内容还是会和其它 BFC 中的内容重叠，例如：内容太宽或者因为使用了负外边距导致内容被拉到了容器外面
+- 使用 `overflow: auto` 通常是创建 BFC 最简单的一种方式
