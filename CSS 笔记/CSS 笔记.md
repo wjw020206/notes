@@ -1270,7 +1270,7 @@ body * + * {
 
 ```html
 <div class="container clearfix">
-	<!-- 浮动元素相关代码... -->
+  <!-- 浮动元素相关代码... -->
 </div>
 ```
 
