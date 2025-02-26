@@ -1191,7 +1191,7 @@ body * + * {
 
 ![image-20250226162439982](images/image-20250226162439982.png)
 
-但由于当时还没有 `display: block` 和 `display: inline-block`，所以浮动一直承担着布局的重任
+但由于当时还没有 `display: flex` 和 `display: inline-block`，所以浮动一直承担着布局的重任
 
 通过给元素添加 `float` 属性来添加浮动，值有 `left` 和 `right`，分别表示向左浮动和向右浮动，相邻的浮动元素之间会水平排列，如果一行装不下了会自动换行显示
 
