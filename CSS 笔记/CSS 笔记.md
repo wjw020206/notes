@@ -1339,7 +1339,7 @@ BFC 的主要作用包括如下：
 
 - `float` 属性：`left` 或 `right`，不为 `none` 即可
 - `overflow` 属性：`hidden`、`auto` 或 `scroll`，不为 `visible` 即可
-- `display` 属性：`inline-block`、`table-cell`、`table-caption`、`flex`、`inline-flex`、`grid` 或 ` inline-grid`，拥有这些属性的元素称为块级容器（block container）
+- `display` 属性：`inline-block`、`table-cell`、`table-caption`、`flex`、`inline-flex`、`grid` 或 `inline-grid`，拥有这些属性的元素称为块级容器（block container）
 - `position` 属性：`absolute` 或 `position: fixed`
 
 **⚠️ 注意：** 
