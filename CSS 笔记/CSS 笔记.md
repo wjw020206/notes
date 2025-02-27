@@ -1347,3 +1347,63 @@ BFC 的主要作用包括如下：
 - 网页的根元素 `<html>` 也创建了一个顶级的 BFC
 - 部分情况下 BFC 中的内容还是会和其它 BFC 中的内容重叠，例如：内容太宽或者因为使用了负外边距导致内容被拉到了容器外面
 - 使用 `overflow: auto` 通常是创建 BFC 最简单的一种方式
+
+
+
+### 网格系统
+
+网格系统可以提高 CSS 代码的复用性，提供一系列的类名，将网页的一部分构造成行和列，**只给容器提供宽度和定位相关的样式**，不提供颜色、边框等视觉样式，大部分 CSS 框架都有自己的网格系统
+
+**CSS 框架：** 一个预编译的 CSS 代码库，可以快速搭建原型，提供稳定的样式基础，常见的有 Bootstrap、Tailwind CSS、Unocss 等
+
+网格系统一般将每行划分为 12 列，可以指定元素占不同列数据的宽度，如下图
+
+![image-20250227075728506](images/image-20250227075728506.png)
+
+**⚠️ 注意：** 选用 12 作为列数是因为它能被 2、3、4、6 整除，组合起来更灵活
+
+通常用 `.row` 类名表示行容器的，内部使用 `.column-n` 表示列容器，`n` 表示该列宽度所占的列数
+
+```css
+/* 抵消行容器的左右两边的内边距 */
+.row {
+  margin-left: -0.75em;
+  margin-right: -0.75em;
+}
+
+/* 每行清除浮动，以包含浮动元素 */
+.row::after {
+  content: " ";
+  display: block;
+  clear: both;
+}
+
+/* 属性选择器，让每列都向左浮动 */
+[class*="column-"] {
+  float: left;
+  padding: 0 0.75em; /* 将 1.5em 间距分成两半，给内部元素的内边距 */
+}
+
+/* 定义不同列宽 */
+.column-1 { width: 8.3333%; }
+.column-2 { width: 16.6667%; }
+.column-3 { width: 25%; }
+.column-4 { width: 33.3333%; }
+.column-5 { width: 41.6667%; }
+.column-6 { width: 50%; }
+.column-7 { width: 58.3333%; }
+.column-8 { width: 66.6667%; }
+.column-9 { width: 75%; }
+.column-10 { width: 83.3333%; }
+.column-11 { width: 91.6667% }
+.column-12 { width: 100%; }
+```
+
+```html
+<div class="row">
+  <div class="column-4">4</div>
+  <div class="column-8">8</div>
+</div>
+```
+
+**⚠️ 注意：** 上述代码中 `[class*="column-"]` 选择器会选择所有 `class` 属性中包含 `column-` 的元素，需要避免 `column` 在其它元素上使用
