@@ -1407,3 +1407,17 @@ BFC 的主要作用包括如下：
 ```
 
 **⚠️ 注意：** 上述代码中 `[class*="column-"]` 选择器会选择所有 `class` 属性中包含 `column-` 的元素，需要避免 `column` 在其它类名上使用
+
+
+
+## Flexbox
+
+Flexbox 中文意思为 **“弹性盒子”**，是一种布局方式
+
+给一个元素添加 `display: flex`，则该元素就变成了一个**弹性容器（flex container）**，它的**直接子元素**就变成了**弹性子元素（flex item）**
+
+使用 `display: flex` 会使元素变成块级（block）元素，宽度自动增长到 100% 宽度
+
+使用 `display: inline-flex` 会使元素变成行内块（inline-block）元素，宽度不会自动增长到 100% 宽度，会与其它行内元素（inline）在一行显示
+
+![image-20250228133200464](images/image-20250228133200464.png)
