@@ -78,13 +78,45 @@
       }
 
       .column-main {
-        /* 等价于 flex: 2 1 0% */
         flex: 2;
       }
 
       .column-sidebar {
-        /* 等价于 flex: 1 1 0% */
         flex: 1;
+        display: flex;
+        /* 调整主轴方向以解决右侧列无法跟随左侧高度等高的问题 */
+        flex-direction: column;
+      }
+
+      /* 设置元素的放大因子 */
+      .column-sidebar > .tile {
+        flex: 1;
+      }
+
+      /* 设置标题的样式 */
+      .login-form h3 {
+        margin: 0;
+        font-size: 0.9em;
+        font-weight: bold;
+        text-align: right;
+        text-transform: uppercase;
+      }
+
+      /* 给文本类型的输入框增加样式(排除复选框和单选框) */
+      .login-form input:not([type='checkbox']):not([type='radio']) {
+        display: block;
+        /* input比较特殊，宽度由size属性决定，所以需要强制指定为100%宽度 */
+        width: 100%;
+        margin-top: 0;
+      }
+
+      /* 给按钮添加样式 */
+      .login-form button {
+        margin-top: 1em;
+        border: 1px solid #cc6b5a;
+        background-color: white;
+        padding: 0.5em 1em;
+        cursor: pointer;
       }
     </style>
   </head>
