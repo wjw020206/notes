@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      :root {
+        box-sizing: border-box;
+      }
+
+      *,
+      ::before,
+      ::after {
+        box-sizing: inherit;
+      }
+
+      .grid {
+        /* 将元素设置为网格容器 */
+        display: grid;
+        /* 定义等宽的三列 */
+        grid-template-columns: 1fr 1fr 1fr;
+        /* 定义等高的两行 */
+        grid-template-rows: 1fr 1fr;
+        /* 定义每个单元格之间的间距 */
+        gap: 0.5em;
+      }
+
+      .grid > * {
+        background-color: darkgray;
+        color: white;
+        padding: 2em;
+        border-radius: 0.5em;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="grid">
+      <div class="a">a</div>
+      <div class="b">b</div>
+      <div class="c">c</div>
+      <div class="d">d</div>
+      <div class="e">e</div>
+      <div class="f">f</div>
+    </div>
+  </body>
+</html>
