@@ -1028,9 +1028,9 @@ IE 盒子模型（border-box）计算：
 
 **让元素内容垂直居中**
 
-如果企图使用 `vertical-align: middle` 让**块级元素**内容垂直居中，浏览器会忽略这个声明
+如果企图使用 `vertical-align: middle` 让**块级元素**内容垂直居中，**浏览器会忽略这个声明**
 
-`vertical-align` 声明只会影响行内元素或 `table-cell` 元素
+`vertical-align` 声明只会影响行内元素或 `table-cell` 元素内部的**行内内容**（如文本、图片等）
 
 - 对于行内元素它控制着该元素跟同一行其它元素之间的垂直对齐关系，例如：图片和相邻的文字垂直对齐
 - 对于 `table-cell` 元素，它控制着内容在单元格中的垂直对齐
@@ -1416,8 +1416,292 @@ Flexbox 中文意思为 **“弹性盒子”**，是一种布局方式
 
 给一个元素添加 `display: flex`，则该元素就变成了一个**弹性容器（flex container）**，它的**直接子元素**就变成了**弹性子元素（flex item）**
 
-使用 `display: flex` 会使元素变成块级（block）元素，宽度自动增长到 100% 宽度
+使用 `display: flex` 会使元素变成块级（block）元素，宽度自动增长到 100% 宽度，独占一行显示
 
 使用 `display: inline-flex` 会使元素变成行内块（inline-block）元素，宽度不会自动增长到 100% 宽度，会与其它行内元素（inline）在一行显示
 
 ![image-20250228133200464](images/image-20250228133200464.png)
+
+**⚠️ 注意：** 使用 flex 布局后，它的弹性子元素的 `float`、`clear`、`vertical-align` 属性失效
+
+
+
+### 弹性容器属性
+
+**flex-direction 属性**
+
+作用：用于设置主轴的方向
+
+初始值：`row`
+
+```css
+.box {
+  flex-direction: row | row-reverse | column | column-reverse;
+}
+```
+
+![image-20250301090510006](images/image-20250301090510006.png)
+
+
+
+**flex-wrap 属性**
+
+作用：用于定义一条轴上排不下时，弹性子元素如何换行
+
+初始值：`nowrap`
+
+```css
+.box{
+  flex-wrap: nowrap | wrap | wrap-reverse;
+}
+```
+
+![image-20250301090855334](images/image-20250301090855334.png)
+
+**⚠️ 注意：** 
+
+- 启用换行后，弹性子元素不在根据 `flex-shrink` 的值进行收缩，弹性子元素如果超过弹性容器，就会换行显示
+- 如果主轴方向是 `column` 或 `column-reverse`，此时会允许弹性子元素换到新的一列显示，**通常只有在限制了弹性容器高度的情况下才会发生**，否则容器高度会扩展以此来包含全部弹性子元素
+
+
+
+**flex-flow 属性**
+
+作用：该属性是 `flex-direction` 属性和 `flex-wrap` 属性的简写形式
+
+初始值：`row nowrap`
+
+```css
+.box {
+  flex-flow: <flex-direction> || <flex-wrap>;
+}
+```
+
+
+
+**justify-content 属性**
+
+作用：定义了弹性子元素在主轴上的对齐方式
+
+初始值：`flex-start`
+
+```css
+.box {
+  justify-content: flex-start | flex-end | center | space-between | space-around;
+}
+```
+
+![image-20250301091854464](images/image-20250301091854464.png)
+
+**⚠️ 注意：** 弹性子元素之间的间距是在元素的外边距之后进行计算的，而且 `flex-grow` 属性的值也要考虑，当出现如下两种情况的任意一种时，`justify-content` 属性就失效了
+
+- 弹性子元素的 `flex-grow` 的值不为 `0`，会自动占满容器内的剩余空间，导致没有剩余空间调整间距
+- 弹性子元素的外边距的值为 `auto`，会自动占满容器内的剩余空间，导致没有剩余空间调整间距
+
+
+
+**align-items 属性**
+
+作用：定义弹性子元素在副轴上如何对齐
+
+初始值：`stretch`，默认让所有弹性子元素填充容器的高度，在主轴方向垂直的情况下，会让子元素填充容器的宽度，设置其它值可以让弹性子元素保留自身的大小，不会填充容器的大小
+
+```css
+.box {
+  align-items: flex-start | flex-end | center | baseline | stretch;
+}
+```
+
+![image-20250301093446649](images/image-20250301093446649.png)
+
+
+
+**align-content 属性**
+
+作用：定义**多根副轴**上弹性子元素的对齐方式，**只有弹性子元素换行时才有多根副轴线**
+
+初始值：`stretch`，占满整个副轴上的剩余空间
+
+```css
+.box {
+  align-content: flex-start | flex-end | center | space-between | space-around | stretch;
+}
+```
+
+![image-20250301094729674](images/image-20250301094729674.png)
+
+**⚠️ 注意：** 当项目只有一根副轴时(不换行时)，该属性不起作用
+
+
+
+**gap 属性**
+
+作用：用于定义内部弹性子元素之间的间距
+
+初始值：`0`
+
+```css
+.box {
+  gap: 10px 20px; /* 10px 代表行间距，20px 代表列间距 */
+  gap: 15px; /* 行间距和列间距都为 15px */
+}
+```
+
+```css
+.box {
+  /* 也可以使用如下声明 */
+  row-gap: 10px; /* 仅设置行间距 */
+  column-gap: 20px; /* 仅设置列间距 */
+}
+```
+
+![image-20250301110523161](images/image-20250301110523161.png)
+
+**⚠️ 注意：** 因为该属性出现的时间比 Flexbox 出现的时间晚，存在兼容性问题，例如不支持 IE 和 部分手机上不支持，**需谨慎使用**
+
+
+
+### 弹性子元素属性
+
+**order 属性**
+
+作用：设置当前弹性子元素的排列顺序，数值越小，排列越靠前，默认情况下，弹性子元素的排列顺序是按照源码顺序
+
+初始值：`0`
+
+```css
+.item {
+  order: <integer>;
+}
+```
+
+![image-20250301095401871](images/image-20250301095401871.png)
+
+**⚠️ 注意：** 需要谨慎使用该属性，因为 `order` 属性可能会让布局和代码顺序差别太大，会影响网站的可访问性，在大多数浏览器里按 Tab 键切换聚焦元素的顺序和源码一致，大部分屏幕阅读器也是根据源码的顺序来的
+
+
+
+**flex-basic 属性**
+
+作用：定于当前弹性子元素分配多余空间前，占据主轴的大小
+
+初始值：`auto`
+
+```css
+.item {
+  flex-basis: <length> | auto;
+}
+```
+
+该属性可以使用任意的 `width` 值，包括 `px`、`%`、`em`、`rem` 等
+
+如果 `flex-basic` 属性值为 `auto` 时，浏览器会先检查元素是否指定了 `width` 属性值，如果有，则使用 `wdith` 属性值作为 `flex-basic` 属性的值，如果没有，则使用弹性子元素内容自身的大小，**在 Flexbox 中，浏览器会忽略块级元素的默认 `100%` 宽度，而是根据内容的大小作为 `flex-basis` 的值**
+
+如果 `flex-basic` 属性值不是 `auto`，`width` 属性就会被忽略，
+
+当主轴方向为 `column` 时，与上述步骤相同，不过会以 `height` 属性值进行计算
+
+
+
+**flex-grow 属性**
+
+作用：定义当前弹性子元素的放大比例
+
+初始值：`0`，表示存在剩余空间，也不放大，宽度不会超过它的 `flex-basic` 属性的值
+
+```css
+.item {
+  flex-grow: <number>;
+}
+```
+
+![image-20250301101159171](images/image-20250301101159171.png)
+
+每个弹性子元素的 `flex-basic` 属性值计算出来后，加起来的宽度（加上外边距）不一定刚好填满弹性容器的宽度，可能会有多余的空间，此时会按照 `flex-grow` 增长因子的值将多余的空间分配给每个弹性子元素，`flex-grow` 属性的值越大，就会占据更大的剩余宽度
+
+**⚠️ 注意：** 负值对该属性无效
+
+
+
+**flex-shrink 属性**
+
+作用：定义当前弹性子元素的缩小比例
+
+初始值：`1`，表示如果空间不足，则将该弹性子元素缩小，`0` ，表示不会收缩
+
+```css
+.item {
+  flex-shrink: <number>;
+}
+```
+
+![image-20250301101650964](images/image-20250301101650964.png)
+
+每个弹性子元素的 `flex-basic` 属性值计算出来后，加起来的宽度（加上外边距），如果大于容器的宽度，不使用收缩会导致溢出，`flex-shrink` 属性值如果大于 `0`，就会收缩至不再溢出，`flex-shrink` 属性的值越大，就会收缩得越多
+
+**⚠️ 注意：** 负值对该属性无效
+
+
+
+**flex 属性**
+
+作用：该属性是 `flex-grow`, `flex-shrink` 和 `flex-basis`的简写
+
+初始值：`0 1 auto`
+
+```css
+.item {
+  flex: none | [ <'flex-grow'> <'flex-shrink'>? || <'flex-basis'> ]
+}
+```
+
+**注意： 建议优先使用该属性**，而不是单独使用这三个属性，因为浏览器会推算这三个值（通常是合适的）
+
+快捷值如下：
+
+- `flex: auto` 等价于 `flex: 1 1 auto`
+- `flex: none` 等价于 `flex: 0 0 auto`
+- `flex: 1` 等价于 `flex: 1 1 0%`，`flex: 2` 等价于 `flex: 2 1 0%`
+- `flex: 50%` 等价于 `flex: 1 1 50%`
+
+使用 `flex` 属性可以实现如下常见布局
+
+![image-20250301111433489](images/image-20250301111433489.png)
+
+
+
+**align-self 属性**
+
+作用：定义当前弹性子元素自身副轴上的对齐方式
+
+初始值：`auto`，表示继承父弹性容器的 `align-items` 属性值
+
+```css
+.item {
+  align-self: auto | flex-start | flex-end | center | baseline | stretch;
+}
+```
+
+![image-20250301105550660](images/image-20250301105550660.png)
+
+
+
+### 注意事项
+
+- 应该依靠正常的文档流，只在**必要的时候**使用 Flexbox
+
+- 并非所有的浏览器都完美的实现了 Flexbox，尤其是 IE10 和 IE11，一些环境下的 BUG 及解决方案可以在 https://github.com/philipwalton/flexbugs 这个代码仓库中查询到
+
+- 当页面很大或者加载很慢的时候，浏览器加载内容渐进渲染到屏幕，即使网页内容的剩余部分还在加载，例如使用弹性盒子 `flex-direction: row` 实现三列布局，如果其中前两列的内容加载了，浏览器可能会在加载第三列前加载这两列，等到剩余内容加载完会重新计算每个弹性子元素的大小，重新渲染网页，**导致用户短暂的先看到两列布局，再出现第三列**，建议此时可以使用网格（grid）布局
+
+  **⚠️ 注意：** 只有当一行多列的布局才会产生这个问题，如果布局采用一列多行（`flex-direction: column`）就没这个问题
+
+- 旧版浏览器中使用 Flexbox 需要添加浏览器前缀，不然浏览器默认会忽略不认识的声明，例如下述代码
+
+  ```css
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  ```
+
+  推荐使用 [Autoprefixer](https://github.com/postcss/autoprefixer) 配合构建工具来自动为代码添加浏览器前缀，前缀的方式目前正在被现代浏览器所弃用
