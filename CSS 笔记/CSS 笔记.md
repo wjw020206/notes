@@ -1416,9 +1416,9 @@ Flexbox 中文意思为 **“弹性盒子”**，是一种布局方式
 
 给一个元素添加 `display: flex`，则该元素就变成了一个**弹性容器（flex container）**，它的**直接子元素**就变成了**弹性子元素（flex item）**
 
-使用 `display: flex` 会使元素变成块级（block）元素，宽度自动增长到 100% 宽度，独占一行显示
+使用 `display: flex` 会使元素变成块级（block）元素，宽度默认占满父容器的可用宽度，独占一行显示
 
-使用 `display: inline-flex` 会使元素变成行内块（inline-block）元素，宽度不会自动增长到 100% 宽度，会与其它行内元素（inline）在一行显示
+使用 `display: inline-flex` 会使元素变成行内（inline）元素，宽度根据内容宽度调整，会与其它行内元素（inline）在一行显示
 
 ![image-20250228133200464](images/image-20250228133200464.png)
 
@@ -1705,3 +1705,151 @@ Flexbox 中文意思为 **“弹性盒子”**，是一种布局方式
   ```
 
   推荐使用 [Autoprefixer](https://github.com/postcss/autoprefixer) 配合构建工具来自动为代码添加浏览器前缀，前缀的方式目前正在被现代浏览器所弃用
+
+
+
+## Grid
+
+Grid 中文意思为 **“网格”**，是一种布局方式
+
+Flexbox 布局可以看做是**一维布局**，只能指定弹性子元素单行或单列的布局
+
+Grid 布局是可以看做是**二维布局**，将容器划分为行和列，可以指定网格子元素的所在的单元格，所以相比 Flexbox 布局更加强大
+
+给一个元素添加 `display: grid`，则该元素就变成了一个**网格容器（grid container）**，它的**直接子元素**变成了**网格子元素（grid item）**
+
+使用 `display: grid` 会使元素变成块级（block）元素，宽度默认占满父容器的可用宽度，独占一行显示
+
+使用 `display: inline-grid` 会使元素变成行内（inline）元素，宽度根据内容宽度调整，与其它行内（inline）元素在一行显示
+
+![image-20250302083942994](images/image-20250302083942994.png)
+
+**网格线（grid line）：** 一条网格线可以水平或垂直，构成了网格的框架，可以位于一行或一列的任意一侧
+
+**网格轨道（grid track）：** 两条相邻网格线之间的空间，有水平（行）和垂直（列）轨道
+
+**网格单元（grid cell）：** 网格上的单个空间，水平和垂直网格轨道交叉重叠的部分
+
+**网格区域（grid area）：** 网格上的矩形区域，由一个或多个网格单元组成，区域位于两条水平网格线和两条垂直网格线之间
+
+**⚠️ 注意：** 设置了网格容器后，内部的网格子元素的 `float`、`display: inline-block`、`display: table-cell`、`vertical-align` 和 `column-*` 等设置都将失效
+
+
+
+### 网格容器属性
+
+
+
+**grid-template-columns 和 grid-template-rows 属性**
+
+作用：`grid-template-columns` 用于划分网格容器的列，`grid-template-rows` 用于划分网格容器的行
+
+```css
+.container {
+  display: grid;
+  grid-template-columns: 100px 100px 100px;
+  grid-template-rows: 100px 100px 100px;
+}
+```
+
+例如上述代码划分了三行三列的网格，列宽和行高都为 `100px`
+
+![image-20250302092137104](images/image-20250302092137104.png)
+
+除了使用 `px` 固定单位来指定大小，还可以使用 `%` 单位
+
+```css
+.container {
+  display: grid;
+  grid-template-columns: 33.33% 33.33% 33.33%;
+  grid-template-rows: 33.33% 33.33% 33.33%;
+}
+```
+
+
+
+**repeat() 函数**
+
+上述代码中重复的值写起来比较麻烦，可以使用 `repeat()` 函数**简化重复的值**
+
+```css
+.container {
+  display: grid;
+  /* 等价于grid-template-columns: 100px 100px 100px */
+  grid-template-columns: repeat(3, 100px);
+  /* 等价于grid-template-rows: 100px 100px 100px */
+  grid-template-rows: repeat(3, 100px); 
+}
+```
+
+`repeat()` 函数接收两个参数，第一个参数是重复次数，上述代码中是 `3`，第二个参数是要重复的值
+
+`repeat()` 函数也可以重复某种模式
+
+```css
+/* 等价于grid-template-columns: 100px 20px 80px 100px 20px 80px */
+grid-template-columns: repeat(2, 100px 20px 80px);
+```
+
+
+
+**auto-fill 关键字**
+
+有时候，网格子元素的大小是固定的，但是容器的大小不确定（例如随着窗口宽度的变化显示不同个数的网格子元素），想让每一行尽可能的容纳更多的单元格，可以使用 `auto-fill` 关键字来自动填充
+
+```css
+.container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 100px);
+}
+```
+
+在视口宽度为 `660px` 下的布局
+
+![image-20250302093518493](images/image-20250302093518493.png)
+
+在视口宽度为 `495px` 下的布局
+
+![image-20250302093632956](images/image-20250302093632956.png)
+
+与 `auto-fill` 关键字类似的还有 **`auto-fit`**，两者的行为基本相同，只有当网格子元素无法填满所有网格轨道时，才会有差别
+
+- 使用 `auto-fill` 没填满时，会生成一些空的网格轨道
+
+  ![image-20250302094948779](images/image-20250302094948779.png)
+
+- 使用 `auto-fit` 没填满时，**不会生成空的网格轨道**
+
+  ![image-20250302095044499](images/image-20250302095044499.png)
+
+  如果此时**列宽不是固定值**时，会对元素进行**拉伸**以占满空的网格轨道
+
+  ![image-20250302095236434](images/image-20250302095236434.png)
+
+
+
+**fr 关键字**
+
+`fr` 全称是 **fraction unit**，表示每一行或者每一列的**分数单位**，与 Flexbox 中的 `flex-grow` 放大因子表现效果类似
+
+```css
+.container {
+  display: grid;
+  /* 这行代码表示生成三列等宽的布局 */
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 100px); 
+}
+```
+
+![image-20250302095926305](images/image-20250302095926305.png)
+
+```css
+.container {
+  display: grid;
+  /* 这行代码表示生成两列的布局，第二列宽度是第一列宽度的两倍 */
+  grid-template-columns: 1fr 2fr;
+  grid-template-rows: repeat(3, 100px); 
+}
+```
+
+![image-20250302100232368](images/image-20250302100232368.png)

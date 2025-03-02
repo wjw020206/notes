@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      body {
+        background-color: #709b90;
+        font-family: Helvetica, Arial, sans-serif;
+      }
+
+      .portfolio {
+        display: grid;
+        /* 将最小列宽设置为200px，自动填充网格 */
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        /* 将隐式网格轨道大小设置为1fr */
+        grid-auto-rows: 1fr;
+        gap: 1em;
+      }
+
+      .portfolio > figure {
+        /* 覆盖默认的外边距 */
+        margin: 0;
+      }
+
+      .portfolio img {
+        max-width: 100%;
+      }
+
+      .portfolio figcaption {
+        padding: 0.3em 0.8em;
+        background-color: rgba(0, 0, 0, 0.5);
+        color: #fff;
+        text-align: right;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="portfolio">
+      <figure class="featured">
+        <img src="./images/monkey.jpg" alt="monkey" />
+        <figcaption>Monkey</figcaption>
+      </figure>
+      <figure>
+        <img src="./images/eagle.jpg" alt="eagle" />
+        <figcaption>Eagle</figcaption>
+      </figure>
+      <figure class="featured">
+        <img src="./images/bird.jpg" alt="bird" />
+        <figcaption>Bird</figcaption>
+      </figure>
+      <figure>
+        <img src="./images/bear.jpg" alt="bear" />
+        <figcaption>Bear</figcaption>
+      </figure>
+      <figure class="featured">
+        <img src="./images/swan.jpg" alt="swan" />
+        <figcaption>Swan</figcaption>
+      </figure>
+      <figure>
+        <img src="./images/elephants.jpg" alt="elephants" />
+        <figcaption>Elephants</figcaption>
+      </figure>
+      <figure>
+        <img src="./images/owl.jpg" alt="owl" />
+        <figcaption>Owl</figcaption>
+      </figure>
+    </div>
+  </body>
+</html>
