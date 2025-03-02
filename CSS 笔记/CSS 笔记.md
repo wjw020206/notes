@@ -2051,7 +2051,78 @@ grid-template-areas: 'a . c'
 
 
 
+**justify-items、align-items 和 place-items 属性**
+
+作用：可以通过以下属性设置所有网格子元素内容的对齐方式
+
+![image-20250302142950083](images/image-20250302142950083.png)
+
+`justify-items` 属性用于设置所有网格子元素的水平位置（左、中、右），默认值为 `stretch`
+
+`align-items` 属性用于设置所有网格子元素的垂直位置（上、中、下），默认值为 `stretch`
+
+以上两种属性写法完全一样，都可以取以下的值：
+
+- `start`：对齐网格子元素的起始边缘
+- `end`：对齐网格子元素的结束边缘
+- `center`：网格子元素内部居中
+- `stretch`：拉伸，占满网格子元素的整个宽度
+
+`place-items` 属性是 `align-items` 属性和 `justify-items` 属性的合并简写形式
+
+```css
+place-items: <align-items> <justify-items>;
+```
+
+如果忽略第二个值，则浏览器认为第二个值和第一个值一样
 
 
 
+**justify-content、align-content 和 place-content 属性**
+
+作用：当网格子元素大小无法填满网格容器时，可以通过以下属性设置整个内容区域与网格容器的对齐方式
+
+![image-20250302142921477](images/image-20250302142921477.png)
+
+`justify-content` 属性用于设置整个内容区域在容器中的水平位置（左、中、右），默认值为 `start`
+
+`align-content` 属性用于设置整个内容区域在容器中的垂直位置（上、中、下），默认值为 `start`
+
+以上两种属性写法完全一样，都可以取以下的值：
+
+- `start`：对齐容器的起始边框
+
+  ![image-20250302143743053](images/image-20250302143743053.png)
+
+- `end`：对齐容器的结束边框
+
+  ![image-20250302143727413](images/image-20250302143727413.png)
+
+- `center`：容器的内部居中
+
+  ![image-20250302143709694](images/image-20250302143709694.png)
+
+- `stretch`：网格子元素没有指定大小时，拉伸占据整个网格容器
+
+  ![image-20250302144127443](images/image-20250302144127443.png)
+
+- `space-around`：每个网格子元素的两侧间隔相等，与网格容器边框间隔要小一倍
+
+  ![image-20250302143601533](images/image-20250302143601533.png)
+
+- `space-between`：每个网格子元素的间隔相等，网格子元素与网格容器边框之间没有间隔
+
+  ![image-20250302143929917](images/image-20250302143929917.png)
+
+- `space-evenly`：每个网格子元素以及网格子元素与网格容器边框之间的间隔都相等
+
+  ![image-20250302144109473](images/image-20250302144109473.png)
+
+`place-content` 属性是 `align-content` 和 `align-content` 属性的简写形式
+
+```css
+place-content: <align-content> <justify-content>;
+```
+
+如果忽略第二个值，则浏览器认为第二个值和第一个值一样
 
