@@ -2544,6 +2544,6 @@ place-self: <align-self> <justify-self>;
 
   ![image-20250304201509948](images/image-20250304201509948.png)
 
-  内部子元素 nested 虽然 `z-index` 值最高，但依旧被元素 two 所遮挡，因为子元素 nested 的父元素 one 的层级小于元素 two 的层级，它内部的所有子元素的层级无论设置多高，也都小于元素 two 的层级
+  内部子元素 nested 虽然 `z-index` 值最高，但依旧被元素 two 所遮挡，因为子元素 nested 的父元素 one 的层级小于元素 two 的层级，所以它内部的所有子元素的层级无论设置多高，也都小于元素 two 的层级
 
 - **隔离性**，层叠上下文中的子元素只在该上下文中比较，**与外部的 `z-index` 无关**
