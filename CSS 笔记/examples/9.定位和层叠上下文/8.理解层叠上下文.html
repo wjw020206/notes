@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      body {
+        margin: 40px;
+      }
+
+      .box {
+        display: inline-block;
+        width: 200px;
+        line-height: 200px;
+        text-align: center;
+        border: 2px solid black;
+        background-color: #ea5;
+        margin-left: -60px;
+        vertical-align: top;
+      }
+
+      .one {
+        margin-left: 0;
+      }
+      .two {
+        margin-top: 30px;
+      }
+      .three {
+        margin-top: 60px;
+      }
+
+      .positioned {
+        position: relative;
+        background-color: #5ae;
+        /* 为每个定位盒子都创建层叠上下文 */
+        z-index: 1;
+      }
+
+      .absolute {
+        position: absolute;
+        top: 1em;
+        right: 1em;
+        height: 2em;
+        background-color: #fff;
+        border: 2px dashed #888;
+        /* z-index只能控制元素所处的层叠上下文内部的层叠顺序 */
+        z-index: 100;
+        line-height: initial;
+        padding: 1em;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="box one positioned">
+      one
+      <div class="absolute">nested</div>
+    </div>
+    <div class="box two positioned">two</div>
+    <div class="box three">three</div>
+  </body>
+</html>

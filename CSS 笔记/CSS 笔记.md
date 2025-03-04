@@ -692,7 +692,7 @@ ul {
 
 ### 自定义属性（CSS 变量）
 
-CSS Variables 全称为 Custom Properties for Cascading Variables，中文翻译过来就是层叠变量的自定义属性，简称自定义属性也叫 CSS 变量
+CSS Variables 全称为 **Custom Properties for Cascading Variables**，中文翻译过来就是层叠变量的自定义属性，简称自定义属性，也叫 CSS 变量
 
 **⚠️ 注意：** 自定义属性与 Scss、Less 等 CSS 预处理器的内置变量是不同的，前者是运行在浏览器环境，可以动态变化，后者只在预处理器编译阶段运行，最终生成的是静态的 CSS 代码，无法在浏览器运行时更改
 
@@ -1663,6 +1663,7 @@ Flexbox 中文意思为 **“弹性盒子”**，是一种布局方式
 - `flex: none` 等价于 `flex: 0 0 auto`
 - `flex: 1` 等价于 `flex: 1 1 0%`，`flex: 2` 等价于 `flex: 2 1 0%`
 - `flex: 50%` 等价于 `flex: 1 1 50%`
+- `flex: 1 80%` 等价于 `flex: 1 1 80%`
 
 使用 `flex` 属性可以实现如下常见布局
 
@@ -2342,7 +2343,7 @@ place-self: <align-self> <justify-self>;
 
 ## 特性查询
 
-作用：实现浏览器样式的**渐进增强**（首先保证所有浏览器上都有基本样式和功能，再对功能更先进的设备使用现代 CSS 特性）
+作用：检测浏览器是否支持声明的特性
 
 ```css
 @supports (display: grid) {
