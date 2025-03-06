@@ -41,6 +41,14 @@
         background-color: #fff;
       }
 
+      /* 中等屏幕 */
+      @media (min-width: 35em) {
+        .page-header {
+          /* 给头部区域增加内边距 */
+          padding: 1em;
+        }
+      }
+
       .title > h1 {
         color: #333;
         text-transform: uppercase;
@@ -48,7 +56,7 @@
         margin: 0.2em 0;
       }
 
-      /* 给头部标题添加媒体查询 */
+      /* 中等屏幕 */
       @media (min-width: 35em) {
         .title > h1 {
           /* 使用更大字体覆盖移动端的字体 */
@@ -72,8 +80,25 @@
         text-shadow: 0.1em 0.1em 0.3em #000;
       }
 
+      /* 中等屏幕 */
+      @media (min-width: 35em) {
+        /* 给主图增加内边距和字号 */
+        .hero {
+          padding: 5em 3em;
+          font-size: 1.2rem;
+        }
+      }
+
       main {
         padding: 1em;
+      }
+
+      /* 中等屏幕 */
+      @media (min-width: 35em) {
+        main {
+          /* 增加主元素的内边距 */
+          padding: 2em 1em;
+        }
       }
 
       .subtitle {
@@ -124,6 +149,21 @@
         margin: 0;
       }
 
+      /* 中等屏幕 */
+      @media (min-width: 35em) {
+        .menu-toggle {
+          /* 隐藏菜单切换按钮 */
+          display: none;
+        }
+
+        .menu-dropdown {
+          /* 显示菜单内容 */
+          display: block;
+          /* 覆盖绝对定位 */
+          position: static;
+        }
+      }
+
       /* 给菜单加上.open类时，显示下拉菜单 */
       .menu.is-open .menu-dropdown {
         display: block;
@@ -147,6 +187,45 @@
         padding: 0.8em 1em;
         color: #fff;
         font-weight: normal;
+      }
+
+      /* 中等屏幕 */
+      @media (min-width: 35em) {
+        /* 将容器修改为弹性盒子容器以及调整边框和内边距 */
+        .nav-menu {
+          display: flex;
+          border: 0;
+          padding: 0 1em;
+        }
+
+        .nav-menu > li {
+          flex: 1;
+        }
+
+        .nav-menu > li + li {
+          border: 0;
+        }
+
+        .nav-menu > li > a {
+          padding: 0.3em;
+          text-align: center;
+        }
+      }
+
+      /* 中等屏幕 */
+      @media (min-width: 35em) {
+        /* 调整为三列布局 */
+        .row {
+          display: flex;
+          margin-left: -0.75em;
+          margin-right: -0.75em;
+        }
+
+        .column {
+          flex: 1;
+          margin-right: 0.75em;
+          margin-left: 0.75em;
+        }
       }
     </style>
   </head>
