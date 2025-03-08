@@ -12,6 +12,7 @@ body {
   font-family: Helvetica, Arial, sans-serif;
 }
 
+/* 媒体对象 */
 /*
 Media
 
@@ -52,4 +53,53 @@ Styleguide Media
 }
 .media__body > h4 {
   margin-top: 0;
+}
+
+/* 按钮变体 */
+/*
+Buttons
+
+Buttons are available in a number of sizes and colors. You may mix and match any size with any color.
+
+Markup:
+<button class="button {{modifier_class}}">
+  click here
+</button>
+
+.button--success - A green success button
+.button--danger - A red danger button
+.button--small - A small button
+.button--large - A large button
+
+Styleguide Buttons
+*/
+
+.button {
+  padding: 1em 1.25em;
+  border: 1px solid #265559;
+  border-radius: 0.2em;
+  background-color: transparent;
+  font-size: 0.8rem;
+  color: #333;
+  font-weight: bold;
+}
+
+.button--success {
+  border-color: #cfe8c9;
+  color: #fff;
+  background-color: #2f5926;
+}
+
+.button--danger {
+  border-color: #e8c9c9;
+  color: #fff;
+  background-color: #a92323;
+}
+
+.button--small {
+  font-size: 0.8rem;
+}
+
+.button--large {
+  font-size: 1.2rem;
 }
