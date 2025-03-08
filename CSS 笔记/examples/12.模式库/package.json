@@ -1,0 +1,18 @@
+{
+  "name": "pattern-library",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "kss --config kss-config.json",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "CodePencil",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "kss": "^3.1.0"
+  },
+  "engines": {
+    "node": "20.18.3"
+  }
+}
