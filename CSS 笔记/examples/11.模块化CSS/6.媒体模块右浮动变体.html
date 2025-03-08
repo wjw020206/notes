@@ -19,40 +19,40 @@
         font-family: Helvetica, Arial, sans-serif;
       }
 
-      /* 主容器 */
       .media {
         padding: 1.5em;
         background-color: #eee;
         border-radius: 0.5em;
       }
 
-      /* 清除浮动 */
       .media::after {
         content: '';
         display: block;
         clear: both;
       }
 
-      /* 图片子元素 */
       .media__image {
         float: left;
         margin-right: 1.5em;
       }
 
-      /* 正文子元素 */
       .media__body {
         overflow: auto;
         margin-top: 0;
       }
 
-      /* 正文中的标题 */
       .media__body > h4 {
         margin-top: 0;
+      }
+
+      /* 媒体模块右浮动变体 */
+      .media--right > .media__image {
+        float: right;
       }
     </style>
   </head>
   <body>
-    <div class="media">
+    <div class="media media--right">
       <img class="media__image" src="../images/runner.png" />
       <div class="media__body">
         <h4>Strength</h4>
