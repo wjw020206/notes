@@ -2931,7 +2931,10 @@ block__element--modifier
 
 ![image-20250308110354471](images/image-20250308110354471.png)
 
-**⚠️ 注意：** 不要使用后代选择器来修改模块的样式
+**⚠️ 注意：** 不要使用后代选择器来修改模块的样式，这样做会导致以下几个问题：
+
+- 会提升选择器的优先级
+- 会产生越来越长的选择器
 
 
 
@@ -2987,9 +2990,222 @@ block__element--modifier
 
 ![image-20250308135629573](images/image-20250308135629573.png)
 
-**⚠️ 注意：** 上述代码中 `<h4>` 标签已经足够语义化，能够表明是媒体模块的正文的标题，可以不使用类名，但是标题元素也只能使用 `<h4>` 标签（因为使用了**直接子元素选择器**）
+上述代码中 `<h4>` 标签已经足够语义化，能够表明是媒体模块的正文的标题，可以不使用类名，但是标题元素也只能使用 `<h4>` 标签（因为使用了**直接子元素选择器**）
+
+**⚠️ 注意：** 避免在模块中使用通用标签名选择器，例如 `span`  和 `div`，但可以使用 `h1~h6`、`li`、`img` 等非通用标签名，例如：`.menu > li`、`.media__body > h4`
 
 
 
+**多元素模块使用修饰符**
+
+```css
+.media--right > .media__image {
+  float: right;
+}
+```
+
+```html
+<div class="media media--right">
+  <img class="media__image" src="../images/runner.png" />
+  <div class="media__body">
+    <h4>Strength</h4>
+    <p>
+      Strength training is an important part of injury prevention. Focus on
+      your core&mdash; especially your abs and glutes.
+    </p>
+  </div>
+</div>
+```
+
+给上述的媒体模块添加图片右浮动的模块变体，使用**直接子元素选择器**修改模块内部元素的样式
+
+![image-20250308141419280](images/image-20250308141419280.png)
 
 
+
+### 将模块组合成更大的结构
+
+每个模块应该只做一件事情，例如消息模块的职责是使消息提示醒目，媒体模块的职责是使在一段文本中配置一张图片，当模块想完成的事情不止一件的时候，可以考虑把它拆分成多个模块
+
+
+
+**如何判断是否需要拆分成多个模块**
+
+创建模块之前，问自己：**从更高层面上看，这个模块的职责是什么？**
+
+如果不得不使用**并（或者和）**的词来描述这个模块的职责，那表示该模块有多项职责，需要进一步拆分
+
+例如下述的下拉菜单模块，它的职责是 “用按钮触发下拉菜单**并**展示上下堆叠的菜单项”
+
+![image-20250308141912444](images/image-20250308141912444.png)
+
+此时可以将下拉菜单模块拆分为下拉模块（`dropdown`）和菜单模块（`menu`），如下述代码
+
+```html
+<div class="dropdown">
+  <button class="dropdown__toggle">Main Menu</button>
+  <div class="dropdown__drawer">
+    <ul class="menu">
+      <li><a href="/">Home</a></li>
+      <li><a href="/coffees">Coffees</a></li>
+      <li><a href="/brewers">Brewers</a></li>
+      <li><a href="/specials">Specials</a></li>
+      <li><a href="/about">About us</a></li>
+    </ul>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const toggle = document.querySelector('.dropdown__toggle');
+    toggle.addEventListener('click', function (event) {
+      event.preventDefault();
+      const dropdown = event.target.parentNode;
+      dropdown.classList.toggle('is-open');
+    });
+  })();
+</script>
+```
+
+- 下拉模块样式
+
+  ```css
+  .dropdown {
+    display: inline-block;
+    position: relative;
+  }
+  
+  .dropdown__toggle {
+    padding: 0.5em 2em 0.5em 1.5em;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    background-color: #eee;
+  }
+  
+  .dropdown__toggle::after {
+    content: "";
+    position: absolute;
+    right: 1em;
+    top: 1em;
+    border: 0.3em solid;
+    border-color: black transparent transparent;
+  }
+  
+  .dropdown__drawer {
+    display: none;
+    position: absolute;
+    left: 0;
+    top: 2.1em;
+    min-width: 100%;
+    background-color: #eee;
+  }
+  
+  .dropdown.is-open .dropdown__toggle::after {
+    top: 0.7em;
+    border-color: transparent transparent black;
+  }
+  
+  .dropdown.is-open .dropdown__drawer {
+    display: block;
+  }
+  ```
+
+- 菜单模块样式
+
+  ```css
+  .menu {
+    margin: 0;
+    padding-left: 0;
+    list-style-type: none;
+    border: 1px solid #999;
+  } 
+  
+  .menu > li + li {
+    border-top: 1px solid #999;
+  }
+  
+  .menu > li > a {
+    display: block;
+    padding: 0.5em 1.5em;
+    background-color: #eee;
+    color: #369;
+    text-decoration: none;
+  }
+  
+  .menu > li > a:hover {
+    background-color: #fff;
+  }
+  ```
+
+**⚠️ 注意：** 
+
+- 模块内使用相对定位、绝对定位等 CSS 属性时，定位应基于模块内的元素，而不是模块外的元素，这样将模块放到另一个有定位的容器中才不会弄乱样式
+- **状态类（state class）** 通常在模块中使用 JavaScript **动态地添加和移除**它，一般以 `is-` 或 `has-` 开头，例如：`is-expanded`、`is-loading` 或者 `has-error` 等，状态类的代码要和模块的其它代码放在一起，适用于任何元素
+
+
+
+### 模块命名
+
+模块命名需要唯一，最好看上去通用些
+
+![image-20250308135629573](images/image-20250308135629573.png)
+
+上图中的模块，如果叫跑步提示模块，当跑步主题网站用该模块作为举办的赛事信息时，该模块当前的名称就不合适了，此时需要思考该模块代表什么含义，例如媒体模块就很不错，无论什么使用场景都可以用
+
+为模块变体类命名的时候，不应该使用 `button--red` 和 `button--blue`，应该使用 `button--danger` 和 `button--success` 这种有具体含义的
+
+对于尺寸变体命名的时候，不应该使用 `button--20px` 特别精确的修饰符，应该使用 `button--large` 表示比标准按钮稍微大一些的含义
+
+
+
+### 工具类
+
+用一个类对元素做一件简单明确的事情，比如：文字居中、清除浮动、让元素左浮动等，这样的类称为**工具类（utility class）**，这类工具类通常放在样式表的底部，模块代码的下面
+
+```css
+/* 文字居中 */
+.text-center {
+  text-align: center !important;
+} 
+
+/* 左浮动 */
+.float-left {
+  float: left;
+}
+
+/* 阻止内部元素与容器外边距折叠 */
+.clearfix::before, 
+.clearfix::after {
+  content: " ";
+  display: table;
+}
+
+/* 清除浮动 */
+.clearfix::after {
+  clear: both;
+}
+
+/* 隐藏元素 */
+.hidden {
+  display: none !important;
+}
+```
+
+**⚠️ 注意：** 
+
+- 不要滥用工具类，对于大部分网站，最多十几个工具类就够用了
+- 工具类是唯一应该使用 `!important` 注释的地方，以此来确保工具类始终生效
+
+
+
+### CSS 方法论
+
+有以下几种比较有名的 CSS 模块化的方法论，按时间顺序从早到晚排列
+
+1. OOCSS：面向对象的 CSS，由 Nicole Sullivan 创建
+
+2. SMACSS：可扩展的、模块化 CSS 架构，由 Jonathan Snook 创建
+
+3. BEM：块（Block）、元素（Element）和修饰符（Modifier），由 Yandex 公司提出
+
+4. ITCSS：倒三角形 CSS，由 Harry Roberts 创建
