@@ -2831,3 +2831,165 @@ img {
 }
 ```
 
+
+
+## 模块化 CSS
+
+模块化 CSS 是指把页面分割成不同的组成部分，这些组成部分可以在多种上下文中重复使用，并且对其中一部分进行修改不会对其他部分产生影响
+
+**模块（module）：** 样式表的每个组成部分，每个模块独立负责自己的样式，不会影响其它模块内的样式
+
+
+
+### 基础样式
+
+作为样式表中的通用规则，包含链接的颜色、标题的样式、外边距以及去除 `<body>` 元素默认的外边距等基础样式
+
+```css
+:root {
+  box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+body {
+  font-family: Helvetica, Arial, sans-serif;
+  margin: 0;
+}
+```
+
+**推荐引入 [normalize.css](https://csstools.github.io/normalize.css/) 库**，有助于消除不同浏览器渲染不一致的问题，将其下载添加到自己的样式表前面即可
+
+**⚠️ 注意：** 基础样式应该是通用的，只添加影响大部分页面元素的样式，**不应该使用类名或 ID 选择器来匹配元素，应当只使用标签选择器或伪类选择器，基础样式配置完很少会再改动**
+
+
+
+### 一个模块
+
+每个模块都需要一个独一无二的名称，在命名时推荐使用 BEM 方式来组织模块
+
+**BEM 规范**
+
+![image-20250308110558510](images/image-20250308110558510.png)
+
+通过以下格式来给元素添加类名
+
+```css
+block__element--modifier
+```
+
+- `block` 就是模块名
+- `element` 就是模块内部子元素的名称
+- `modifier` 就是模块或者模块内部子元素状态修饰符
+
+例如开发一个按钮模块
+
+```css
+/* 按钮基础样式 */
+.button {
+  padding: 0.5em 0.8em;
+  border: 1px solid #265559;
+  border-radius: 0.2em;
+  background-color: transparent;
+  font-size: 1rem;
+}
+
+/* 成功按钮的样式 */
+.button--success {
+  border-color: #cfe8c9;
+  color: #fff;
+  background-color: #2f5926;
+}
+
+/* 危险按钮的样式 */
+.button--danger {
+  border-color: #e8c9c9;
+  color: #fff;
+  background-color: #a92323;
+}
+
+/* 小号按钮的样式 */
+.button--small {
+  font-size: 0.8rem;
+}
+
+/* 大号按钮的样式 */
+.button--large {
+  font-size: 1.2rem;
+}
+```
+
+```html
+<button class="button button--large">Read more</button>
+<button class="button button--success">Save</button>
+<button class="button button--danger button—small">Cancel</button>
+```
+
+![image-20250308110354471](images/image-20250308110354471.png)
+
+**⚠️ 注意：** 不要使用后代选择器来修改模块的样式
+
+
+
+### 多元素模块
+
+一个模块可能会由多个元素组成时，例如开发一个媒体模块
+
+```css
+/* 主容器 */
+.media {
+  padding: 1.5em;
+  background-color: #eee;
+  border-radius: 0.5em;
+}
+
+/* 清除浮动 */
+.media::after {
+  content: '';
+  display: block;
+  clear: both;
+}
+
+/* 图片子元素 */
+.media__image {
+  float: left;
+  margin-right: 1.5em;
+}
+
+/* 正文子元素 */
+.media__body {
+  overflow: auto;
+  margin-top: 0;
+}
+
+/* 正文中的标题 */
+.media__body > h4 {
+  margin-top: 0;
+}
+```
+
+```html
+<div class="media">
+  <img class="media__image" src="../images/runner.png" />
+  <div class="media__body">
+    <h4>Strength</h4>
+    <p>
+      Strength training is an important part of injury prevention. Focus on
+      your core&mdash; especially your abs and glutes.
+    </p>
+  </div>
+</div>
+```
+
+![image-20250308135629573](images/image-20250308135629573.png)
+
+**⚠️ 注意：** 上述代码中 `<h4>` 标签已经足够语义化，能够表明是媒体模块的正文的标题，可以不使用类名，但是标题元素也只能使用 `<h4>` 标签（因为使用了**直接子元素选择器**）
+
+
+
+
+
