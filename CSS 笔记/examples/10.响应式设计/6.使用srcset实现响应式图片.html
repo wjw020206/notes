@@ -79,11 +79,22 @@
       }
 
       .hero {
+        position: relative;
         padding: 2em 1em;
         text-align: center;
         background-size: 100%;
         color: #fff;
         text-shadow: 0.1em 0.1em 0.3em #000;
+        overflow: hidden;
+      }
+
+      .hero > img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        max-width: 100%;
+
+        z-index: -1;
       }
 
       @media (min-width: 35em) {
@@ -260,6 +271,14 @@
     <aside id="hero" class="hero">
       Welcome to Wombat Coffee Roasters! We are passionate about our craft,
       striving to bring you the best hand-crafted coffee in the city.
+      <img
+        src="../images/coffee-beans-small.jpg"
+        srcset="
+          ../images/coffee-beans-small.jpg   560w,
+          ../images/coffee-beans-medium.jpg  800w,
+          ../images/coffee-beans.jpg        1280w
+        "
+      />
     </aside>
 
     <main id="main">

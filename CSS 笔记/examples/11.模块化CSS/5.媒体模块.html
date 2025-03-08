@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      :root {
+        box-sizing: border-box;
+      }
+
+      *,
+      ::before,
+      ::after {
+        box-sizing: inherit;
+      }
+
+      body {
+        font-family: Helvetica, Arial, sans-serif;
+      }
+
+      /* 主容器 */
+      .media {
+        padding: 1.5em;
+        background-color: #eee;
+        border-radius: 0.5em;
+      }
+
+      /* 清除浮动 */
+      .media::after {
+        content: '';
+        display: block;
+        clear: both;
+      }
+
+      /* 图片子元素 */
+      .media__image {
+        float: left;
+        margin-right: 1.5em;
+      }
+
+      /* 正文子元素 */
+      .media__body {
+        float: left;
+        margin-right: 1.5em;
+      }
+
+      /* 正文中的标题 */
+      .media__body > h4 {
+        margin-top: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="media">
+      <img class="media__image" src="../images/runner.png" />
+      <div class="media__body">
+        <h4>Strength</h4>
+        <p>
+          Strength training is an important part of injury prevention. Focus on
+          your core&mdash; especially your abs and glutes.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

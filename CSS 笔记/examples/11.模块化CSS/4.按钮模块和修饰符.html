@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      :root {
+        box-sizing: border-box;
+      }
+
+      *,
+      ::before,
+      ::after {
+        box-sizing: inherit;
+      }
+
+      body {
+        font-family: Helvetica, Arial, sans-serif;
+      }
+
+      /* 基础按钮样式 */
+      .button {
+        padding: 0.5em 0.8em;
+        border: 1px solid #265559;
+        border-radius: 0.2em;
+        background-color: transparent;
+        font-size: 1rem;
+      }
+
+      /* 成功按钮 */
+      .button--success {
+        border-color: #cfe8c9;
+        color: #fff;
+        background-color: #2f5926;
+      }
+
+      /* 危险按钮 */
+      .button--danger {
+        border-color: #e8c9c9;
+        color: #fff;
+        background-color: #a92323;
+      }
+
+      /* 小号变体 */
+      .button--small {
+        font-size: 0.8rem;
+      }
+
+      /* 大号变体 */
+      .button--large {
+        font-size: 1.2rem;
+      }
+    </style>
+  </head>
+  <body>
+    <button class="button button--large">Read more</button>
+    <button class="button button--success">Save</button>
+    <button class="button button--danger button--small">Cancel</button>
+  </body>
+</html>
