@@ -16,7 +16,7 @@ body {
 /*
 Media
 
-Displays an image on the left and body content on the right.
+Displays images and/or body content beside one another.
 
 Markup:
 <div class="media">
@@ -30,27 +30,37 @@ Markup:
     </p>
   </div>
 </div>
+<div class="media">
+  <img class="media__image" src="https://dummyimage.com/150x150" />
+  <div class="media__body">
+    <h4>Strength</h4>
+    <p>
+      Strength training is an important part of
+      injury prevention. Focus on your core&mdash;
+      especially your abs and glutes.
+    </p>
+  </div>
+  <img class="media__image" src="https://dummyimage.com/150x150" />
+</div>
 
 Styleguide Media
 */
 .media {
+  display: flex;
+  align-items: flex-start;
   padding: 1.5em;
   background-color: #eee;
   border-radius: 0.5em;
 }
-.media::after {
-  content: '';
-  display: block;
-  clear: both;
+
+.media > * + * {
+  margin-left: 1.5em;
 }
-.media__image {
-  float: left;
-  margin-right: 1.5em;
-}
+
 .media__body {
-  overflow: auto;
   margin-top: 0;
 }
+
 .media__body > h4 {
   margin-top: 0;
 }
