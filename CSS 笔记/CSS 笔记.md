@@ -3220,7 +3220,7 @@ block__element--modifier
 
 该库是用 Ruby 语言编写的，仓库地址：https://github.com/kneath/kss
 
-社区也有 Node.js 编写的版本，可以配合打包工具使用，仓库地址：https://github.com/kss-node/kss-node
+社区也有 Node.js 编写的版本，仓库地址：https://github.com/kss-node/kss-node
 
 
 
@@ -3247,7 +3247,7 @@ CSS 中主要是通过类名和 HTML 元素连接 CSS 样式，所以这里的 A
 
 ### 使用语义化版本
 
-有时候不得不修改 API，这时可以使用三位数字的**语义版本（semver）**来为 CSS 设置版本号
+有时候不得不修改 API，这时可以使用三位数字的 **语义版本（semver）** 来为 CSS 设置版本号
 
 三个数字分别代表主版本号、次版本号和修订号
 
