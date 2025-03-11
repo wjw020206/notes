@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      .button {
+        padding: 1em;
+        border: 0;
+        color: white;
+        /* 纯色背景（没有渐变） */
+        background-color: #57b;
+        font-size: 1rem;
+        padding: 0.8em;
+        /* 淡淡的阴影 */
+        box-shadow: 0 0.2em 0.2em rgba(0, 0, 0, 0.15);
+      }
+
+      /* 鼠标悬停和激活状态下，颜色稍微加深 */
+      .button:hover {
+        background-color: #456ab6;
+      }
+
+      .button:active {
+        background-color: #148;
+      }
+    </style>
+  </head>
+  <body>
+    <button class="button">Sign up now</button>
+  </body>
+</html>

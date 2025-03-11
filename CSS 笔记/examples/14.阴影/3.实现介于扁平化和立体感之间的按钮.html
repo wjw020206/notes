@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      .button {
+        padding: 0.8em;
+        border: 0;
+        font-size: 1rem;
+        color: white;
+        border-radius: 0.5em;
+        background-color: #57b;
+        /* 设置按钮下方阴影 */
+        box-shadow: 0 0.4em #148;
+        /* 设置文本阴影 */
+        text-shadow: 1px 1px #148;
+      }
+
+      .button:active {
+        background-color: #456ab5;
+        /* 点击时按钮下移 */
+        transform: translateY(0.1em);
+        /* 点击时按钮阴影减小 */
+        box-shadow: 0 0.3em #148;
+      }
+    </style>
+  </head>
+  <body>
+    <button class="button">Sign up now</button>
+  </body>
+</html>
