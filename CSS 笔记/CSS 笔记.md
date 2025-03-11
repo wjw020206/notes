@@ -3456,3 +3456,37 @@ CSS 框架中不可能提供所有需要的模块，**建议只取其中需要�
 
 
 
+**指定颜色节点的位置**
+
+```css
+.fade {
+  height: 200px;
+  width: 400px;
+  background-image: radial-gradient(circle, red 0%, green 1em, blue 2em);
+}
+```
+
+![image-20250311170204956](images/image-20250311170204956.png)
+
+
+
+**重复渐变生成条纹效果**
+
+```css
+.fade {
+  height: 200px;
+  width: 400px;
+  background-image: repeating-radial-gradient(
+    circle,
+    blue 0,
+    blue 1em,
+    white 1em,
+    white 2em
+  );
+}
+```
+
+![image-20250311170359143](images/image-20250311170359143.png)
+
+除了第一个 `circle` 参数，其它参数含义与线性渐变中的重复渐变效果相同
+
