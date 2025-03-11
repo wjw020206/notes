@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      .fade {
+        height: 200px;
+        width: 400px;
+        /* 顺时针90度，红色过渡到白色，再过渡到蓝色 */
+        /* 三个颜色默认会均匀平铺位置，等价于使用 linear-gradient(90deg, red 0%, white 50%, blue 100%) */
+        background-image: linear-gradient(90deg, red, white, blue);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="fade"></div>
+  </body>
+</html>
