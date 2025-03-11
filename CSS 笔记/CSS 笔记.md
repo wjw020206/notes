@@ -3265,3 +3265,89 @@ CSS 框架中不可能提供所有需要的模块，**建议只取其中需要�
 
 **不要盲目使用框架，要学习思考框架背后的设计思路**
 
+
+
+## 背景
+
+`background` 属性是以下八个属性的简写
+
+- `background-image`：指定一个图片文件或者生成的颜色渐变作为背景图片
+
+- `background-position`：设置背景图片的初始位置
+
+- `background-size`：设置元素内背景图片的渲染尺寸
+
+- `background-repeat`：决定是否平铺图片，以此来填充整个图片的背景
+
+- `background-origin`：决定背景相对于元素的边框盒（`border-box`）、内边距盒（`padding-box`）（初始值）或内容盒（`content-box`）来定位
+
+- `background-clip`：指定背景是否应该填充边框盒（`border-box`）（初始值）、内边距盒（`padding-box`）或内容盒（`content-box`）
+
+- `background-attachment`：指定背景图片是随着元素上下滚动（初始值），还是固定在视口区域
+
+  **⚠️ 注意：** 使用 `fixed` 值会对页面性能产生负面影响
+
+- `background-color`：指定纯色背景，**渲染到背景图片下方**
+
+**⚠️ 注意：** 简写属性 `background` 可以设置指定的值，其它的值都会重置为初始值，所以**推荐如果用到多个属性时，使用单独属性而非简写属性**
+
+
+
+### 渐变
+
+```css
+.fade {
+  height: 200px;
+  width: 400px;
+  /* 向右渐变，从白色过渡到蓝色 */
+  background-image: linear-gradient(to right, white, blue);
+}
+```
+
+```html
+<div class="fade"></div>
+```
+
+![image-20250311145923367](images/image-20250311145923367.png)
+
+`linear-gradient` 函数使用以下三个参数来定义渐变
+
+- 角度
+  - 可以使用 `to right`、`to top` 等，也可以使用对角 `to bottom right`
+  - 也可以使用以下单位
+    - `deg`：度，`0deg` 代表垂直向上（等价于 `to top`），更大的值会沿着顺时针变化，**最常用**
+    - `rad`：弧度（radian），一个完整的圆是 `2π`，大概是 `6.2832` 弧度
+    - `turn`：代表环绕圆周的圈数，一圈相当于 `360deg`
+    - `grad`：百分度（gradian），一个完整的圆是 `400grad`
+- 起始颜色：可以使用 hex、RGB、`transparent` 关键字表示颜色
+- 终止颜色：可以使用 hex、RGB、`transparent` 关键字表示颜色
+
+
+
+**使用多个颜色节点**
+
+```css
+.fade {
+  height: 200px;
+  width: 400px;
+  background-image: linear-gradient(90deg, red, white, blue);
+}
+```
+
+```html
+<div class="fade"></div>
+```
+
+![image-20250311150856755](images/image-20250311150856755.png)
+
+上述代码中，每一个颜色就是一个颜色节点，**默认情况下渐变会自动均匀地平铺这些颜色节点**，等价于下述代码
+```css
+ background-image: linear-gradient(90deg, red 0%, white 50%, blue 100%);
+```
+
+上述代码中，节点的位置可以通过 `%`、`px`、`em` 或者其他长度单位进行调整
+
+
+
+**实现条纹效果**
+

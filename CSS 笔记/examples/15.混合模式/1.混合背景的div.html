@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      .blend {
+        min-height: 400px;
+        background-image: url('../images/bear.jpg'), url('../images/bear.jpg');
+        background-size: cover;
+        background-repeat: no-repeat;
+        /* 调整两张背景图片的位置 */
+        background-position: -30vw, 30vw;
+        /* 使用正片叠底混合模式 */
+        background-blend-mode: multiply;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="blend"></div>
+  </body>
+</html>

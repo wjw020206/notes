@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      .blend {
+        min-height: 400px;
+        background-image:
+          url('../images/scratches.png'), url('../images/bear.jpg');
+        /* 设置第一张纹理图片大小为200px宽，第二张熊图片填充整个元素 */
+        background-size: 200px, cover;
+        /* 设置纹理图片重复平铺，第二张熊图片不平铺 */
+        background-repeat: repeat, no-repeat;
+        background-position: center center;
+        /* 实现纹理叠加效果 */
+        background-blend-mode: soft-light;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="blend"></div>
+  </body>
+</html>
