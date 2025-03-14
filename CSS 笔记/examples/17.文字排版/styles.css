@@ -63,6 +63,8 @@ a:active {
 .nav-container__inner {
   display: flex;
   justify-content: space-between;
+  /* 把导航容器中的元素对齐到底部 */
+  align-items: flex-end;
   max-width: 1080px;
   margin: 0 auto;
   padding: 0.625em 0;
@@ -91,11 +93,21 @@ a:active {
 
 .top-nav a {
   display: block;
-  padding: 0.3em 1.25em;
+  /* 减小导航链接和按钮的字号 */
+  font-size: 0.8rem;
+  /* 把内边距值从em换成rem */
+  /* 此处是为了方便计算所以更换了单位 */
+  /* 之前是使用当前元素继承的默认字号16px来进行内边距em的计算 */
+  /* 现在因为当前元素设置了字号，所以需要使用rem来获取根元素的字号 */
+  padding: 0.3rem 1.25rem;
   color: var(--white);
   background: var(--brand-green);
   text-decoration: none;
   border-radius: 3px;
+  /* 调整字符显示为大写 */
+  text-transform: uppercase;
+  /* 增加字符间距 */
+  letter-spacing: 0.03em;
 }
 
 .top-nav a:hover {
@@ -140,7 +152,8 @@ a:active {
   border: 2px solid var(--brand-green);
   border-radius: 0.2em;
   text-decoration: none;
-  font-size: 1rem;
+  /* 减小导航链接和按钮的字号 */
+  font-size: 0.8rem;
 }
 
 .button:hover {
