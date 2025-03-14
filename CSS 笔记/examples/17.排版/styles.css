@@ -36,6 +36,8 @@ h3,
 h4 {
   /* 设置标题为Sansita字体 */
   font-family: Sansita, serif;
+  /* 设置全局标题的字符横向间距 */
+  letter-spacing: 0.03em;
 }
 
 a {
@@ -71,6 +73,8 @@ a:active {
   font-size: 1.6rem;
   /* 设置首页链接为Sansita字体 */
   font-family: Sansita, serif;
+  /* 设置首页链接的字符横向间距 */
+  letter-spacing: 0.03em;
   font-weight: bold;
   text-decoration: none;
 }
@@ -123,6 +127,8 @@ a:active {
 
 .hero h2 {
   font-size: 1.95rem;
+  /* 使用负值的letter-spacing来压缩字符间距 */
+  letter-spacing: -0.02em;
   margin-top: 0;
   margin-bottom: 0.625rem;
 }
