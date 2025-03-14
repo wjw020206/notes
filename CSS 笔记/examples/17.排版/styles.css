@@ -80,7 +80,6 @@ a:active {
 .top-nav {
   display: flex;
   list-style: none;
-  margin: 0;
 }
 
 /* 为每个导航项之间添加10px的外边距 */
