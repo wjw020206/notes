@@ -1,5 +1,4 @@
 :root {
-  /* 设置颜色变量 */
   --brand-green: hsl(162, 87%, 21%);
   --dark-green: hsl(162, 88%, 30%);
   --medium-green: hsl(162, 73%, 46%);
@@ -8,7 +7,6 @@
   --light-gray: hsl(210, 17%, 95%);
   --extra-light-gray: hsl(210, 17%, 98%);
   --white: hsl(0, 0%, 100%);
-  /* 自定义一个红色变量 */
   --red: hsl(342, 63%, 46%);
 
   box-sizing: border-box;
@@ -23,20 +21,23 @@
 
 body {
   margin: 0;
-  font-family: Helvetica, Arial, sans-serif;
+  /* 对页面全局应用Roboto字体 */
+  font-family: Roboto, sans-serif;
+  /* 设置全局纵向行高 */
   line-height: 1.4;
+  /* 设置全局横向字距 */
+  letter-spacing: 0.01em;
   background-color: var(--extra-light-gray);
 }
 
-/* 设置标题字体 */
 h1,
 h2,
 h3,
 h4 {
-  font-family: Georgia, serif;
+  /* 设置标题为Sansita字体 */
+  font-family: Sansita, serif;
 }
 
-/* 设置链接状态 */
 a {
   color: var(--medium-green);
 }
@@ -53,7 +54,6 @@ a:active {
   color: var(--red);
 }
 
-/* 头部样式 */
 .nav-container {
   background-color: var(--medium-green);
 }
@@ -61,34 +61,30 @@ a:active {
 .nav-container__inner {
   display: flex;
   justify-content: space-between;
-  /* 将内容居中，限制最大宽度为1080px */
   max-width: 1080px;
   margin: 0 auto;
-  /* 为整个导航条顶部和底部添加10px的内边距 */
   padding: 0.625em 0;
 }
 
 .home-link {
   color: var(--text-color);
   font-size: 1.6rem;
-  font-family: Georgia, serif;
+  /* 设置首页链接为Sansita字体 */
+  font-family: Sansita, serif;
   font-weight: bold;
   text-decoration: none;
 }
 
-/* 设置右侧导航栏样式 */
 .top-nav {
   display: flex;
   list-style: none;
   margin: 0;
 }
 
-/* 为每个导航项之间添加10px的外边距 */
 .top-nav > li + li {
   margin-left: 0.625em;
 }
 
-/* 为每个链接添加颜色和内边距 */
 .top-nav a {
   display: block;
   padding: 0.3em 1.25em;
@@ -112,33 +108,25 @@ a:active {
   background-color: var(--white);
 }
 
-/* 为主图添加样式 */
 .hero {
   background: url('../images/collaboration.jpg') no-repeat;
   background-size: cover;
-  /* 确保主图下方有40px的间距 */
   margin-bottom: 2.5rem;
 }
 
 .hero__inner {
   max-width: 1080px;
   margin: 0 auto;
-  /* 先计算出字号，再计算行高，然后行高减去字号的剩余上下空隙是6px */
-  /* 设计稿95px的高度减去6px得到89px，最后再用89px/16px得到5.5625em */
   padding: 5.5625em 12.5em 12.5em 0;
   text-align: right;
 }
 
 .hero h2 {
   font-size: 1.95rem;
-  /* 移除上方的外边距 */
   margin-top: 0;
-  /* 10px/16px=0.625rem */
-  /* 这里使用rem是因为标语使用的不是默认字号16px */
   margin-bottom: 0.625rem;
 }
 
-/* 设置按钮标准样式 */
 .button {
   display: inline-block;
   padding: 0.4em 1em;
@@ -154,7 +142,6 @@ a:active {
   color: var(--white);
 }
 
-/* 设置CTA（Call To Action）变体按钮样式 */
 .button--cta {
   padding: 0.6em 1em;
   background-color: var(--brand-green);
@@ -162,7 +149,6 @@ a:active {
   border: none;
 }
 
-/* 页面主体样式 */
 .container {
   margin: 0 auto;
   max-width: 1080px;
@@ -172,19 +158,15 @@ a:active {
   display: flex;
 }
 
-/* 使所有栏等宽 */
 .tile-row > * {
   flex: 1;
 }
 
 .tile-row > * + * {
-  /* 每个栏目之间添加25px的间距 */
   margin-left: 1.5625em;
 }
 
 p {
-  /* 30px-6.4px / 16 = 1.5em */
-  /* 6.4px是额外的行高 */
   margin-top: 1.5em;
   margin-bottom: 1.5em;
 }
@@ -192,16 +174,13 @@ p {
 .tile {
   background-color: var(--white);
   border-radius: 0.3em;
-  /* 在板块内部添加25px的内边距 */
   padding: 1.5625em;
 }
 
 .tile > h4 {
-  /* 在板块标题下添加外边距 */
   margin-bottom: 1.5em;
 }
 
-/* 页面底部样式 */
 .page-footer {
   margin-top: 3em;
   padding: 1em 0;
@@ -217,7 +196,6 @@ p {
 }
 
 .tag-list {
-  /* 覆盖用户代理默认的列表样式 */
   list-style: none;
   padding-left: 0;
 }
@@ -228,6 +206,5 @@ p {
   font-size: 0.8rem;
   border-radius: 0.2rem;
   background-color: var(--light-gray);
-  /* 设置很大的行高，折行的时候增加垂直间距 */
   line-height: 2.6;
 }
