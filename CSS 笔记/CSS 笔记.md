@@ -3860,3 +3860,204 @@ p {
 ![image-20250314130427392](images/image-20250314130427392.png)
 
 **⚠️ 注意：** 只有行内元素有这个行为，如果一个元素是弹性子元素（或者行内块级元素），为了容纳它其所在的行会随之增高
+
+
+
+## 文字排版
+
+在网页设计中，Web 字体很重要，在过去 Web 开发者只能选择有限的系统字体，这类字体叫做 **Web 安全字体（Web safe font）**，这类字体类型包括 Arial、Helvetica、Georgia 等，浏览器只能使用这些系统字体去渲染页面，如果碰巧用户系统中没有这个字体，就只能看到通用的回退方案
+
+
+
+### Web 字体
+
+随着 Web 字体的兴起，情况发生了改变，Web 字体使用 `@font-face` 规则告诉浏览器去哪里找到并下载字体，供页面使用，使得页面随着使用不同的字体有了不同的观感
+
+使用 Web 字体有以下两种普遍的方式
+
+- 下载 Web 字体文件在本地引入
+  - **优点：** 
+    - 适合内网环境
+    - 增强可靠性（不依赖第三方服务）
+    - 可以添加特定需求的字体
+  - **缺点：** 
+    - 需要自行处理技术上（托管服务）和法律上（授权许可）的一些问题
+    - 字体文件体积较大
+- 使用在 Web 字体在线服务
+  - **优点：** 
+    - 无需处理技术上（托管服务）和法律上（授权许可）的一些问题
+    - 会根据用户的设备和浏览器自动提供最优的字体格式
+    - 使用方便
+  - **缺点：** 
+    - 依赖第三方服务
+    - 无法在内网环境中使用
+    - 无法满足特定需求的字体
+
+常见的 Web 字体服务如下：
+
+- Google Fonts：https://fonts.google.com/
+- Adobe Fonts（Typekit）：https://fonts.adobe.com/
+
+- Webtype：https://typenetwork.com/
+
+**推荐优先使用 Google Fonts**，因为有很多高质量并且开源的字体（还免费）
+
+
+
+### 使用字体
+
+在引入了 Web 字体后，需要使用 `font-family` 属性来指定字体，例如下述代码设置全局默认字体
+
+```css
+body {
+  font-family: Roboto, sans-serif;
+}
+```
+
+`sans-serif` 并非是某一种字体，而是一个**通用字体系列名称**，表示无衬线字体，放在 `font-family` 的末尾，作为备用字体，如果前面的字体都无法加载或者不支持，则使用系统默认的无衬线字体
+
+通用字体系列名称总共有五种：
+
+1. **serif**：衬线字体，字母笔画末端带有小线条或者 “爪状” 装饰
+2. **sans-serif**：无衬线字体，字母笔画末端没有小线条或者 “爪状” 装饰
+3. **monospace**：等宽字体
+4. **cursive**：手写体
+5. **fantasy**：装饰性字体
+
+**⚠️ 注意：** 
+
+- **字型（typeface）：** 通常是指字体（比如 Roboto）的整个家族，一般由同一个设计师创造
+- **字体（font）：** 一个字型可能会存在多种变体和字重（比如细体、粗体、斜体、压缩等），这些变体每一种可以称为一种字体
+- 理想情况下可以下载所有的字体变体，但是这样会影响网页的加载速度，仅次于图片，**最好只挑选自己需要的字体**
+
+
+
+### 使用 @font-face
+
+```css
+@font-face {
+  font-family: 'Roboto'; /* 声明字体名称 */
+  font-style: normal; /* 设置字体样式 */
+  font-weight: 300; /* 设置字重 */
+  src: local('Roboto Light'), local('Roboto-Light'),
+  url(https://fonts.gstatic.com/s/roboto/v15/Hgo13k-tfSpn0qi1SFdUfZBw1xU1rKptJj_0jans920.woff2) format('woff2'); /* 设置字体文件位置 */
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215; /* 设置@font-face规则使用的Unicode编码范围 */
+}
+```
+
+使用 `font-family` 引用字体的名称，`local('Roboto Light')` 和 `local('Roboto-Light')` 表示如果系统中恰好有名为 Roboto Light 或 Roboto-Light 的字体，就使用这些字体，否则下载 url() 指定的 woff2 字体文件
+
+**⚠️ 注意：** 谷歌提供的字体文件包含了其它字符集的类似代码，这些字符集放在其它的字体文件中，如希腊语、越南语等，如果没有用到，浏览器不会下载它们
+
+
+
+### 字体回退处理
+
+常见的字体文件格式如下：
+
+1. **TrueType (TTF)**
+   - 由 Apple 和 Microsoft 开发，广泛用于 Windows 和 macOS，支持高质量屏幕显示和打印
+2. **OpenType (OTF)**
+   - 由 Microsoft 和 Adobe 开发，扩展了 TTF，支持更多字符和高级排版功能，兼容多种平台
+3. **PostScript Type 1 (PFB/PFA)**
+   - Adobe 开发，主要用于专业排版和打印，逐渐被 OTF 取代
+4. **Web Open Font Format (WOFF/WOFF2)**
+   - 专为网页设计，WOFF2 压缩率更高，支持现代浏览器，提升网页加载速度
+5. **Embedded OpenType (EOT)**
+   - Microsoft 开发，用于网页字体嵌入，逐渐被 WOFF 取代
+6. **Scalable Vector Graphics (SVG)**
+   - 主要用于图标字体，适合高分辨率显示，但逐渐被 WOFF2 取代
+7. **Bitmap Fonts (BDF, PCF, FON)**
+   - 包含像素点阵，适合低分辨率屏幕，通常用于嵌入式系统
+8. **DFONT**
+   - Apple开发，用于 macOS 系统，资源存储在数据分支中
+
+在网页中推荐使用 WOFF2 字体文件格式，但不是所有的浏览器都支持 WOFF2 字体文件格式，此时需要使用 WOFF 字体文件格式作为回退方案
+
+```css
+@font-face {
+  font-family: "Roboto"; 
+  font-style: normal;
+  font-weight: 300;
+  src: local("Roboto Light"), local("Roboto-Light"),
+    url(https://example.com/roboto.woff2) format('woff2'),
+    url(https://example.com/roboto.woff) format('woff');
+}
+```
+
+**⚠️ 注意：** 现在绝大部分浏览器都已经支持 WOFF，因为 WOFF2 加载更快，所以一般会提供这两种字体的 URL
+
+
+
+### 字型变体
+
+如果需要用到同一字型的多种字体，那么每一种字体都需要自己的 `@font-face` 规则
+
+```css
+/* 细体 Roboto */
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 300;
+  src: local('Roboto Light'), local('Roboto-Light'),
+  url(https://fonts.gstatic.com/s/roboto/v15/Hgo13k-tfSpn0qi1SFdUfZBw1xU1rKptJj_0jans920.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215;
+} 
+
+/* 粗体 Roboto */
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Roboto Bold'), local('Roboto-Bold'),
+  url(https://fonts.gstatic.com/s/roboto/v15/d-6IYplOFocCacKzxwXSOJBw1xU1rKptJj_0jans920.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215;
+}
+```
+
+如果在页面中需要 `font-weight: 300` 的 Roboto，就会下载第一种，如果需要 `font-weight: 700` 的 Roboto，就会下载第二种
+
+**⚠️ 注意：** 如果使用了其它的字重，浏览器就会选择两种字体中选择更接近的字体，不过这取决于浏览器，它可能会把某个已提供字体倾斜或者加粗来达到想要的效果，通过使用几何学的方法来实现字母形状的转换，显式效果不如原生，**不建议依靠这种方式**
+
+
+
+### 调整字距
+
+字距涉及以下两个属性
+
+- `line-height`：控制文本行之间的间距（垂直方向）
+- `letter-spacing`：控制字符之间的间距（水平方向）
+
+
+
+**line-height**
+
+该属性的初始值是 `normal`，大约等于 `1.2`，实际的 `normal` 值由字体文件中的元数据决定，不同字体的 `normal` 值可能略有不同，取决于字体的 `em` 的大小，但是在大部分情况下，`1.2` 这个值太小了，**对于正文主体来说，介于 `1.4` 和 `1.6` 之间的值比较理想**
+
+**⚠️ 注意：** 文字行越长，行高应该设置的越大，这样眼睛扫到下一行的时候才更容易，不会注意力分散，理想情况下，**每行文字的长度应该控制在 45～75 个字符，一般认为这样的长度最利于阅读**
+
+
+
+**letter-spacing**
+
+该属性需要是一个长度值，用来设置每个字符之间的距离，即使只设置 `1px`，也是很夸张的字间距了，所以该属性的值应该是一个很小的长度值，一般每次只增加 `1em` 的 1/100，例如：`letter-spacing: 0.01em`
+
+
+
+### text-transform
+
+**在需要将字体改成大写或者小写的时候，强烈建议使用 `text-transform` 属性**，而不是直接去将 HTML 里的文本改成大写，这样便于维护，如果需要遵循某种语法规则的大写，例如首字母缩略词，这时就需要修改 HTML 里的内容
+
+
+
+### 垂直规律
+
+针对整个页面的所有文本行应用这个原则的实践方式，通过设置**基线网格（baseline grid）**来实现，基线网格是指文本行之间重复等距离的标线，页面上大部分甚至全部的文本应该参考基线网格来对齐，例如下图中的使用了等距离的水平线标注了基线网格，具体实际可以参考 https://zellwk.com/blog/why-vertical-rhythms/
+
+![image-20250315111031225](images/image-20250315111031225.png)
+
+**⚠️ 注意：** 
+
+- 在网站中引入这种设计原则会增加很多工作量，但回报是更加精细的一致性
+- 创建垂直规律一般需要在 `line-height` 声明中使用单位，因为这样会改变行高值被继承的方式，**必须确保在页面上所有字号改变的地方都明确设置合适的行高**
+
