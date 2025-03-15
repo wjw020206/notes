@@ -4052,7 +4052,7 @@ body {
 
 ### 垂直规律
 
-针对整个页面的所有文本行应用这个原则的实践方式，通过设置**基线网格（baseline grid）**来实现，基线网格是指文本行之间重复等距离的标线，页面上大部分甚至全部的文本应该参考基线网格来对齐，例如下图中的使用了等距离的水平线标注了基线网格，具体实际可以参考 https://zellwk.com/blog/why-vertical-rhythms/
+针对整个页面的所有文本行应用这个原则的实践方式，通过设置**基线网格（baseline grid）**来实现，基线网格是指文本行之间重复等距离的标线，页面上大部分甚至全部的文本应该参考基线网格来对齐，例如下图中的使用了等距离的水平线标注了基线网格，具体实践可以参考 https://zellwk.com/blog/why-vertical-rhythms/
 
 ![image-20250315111031225](images/image-20250315111031225.png)
 
@@ -4060,4 +4060,116 @@ body {
 
 - 在网站中引入这种设计原则会增加很多工作量，但回报是更加精细的一致性
 - 创建垂直规律一般需要在 `line-height` 声明中使用单位，因为这样会改变行高值被继承的方式，**必须确保在页面上所有字号改变的地方都明确设置合适的行高**
+
+
+
+###  处理 FOUT 和 FOIT
+
+在处理字体前，需要考虑性能，确保页面使用的字体文件数量应该精简到最少，但即使这样仍然存在问题
+
+
+
+**FOUT**
+
+最开始，浏览器供应商为了尽快渲染页面，使用了可用的系统字体，然后等到 Web 字体加载完成了，页面会用 Web 字体重新渲染一遍，因为系统字体和 Web 字体在屏幕上占据的空间可能不一致，导致会出现文字跳动的现象，会使得用户的注意力分散，这就是 **FOUT（Flash Of Unstyled Text）**，即**无样式文本闪动**
+
+![image-20250315130701703](images/image-20250315130701703.png)
+
+
+
+**FOIT**
+
+因为开发者们不喜欢 FOUT，所以大部分的浏览器供应商修改了浏览器的默认行为，在 Web 字体加载完成前，**不再先使用系统字体，而是把文本渲染成不可见的**，文字依旧占据页面空间，Web 字体加载完成后再渲染一遍页面，当网速慢时，用户会看到页面正在加载，这就导致了另一个问题，如下图背景颜色和边框都显示出来了，但是文字在第二次渲染时才显示，这就是 **FOIT（Flash Of Invisible Text）**，即**不可见文本闪动**
+
+![image-20250315130801483](images/image-20250315130801483.png)
+
+当 Web 字体加载失败或者加载时间长，会导致页面一直空白，这些彩色的盒子只是空盒，对用户没有任何意义
+
+
+
+**解决方案**
+
+开发者针对这些问题每年都涌现出更好的方案，但是**这两个问题从来没有完全解决过，只能使它们产生的影响降低到最低**
+
+有以下两种方案：
+
+1. 使用 JavaScript 监控字体加载事件
+
+   这样可以更好的控制 FOUT 和 FOIT 的发生过程，**推荐使用 [Font Face Observer](https://github.com/bramstein/fontfaceobserver) 库**，该库可以让 Web 字体加载的时候做出相应的响应
+
+   ```html
+   <script>
+     const html = document.documentElement;
+     // 动态创建script标签将fontfaceobserver.js添加到页面上
+     const script = document.createElement('script');
+     script.src = './fontfaceobserver.js';
+     script.async = true;
+     script.onload = function () {
+       // 为Roboto和Sansita字体创建观察器
+       const roboto = new FontFaceObserver('Roboto');
+       const sansita = new FontFaceObserver('Sansita');
+       const timeout = 2000;
+       Promise.all([roboto.load(null, timeout), sansita.load(null, timeout)])
+         .then(function () {
+           // 两种字体都加载完成以后，为<html>元素添fonts-loaded类
+           html.classList.add('fonts-loaded');
+         })
+         .catch(function (e) {
+           // 如果字体加载失败或者超时，为<html>元素添fonts-failed类
+           html.classList.add('fonts-failed');
+         });
+     };
+     document.head.appendChild(script);
+   </script>
+   ```
+
+   将上述代码放在 `</body>` 闭合标签之前，如果字体加载完成，会为 `<html>` 元素添 `fonts-loaded` 类，反之如果加载失败或者超时，会为 `<html>` 元素添加 `fonts-failed` 类
+
+   **⚠️ 注意：** 因为 IE 浏览器不支持 Promise 的特性，需要使用包含 polyfill 的 Font Face Observer 独立版本
+
+   
+
+   **对于字体加载，可以采取以下两种策略**
+
+   1. 在 CSS 中使用回退字体（系统自带字体），然后在选择器 `.fonts-loaded` 把回退字体改成想要的 Web 字体，这样相当于把浏览器的 FOIT（不可见文本）的问题变成了 FOUT（无样式文本）的问题
+   2. 在 CSS 中使用 Web 字体，然后在选择器 `.fonts-failed` 中使用回退字体，当 Web 字体加载失败或者超时时，会显示回退字体，这种方法依然会产生**短暂的（不会超过设定的超时时间）** FOIT（不可见文本）的问题
+
+   以上两种策略没有标准答案
+
+   - 对于高网速来说，可以使用策略 2，一般来说，网速快时 FOIT 更容易接受一些
+   - 对于慢网速来说，可以使用策略 1
+
+   **⚠️ 注意：** 如果想把回退字体的字符间距设置成跟 Web 字体相同，使 FOUT 的时候不会那么明显，可以使用 https://meowni.ca/font-style-matcher/
+
+2. 使用 CSS 属性 `font-display`
+
+   无须 JavaScript 的帮助就可以更好地控制字体加载
+
+   ```css
+   @font-face {
+     font-family: "Roboto";
+     font-style: normal;
+     font-weight: 300;
+     src: local("Roboto Light"), local("Roboto-Light"),
+     url(https://example.com/roboto.woff2) format('woff2'),
+     url(https://example.com/roboto.woff) format('woff');
+     /* 加载字体时使用swap行为，即FOUT */
+     font-display: swap;
+   }
+   ```
+
+   上述代码等价于 FOUT 行为，该属性支持以下几个值
+
+   - `auto`：默认行为（在大多数浏览器中是 FOIT）
+   - `swap`：先显示回退字体，在 Web 字体准备好之后进行字体交换（FOUT）
+   - `fallback`：介于 `auto` 和 `swap` 之间，文本会保持较短时间（100ms）的隐藏状态，如果这时 Web 字体还没有准备好，就显示回退字体，接下来一旦 Web 字体加载完成，就会显示 Web 字体
+   - `optional`：类似于 `fallback`，但是允许浏览器基于网速判断是否显示 Web 字体，当网速慢的时候 Web 字体可能不会显示
+
+   相比使用 JavaScript 提供了更多的控制能力
+
+   - 对于高网速来说，`fallback` 表现的最好，会出现短暂的 FOIT，但如果 Web 字体加载超过了 100ms 就会产生 FOUT
+   - 对于低网速，`swap` 表现的更好，可以立刻渲染回退字体
+   - 如果 Web 字体对网页的整体设计来说必不可少，可以使用 `optional`
+
+
 
