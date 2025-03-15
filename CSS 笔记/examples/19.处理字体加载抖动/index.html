@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <!-- 引入Google字体样式及文件 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto&family=Sansita:wght@800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <nav class="nav-container">
+      <div class="nav-container__inner">
+        <a class="home-link" href="/">Ink</a>
+        <ul class="top-nav">
+          <li><a href="/features">Features</a></li>
+          <li><a href="/pricing">Pricing</a></li>
+          <li><a href="/support">Support</a></li>
+          <li class="top-nav__featured"><a href="/login">Login</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="hero">
+      <div class="hero__inner">
+        <h2>Team collaboration done right</h2>
+        <a href="/sign-up" class="button button--cta">Get started</a>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="tile-row">
+        <div class="tile">
+          <h4>Work together, even if you're apart</h4>
+          <p>
+            Organize your team conversations into threads. Collaborate together
+            on documents in real-time. Use face-to-face
+            <a href="/features/video-calling">video calls</a> when typing just
+            won't do.
+          </p>
+          <a href="/collaboration" class="button">Read more</a>
+        </div>
+        <div class="tile">
+          <h4>Take it with you</h4>
+          <p>
+            Ink is available on a wide array of devices, so you can work from
+            anywhere:
+          </p>
+          <ul class="tag-list">
+            <li>Web</li>
+            <li>iOS</li>
+            <li>Android</li>
+            <li>Windows Phone</li>
+          </ul>
+          <a href="/supported-devices" class="button">Read more</a>
+        </div>
+        <div class="tile">
+          <h4>Priced right</h4>
+          <p>
+            Whether you work on a team of three or a three hundred, you'll find
+            our tiered pricing reasonable at every level.
+          </p>
+          <a href="/pricing" class="button">Read more</a>
+        </div>
+      </div>
+    </div>
+
+    <footer class="page-footer">
+      <div class="page-footer__inner">Copyright &copy; 2017 Ink, Inc.</div>
+    </footer>
+
+    <script>
+      const html = document.documentElement;
+      // 动态创建script标签将fontfaceobserver.js添加到页面上
+      const script = document.createElement('script');
+      script.src = './fontfaceobserver.js';
+      script.async = true;
+      script.onload = function () {
+        // 为Roboto和Sansita字体创建观察器
+        const roboto = new FontFaceObserver('Roboto');
+        const sansita = new FontFaceObserver('Sansita');
+        const timeout = 2000;
+        Promise.all([roboto.load(null, timeout), sansita.load(null, timeout)])
+          .then(function () {
+            // 两种字体都加载完成以后，为<html>元素添fonts-loaded类
+            html.classList.add('fonts-loaded');
+          })
+          .catch(function (e) {
+            // 如果字体加载失败或者超时，为<html>元素添fonts-failed类
+            html.classList.add('fonts-failed');
+          });
+      };
+      document.head.appendChild(script);
+    </script>
+  </body>
+</html>
