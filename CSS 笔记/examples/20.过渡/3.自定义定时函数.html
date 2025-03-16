@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      .container {
+        position: relative;
+        height: 30px;
+      }
+
+      .box {
+        position: absolute;
+        left: 0;
+        height: 30px;
+        width: 30px;
+        background-color: hsl(130, 50%, 50%);
+        /* 使用自定义贝塞尔曲线函数 */
+        transition: all 1s cubic-bezier(0.45, 0.05, 0.55, 0.95);
+      }
+
+      .container:hover .box {
+        left: 400px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="box"></div>
+    </div>
+  </body>
+</html>

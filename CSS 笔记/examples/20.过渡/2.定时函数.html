@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      .container {
+        position: relative;
+        height: 30px;
+      }
+
+      .box {
+        position: absolute;
+        /* 初始状态定位在最左侧 */
+        left: 0;
+        height: 30px;
+        width: 30px;
+        background-color: hsl(130, 50%, 50%);
+        /* 匀速过渡 */
+        /* transition: all 1s linear; */
+        /* 加速过渡 */
+        /* transition: all 1s ease-in; */
+        /* 减速过渡 */
+        transition: all 1s ease-out;
+      }
+
+      /* 鼠标悬停容器时，向右移动400px */
+      .container:hover .box {
+        left: 400px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="box"></div>
+    </div>
+  </body>
+</html>
