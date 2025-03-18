@@ -4330,3 +4330,58 @@ transition-timing-function: linear, ease;
     | 3s 时动画结束 | 保持 300px |
 
 `steps` 函数实际开发用的比较少，更多用法可以参考 https://css-tricks.com/clever-uses-step-easing/
+
+
+
+### 非动画属性
+
+不是所有的属性都可以添加过渡动画效果的，例如 `display` 属性，无法在 `display: none` 和 `display: block` 两个值之间过渡，应用在 `display` 属性上的过渡属性会被忽略
+
+可以在 MDN 上查阅属性值是否可以添加动画效果，例如 `background-color` 属性
+
+![image-20250318134700633](images/image-20250318134700633.png)
+
+**⚠️ 注意：** 通常大部分接受长度值、数值、颜色值或者 `calc()` 函数值的属性可以添加动画效果，其它大部分的使用关键字或者其他非连续性值的属性（比如 `url()`）不可以使用动画效果
+
+
+
+### 过渡时间选择
+
+| **特效类型**                             | **过渡时间**  | **备注**                             |
+| :--------------------------------------- | :------------ | :----------------------------------- |
+| **鼠标悬停、淡入淡出、轻微缩放**         | `100ms~300ms` | 较快的过渡速度，避免用户等待时间过长 |
+| **较大移动或复杂定时函数（如弹跳特效）** | `300ms~500ms` | 较长的持续时间，确保动画效果自然流畅 |
+
+
+
+### 淡入与淡出
+
+```css
+/* 菜单初始状态（关闭） */
+.dropdown__drawer {
+  position: absolute;
+  background-color: white;
+  width: 10em;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s linear,
+    visibility 0s linear 0.2s;
+}
+
+/* 菜单打开状态 */
+.dropdown.is-open .dropdown__drawer {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
+}
+```
+
+上述代码的执行过程如下：
+
+- 当菜单打开时，使用 `.dropdown.is-open .dropdown__drawer` 选择器中的过渡样式，此时 `visibility 0s linear 0.2s` 中的 `0.2s` 延迟时间被覆盖为 `0s`，此时先立即触发可见性的切换并同时进行透明度的切换
+- 当菜单关闭时，使用 `.dropdown__drawer` 选择器中的过渡样式，因为此时 `visibility 0s linear 0.2s` 有 `0.2s` 的延迟时间，会先进行透明度的切换，等到透明度切换完成，立即触发可见性的切换
+
+**⚠️ 注意：** 
+
+- 也可以使用 `JavaScript` 的 transitionend 事件在过渡完成之后做一些额外处理，但如果一个过渡或者动画只用 CSS 就可以实现，一般会选择 CSS
+- 此处使用 `visibility` 是因为该属性支持动画，而 `display` 属性不支持
