@@ -4173,3 +4173,104 @@ body {
 
 
 
+## 过渡
+
+过渡通过一系列的 `transition-*` 属性实现，如果某个元素设置了过渡，当它的属性值发送变化时**，并不是直接变成新值，而是使用过渡效果**
+
+
+
+### 基本使用
+
+```css
+button {
+  background-color: hsl(180, 50%, 50%);
+  border: 0;
+  color: white;
+  font-size: 1rem;
+  padding: .3em 1em;
+  transition-property: all;
+  transition-duration: 0.5s;
+}
+
+button:hover {
+  background-color: hsl(0, 50%, 50%);
+  border-radius: 1em;
+}
+```
+
+**⚠️ 注意：** 上述代码中要把过渡设置在一个始终指向该元素的选择器中，这样才能使得悬停时和退出悬停状态时都有过渡，反之如果设置在 ` :hover` 规则集中只有悬停时有过渡，退出悬停状态时没有过渡
+
+
+
+### 简写语法
+
+可以使用简写属性来定义过渡
+
+![image-20250318080837596](images/image-20250318080837596.png)
+
+- **生效的属性：** 等价于使用 `transition-property` 指定哪些属性使用过渡
+
+  - `all` 关键字表示所有的属性变化都使用过渡
+  - `transition-property: color` 表示只对 `color` 属性变化使用过渡
+  - `transition-property: color, font-size` 表示同时给 `color` 和 `font-size` 属性变化使用过渡
+
+- **持续时间：** 等价于使用 `transition-duration` 指定过渡到最终值之前需要多长时间
+
+  - 支持 `s` 和 `ms` 单位的时间值，例如 `0.5s` 或者 `0.5ms`
+
+  **⚠️ 注意：** 不能使用 `0`，因为不是一个有效的时间值，要使用 `0s` 或者 `0ms`，否则声明将无效，被浏览器忽略
+
+- **定时函数：** 等价于使用 `transition-timing-function` 指定过渡过程中变化率是如何加速或减速
+
+  - 支持 `linear`、`ease-in` 和 `ease-out` 等关键字
+  - 也支持使用 `cubic-bezier` 函数，使用贝塞尔曲线自定义函数
+
+- **延迟时间：** 等价于使用 `transition-delay` 指定属性值变化过渡之前的等待时间
+
+  - 支持 `s` 和 `ms` 单位的时间值，例如 `0.5s` 或者 `0.5ms`
+
+  **⚠️ 注意：** 不能使用 `0`，因为不是一个有效的时间值，要使用 `0s` 或者 `0ms`，否则声明将无效，被浏览器忽略
+
+
+
+可以分别为不同的属性设置不同的过渡，用逗号分隔
+
+```css
+transition: border-radius 0.3s linear, background-color 0.6s ease;
+```
+
+等价于
+
+```css
+transition-property: border-radius, background-color;
+transition-duration: 0.3s, 0.6s;
+transition-timing-function: linear, ease;
+```
+
+
+
+### 定时函数
+
+定时函数是过渡中非常重要的一部分，用于描述属性值是如何变化到另一个值
+
+![image-20250318083520866](images/image-20250318083520866.png)
+
+- `linear` 表示恒定速度变化
+- `ease-in` 表示加速变化（开始慢，后来快）
+- `ease-out` 表示减速变化（开始快，后来慢）
+- `ease` 表示先加速后减速的平滑变化，**默认值**
+- `ease-in-out` 表示先慢，中间快，然后再慢的变化
+
+
+
+**贝塞尔曲线**
+
+浏览器使用贝塞尔曲线作为随时间变化的函数，来计算某个属性的值
+
+![image-20250318084928099](images/image-20250318084928099.png)
+
+可以通过 Chrome 浏览器的开发者工具中的样式面板或 https://cubic-bezier.com/ 网站来自定义贝塞尔曲线
+
+![image-20250318085459726](images/image-20250318085459726.png)
+
+每个曲线的末端都有一条短直线，称为**控制柄（handles）**，直线上有小圆点，称为**控制点（control points）**
