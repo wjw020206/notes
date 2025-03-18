@@ -4383,5 +4383,5 @@ transition-timing-function: linear, ease;
 
 **⚠️ 注意：** 
 
-- 也可以使用 `JavaScript` 的 transitionend 事件在过渡完成之后做一些额外处理，但如果一个过渡或者动画只用 CSS 就可以实现，一般会选择 CSS
+- 也可以使用 `JavaScript` 的 `transitionend` 事件在过渡完成之后做一些额外处理，但如果一个过渡或者动画只用 CSS 就可以实现，一般会选择 CSS
 - 此处使用 `visibility` 是因为该属性支持动画，而 `display` 属性不支持
