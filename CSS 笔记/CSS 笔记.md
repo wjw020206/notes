@@ -4356,6 +4356,8 @@ transition-timing-function: linear, ease;
 
 ### 淡入与淡出
 
+![image-20250318144609341](images/image-20250318144609341.gif)
+
 ```css
 /* 菜单初始状态（关闭） */
 .dropdown__drawer {
@@ -4385,3 +4387,59 @@ transition-timing-function: linear, ease;
 
 - 也可以使用 `JavaScript` 的 `transitionend` 事件在过渡完成之后做一些额外处理，但如果一个过渡或者动画只用 CSS 就可以实现，一般会选择 CSS
 - 此处使用 `visibility` 是因为该属性支持动画，而 `display` 属性不支持
+
+
+
+### 过渡到自动高度
+
+![image-20250318145112706](images/image-20250318145112706.gif)
+
+```css
+/* 菜单初始状态（关闭） */
+.dropdown__drawer {
+  position: absolute;
+  background-color: white;
+  width: 10em;
+  height: 0;
+  /* 在关闭或者过渡过程中截断抽屉的内容 */
+  overflow: hidden;
+  transition: height 0.3s ease-out;
+}
+```
+
+```js
+(function () {
+  const toggle = document.getElementsByClassName('dropdown__toggle')[0];
+  const dropdown = toggle.parentElement;
+  const drawer = document.getElementsByClassName('dropdown__drawer')[0];
+  // 获取计算得到的抽屉自动高度值
+  const height = drawer.scrollHeight;
+
+  toggle.addEventListener('click', function (e) {
+    e.preventDefault();
+    dropdown.classList.toggle('is-open');
+    if (dropdown.classList.contains('is-open')) {
+      // 打开抽屉时精确设置高度
+      drawer.style.setProperty('height', height + 'px');
+    } else {
+      // 关闭抽屉时将高度设置为0
+      drawer.style.setProperty('height', '0');
+    }
+  });
+})();
+```
+
+上述代码的执行过程如下：
+
+1. 在页面渲染完成后，通过 JavaScript 访问 `scrollHeight` 属性，这里虽然 `height` 属性值设为了 `0`，但是实际上高度被内部子元素撑开，此处使用了 `overflow: hidden` 隐藏了超出高度的子元素
+
+2. `scrollHeight` 用于读取元素内容高度，**包括溢出导致的视图中不可见内容**，保存在变量中
+
+3. 当菜单打开时，使用 JavaScript 设置高度值为元素 `scrollHeight` 属性的值
+4. 当菜单关闭时，使用 JavaScript 设置高度值为 `0`
+
+**⚠️ 注意：** 
+
+- 上述代码中不能在 CSS 中使用 `height: auto`，因为 `height: 0` 无法过渡到 `height: auto`，必须确定具体的高度值，所以只能使用 JavaScript 来获取
+- 如果元素使用 `display: none` 隐藏，则它的 `scrollHeight` 属性值为 `0`，此时可以用 JavaScript 在页面渲染的时候先把元素的 `display` 属性设置为 `block`，然后获取 `scrollHeight` 的值，最后再重置 `display` 属性的值为 `none`
+- 有时候过渡需要 CSS 和 JavaScript 相互配合，但通常应该使用 CSS 去做那些需要消耗性能的事情，浏览器对这部分做过优化，有更好的性能表现
