@@ -4566,5 +4566,132 @@ transform: translateX(100px) rotate(90deg);
 
 **⚠️ 注意：** 
 
-- 除非遇到性能问题，否则不要盲目使用该属性到页面，因为它会占用很多的系统资源，添加前后要测试一下，在性能表现好时再在样式表中保留 `will-change`
+- 除非遇到性能问题，否则不要盲目使用该属性，因为它会占用很多的系统资源，添加前后要测试一下，在性能表现好时再在样式表中保留 `will-change`
 - 在处理过渡或动画时，尽量只改变 `transform` 和 `opacity` 属性，有需要可以只修改导致重绘而不会重新布局的属性，**只有在没有其它替代方案时再去修改影响布局的属性**，想查看哪些属性会导致布局、绘制或者合成，可以访问 https://lab.skk.moe/css-triggers
+
+
+
+### 三维变换
+
+平移和旋转可以在三个维度上实现
+
+可以使用 `translate()` 函数实现水平（X 轴）和垂直（Y 轴）方向上的平移，也可以使用 `translateX()` 和 `translateY()` 函数实现相同的效果，使用 `translateZ()` 函数可以实现在 Z 轴上的平移，相当于移动元素远离或靠近用户
+
+
+
+与平移不同，`rotate()` 函数可以被称为 `rotateZ()`，它就是围绕着 Z 轴旋转的，函数 `rotateX()` 和 `rotateY()` 分别围绕着水平方向上的 X 轴和垂直方向上的 Y 轴旋转
+
+![image-20250321082038485](images/image-20250321082038485.png)
+
+
+
+**控制透视距离**
+
+添加 3D 变换之前，需要先确定**透视距离（perspective）**，变换的元素构成一个 3D 场景，浏览器会计算这个 3D 场景的 2D 图像，并渲染在屏幕上
+
+透视距离就像摄像机和场景之间的距离，镜头比较近（即透视距离小），那么 3D 效果就会比较强，如果镜头比较远（即透视距离大），那么 3D 效果就会比较弱
+
+![image-20250321082533749](images/image-20250321082533749.png)
+
+不设置透视距离的 3D 变换看上去像是平的，例如上图最左侧的元素
+
+指定透视距离有以下两种方式
+
+- 使用 `perspective()` 变换：可以为单个元素设置透视距离
+
+  ```css
+  .box {
+    /* 为每个元素指定相同的透视距离 */
+    transform: perspective(200px) rotateX(30deg);
+  }
+  ```
+
+  ```html
+  <div class="row">
+    <div class="box">One</div>
+    <div class="box">Two</div>
+    <div class="box">Three</div>
+    <div class="box">Four</div>
+  </div>
+  ```
+
+  ![image-20250321083014155](images/image-20250321083014155.png)
+
+- 使用 `perspective` 属性：为多个元素共享同一套透视距离，在多个元素的父容器（或其他祖先元素）设置统一的透视距离
+
+  ```css
+  .row {
+    /* 为容器添加透视距离 */
+    perspective: 200px;
+  }
+  
+  .box {
+   transform: rotateX(30deg);
+  }
+  ```
+
+  ```html
+  <div class="row">
+    <div class="box">One</div>
+    <div class="box">Two</div>
+    <div class="box">Three</div>
+    <div class="box">Four</div>
+  </div>
+  ```
+
+  ![image-20250321083357878](images/image-20250321083357878.png)
+
+
+
+### 高级三维变换
+
+以下属性在实际开发中用的较少
+
+
+
+**`perspective-origin` 属性**
+
+默认情况透视距离的渲染是假设观察者（或者镜头）位于元素中心的正前方
+
+`perspective-origin` 属性可以上下、左右移动镜头的位置
+
+可以使用 `top`、`left`、`bottom`、`right` 和 `center` 来指定位置，也可以使用百分比或者长度值
+
+```css
+.row {
+  perspective: 200px;
+  /* 将镜头位置移动到元素的左下方 */
+  perspective-origin: left bottom;
+}
+
+.box {
+ transform: rotateX(30deg);
+}
+```
+
+```html
+<div class="row">
+  <div class="box">One</div>
+  <div class="box">Two</div>
+  <div class="box">Three</div>
+  <div class="box">Four</div>
+</div>
+```
+
+![image-20250321084046245](images/image-20250321084046245.png)
+
+
+
+**`backface-visibility` 属性**
+
+当使用 `rotateX()` 或 `rotateY()` 函数旋转元素超过 90 度时，会看到元素的背面，看起来就像是之前元素的镜像图片，**默认情况下元素的背景是可见的**，可以为元素设置 `backface-visibility: hidden` 来使得元素的背景不可见，可以基于这个技术实现两个元素背靠背放在一起，就像卡片的两个面一样，具体实现和效果可以参考 https://3dtransforms.desandro.com/
+
+
+
+**`transform-style` 属性**
+
+如果要使用嵌套元素构建复杂的 3D 场景，`transform-style` 属性非常重要，目前对容器内的元素使用 3D 变换，元素容器渲染时最终会被绘制为 2D 场景，如果对容器元素进行 3D 旋转，会导致透视距离错误，场景立体感被破坏
+
+![image-20250321091139476](images/image-20250321091139476.png)
+
+为了纠正这个问题，需要对父元素使用 `transform-style: preserve-3d`
