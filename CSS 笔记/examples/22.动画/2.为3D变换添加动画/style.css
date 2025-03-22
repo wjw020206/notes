@@ -1,0 +1,242 @@
+:root {
+  box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+body {
+  background-color: hsl(200, 80%, 30%);
+  background-image: radial-gradient(hsl(200, 80%, 30%), hsl(210, 80%, 20%));
+  color: white;
+  font-family: Raleway, Helvetica, Arial, sans-serif;
+  line-height: 1.4;
+  margin: 0;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+h1,
+h2,
+h3 {
+  font-family: Alfa Slab One, serif;
+  font-weight: 400;
+}
+
+main {
+  display: block;
+}
+
+img {
+  max-width: 100%;
+}
+
+.page-header {
+  margin: 0;
+  padding: 1rem;
+}
+
+@media (min-width: 30em) {
+  .page-header {
+    padding: 2rem 2rem 3rem;
+  }
+}
+
+@media (min-width: 30em) {
+  .main-nav {
+    position: fixed;
+    top: 8.25rem;
+    left: 0;
+    z-index: 10;
+    background-color: transparent;
+    transition: background-color 0.5s linear;
+    border-top-right-radius: 0.5em;
+    border-bottom-right-radius: 0.5em;
+  }
+
+  .main-nav:hover {
+    background-color: rgba(0, 0, 0, 0.6);
+  }
+}
+
+.nav-links {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0;
+  margin-bottom: 1rem;
+  padding: 0 1rem;
+  list-style: none;
+}
+
+.nav-links > li + li {
+  margin-left: 0.8em;
+}
+
+.nav-links > li > a {
+  display: block;
+  padding: 0.8em 0;
+  color: white;
+  font-size: 0.8rem;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.nav-links__icon {
+  height: 1.5em;
+  width: 1.5em;
+  vertical-align: -0.2em;
+}
+
+.nav-links > li > a:hover {
+  color: hsl(40, 100%, 70%);
+}
+
+@media (min-width: 30em) {
+  .nav-links {
+    display: block;
+    padding: 1em;
+    margin-bottom: 0;
+  }
+
+  .nav-links > li + li {
+    margin-left: 0;
+  }
+
+  .nav-links__label {
+    display: inline-block;
+    margin-left: 1em;
+    padding-right: 1em;
+    opacity: 0;
+    transform: translate(-1em);
+    transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.3),
+      opacity 0.4s linear;
+  }
+
+  .nav-links:hover .nav-links__label,
+  .nav-links a:focus > .nav-links__label {
+    opacity: 1;
+    transform: translate(0);
+  }
+
+  .nav-links > li:nth-child(2) .nav-links__label {
+    transition-delay: 0.1s;
+  }
+
+  .nav-links > li:nth-child(3) .nav-links__label {
+    transition-delay: 0.2s;
+  }
+
+  .nav-links > li:nth-child(4) .nav-links__label {
+    transition-delay: 0.3s;
+  }
+
+  .nav-links > li:nth-child(5) .nav-links__label {
+    transition-delay: 0.4s;
+  }
+
+  .nav-links__icon {
+    transition: transform 0.2s ease-out;
+  }
+
+  .nav-links a:hover > .nav-links__icon,
+  .nav-links a:focus > .nav-links__icon {
+    transform: scale(1.3);
+  }
+}
+
+.flyin-grid {
+  /* 在移动视窗上在容器左右添加很小的外边距 */
+  margin: 0 1rem;
+  /* 在容器上设置共享的透视距离 */
+  perspective: 500px;
+}
+
+.flyin-grid__item {
+  /* 为每个元素添加动画 */
+  animation: fly-in 600ms ease-in;
+  /* 动画开始之前应用第一帧上的动画样式 */
+  animation-fill-mode: backwards;
+}
+
+/* 设置每个元素动画开始时间比之前的晚一点 */
+.flyin-grid__item:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.flyin-grid__item:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.flyin-grid__item:nth-child(4) {
+  animation-delay: 0.45s;
+}
+
+@keyframes fly-in {
+  0% {
+    /* 以旋转后的状态从远处开始 */
+    transform: translateZ(-800px) rotateY(90deg);
+    opacity: 0;
+  }
+  56% {
+    /* 逐渐靠近，依旧是旋转状态 */
+    transform: translateZ(-160px) rotateY(87deg);
+    opacity: 1;
+  }
+  100% {
+    /* 在正常位置结束 */
+    transform: translateZ(0) rotateY(0);
+  }
+}
+
+/* 仅在大中型屏幕中使用样式 */
+@media (min-width: 30em) {
+  .flyin-grid {
+    display: flex;
+    /* 建立允许折行的弹性容器 */
+    flex-wrap: wrap;
+    /* 增加两侧的外边距 */
+    margin: 0 5rem;
+  }
+
+  .flyin-grid__item {
+    /* 设置允许flex-grow，设置flex-basis为300px */
+    flex: 1 1 300px;
+    margin-left: 0.5em;
+    margin-right: 0.5em;
+    max-width: 600px;
+  }
+
+  /* 查询网格布局支持的情况 */
+  @supports (display: grid) {
+    .flyin-grid {
+      display: grid;
+      /* 定义列宽 */
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 2em;
+    }
+
+    .flyin-grid__item {
+      /* 移除回退布局中的最大宽度和外边距 */
+      max-width: initial;
+      margin: 0;
+    }
+  }
+}
+
+/* 卡片样式 */
+.card {
+  margin-bottom: 1em;
+  padding: 0.5em;
+  background-color: white;
+  color: hsl(210, 15%, 20%);
+  box-shadow: 0.2em 0.5em 1em rgba(0, 0, 0, 0.3);
+}
+
+/* 设置图片填满整个卡片的宽度 */
+.card > img {
+  width: 100%;
+}

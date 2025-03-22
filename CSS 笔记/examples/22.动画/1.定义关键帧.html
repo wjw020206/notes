@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      /* 为动画命名 */
+      @keyframes over-and-back {
+        /* 第一个关键帧声明 */
+        0% {
+          background-color: hsl(0, 50%, 50%);
+          transform: translate(0);
+        }
+
+        /* 第二个关键帧发生于动画进行到一半时 */
+        50% {
+          /* 此时背景颜色是红色和粉色的中间值 */
+          transform: translate(50px);
+        }
+
+        /* 最后一个关键帧 */
+        100% {
+          background-color: hsl(270, 50%, 90%);
+          transform: translate(0);
+        }
+      }
+
+      .box {
+        width: 100px;
+        height: 100px;
+        background-color: green;
+        /* 为元素应用动画 */
+        animation: over-and-back 1.5s linear 3;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="box"></div>
+  </body>
+</html>
