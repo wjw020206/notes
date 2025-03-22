@@ -4695,3 +4695,88 @@ transform: translateX(100px) rotate(90deg);
 ![image-20250321091139476](images/image-20250321091139476.png)
 
 为了纠正这个问题，需要对父元素使用 `transform-style: preserve-3d`
+
+
+
+## 动画
+
+过渡无法实现元素的变化过程是迂回的路径，也无法在元素运动完后再回到起始的地方
+
+CSS 提供关键帧动画可以对页面的变化有更加精确的控制
+
+**关键帧（keyframe）**指动画过程中某个特定的时刻
+
+![image-20250322085945803](images/image-20250322085945803.png)
+
+原理上，过渡和关键帧动画类似：
+
+- **过渡：** 定义第一帧（起始点）和最后一帧（结束点），浏览器计算所有中间值，使得元素在这些值之间平滑变换
+
+- **关键帧动画：** 不局限于只能定义两个点，可以根据需要添加任意多个，浏览器会计算一个个点与点之间的值，最后生成一系列无缝衔接的过渡
+
+
+
+### 定义动画
+
+CSS 中的动画包括以下部分：
+
+- 使用 `@keyframes` 定义动画
+- 为元素添加 `animation` 属性来使用动画
+
+
+
+**使用 `@keyframes` 定义动画**
+
+```css
+/* 为动画命名 */
+@keyframes over-and-back {
+  /* 第一个关键帧声明 */
+  0% {
+    background-color: hsl(0, 50%, 50%);
+    transform: translate(0);
+  }
+
+  /* 第二个关键帧发生于动画进行到一半时 */
+  50% {
+    /* 此时背景颜色是红色和粉色的中间值 */
+    transform: translate(50px);
+  }
+
+  /* 最后一个关键帧 */
+  100% {
+    background-color: hsl(270, 50%, 90%);
+    transform: translate(0);
+  }
+}
+```
+
+上述代码中，动画名称为 `over-and-back`，定义了三个关键帧，百分比表示关键帧发生于动画过程中的哪些时刻
+
+
+
+**为元素添加 `animation` 属性来使用动画**
+
+```css
+.box {
+  width: 100px;
+  height: 100px;
+  background-color: green;
+  /* 为元素应用动画 */
+  animation: over-and-back 1.5s linear 3;
+}
+```
+
+`animation` 属性是以下几个属性的简写
+
+- `animation-name` 表示要使用动画的名称，例如上述代码中的 `over-and-back`
+- `animation-duration` 表示动画的持续时间，例如上述代码中的 `1.5s`
+- `animation-timing-function` 表示动画的定时函数，与过渡的定时函数取值相同，例如上述代码中的 `linear`
+- `animation-iteration-count` 表示动画循环播放的次数，初始值为 `1`，使用 `infinite` 表示无限循环播放动画，上述代码中的值为 `3`
+
+
+
+**⚠️ 注意：**
+
+- 上述动画重复的时候，颜色立即变成了红色，如果希望动画重复整体衔接流畅，需要确保结束值和初始值相同
+- 作者样式优先级高于用户代理样式，**但动画中应用的声明有更高的优先级来源**，为某个属性添加动画的时候，会覆盖样式表中其他地方应用的样式，这样确保关键帧中所有的声明可以相互配合完成动画
+- 部分移动浏览器需要使用 `-webkit-` 前缀才能支持动画，动画属性（`-webkit-animation`）和关键帧@规则（`@-webkit-keyframes`）都要用到，推荐使用 Autoprefixer 来实现

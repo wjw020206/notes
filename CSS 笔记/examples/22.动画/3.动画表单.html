@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      body {
+        font-family: Helvetica, Arial, sans-serif;
+      }
+
+      form {
+        /* 限制表单最大宽度 */
+        max-width: 500px;
+      }
+
+      label,
+      textarea {
+        display: block;
+        margin-bottom: 1em;
+      }
+
+      button {
+        padding: 0.6em 1em;
+        border: 0;
+        background-color: hsl(220, 50%, 50%);
+        color: white;
+        font: inherit;
+        transition: background-color 0.3s linear;
+      }
+
+      /* 按钮加载状态 */
+      button.is-loading {
+        position: relative;
+        /* 文字隐藏 */
+        color: transparent;
+      }
+
+      /* 使用伪元素实现月牙加载图标 */
+      button.is-loading::after {
+        position: absolute;
+        content: '';
+        display: block;
+        width: 1.4em;
+        height: 1.4em;
+        top: 50%;
+        left: 50%;
+        margin-left: -0.7em;
+        margin-top: -0.7em;
+        border-top: 2px solid white;
+        border-radius: 50%;
+        animation: spin 0.5s linear infinite;
+      }
+
+      /* 旋转加载动画 */
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      button:hover {
+        background-color: hsl(220, 45%, 40%);
+      }
+
+      .shake {
+        animation: shake 0.7s linear;
+      }
+
+      /* 左右摇晃动画 */
+      @keyframes shake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+
+        10%,
+        30%,
+        50%,
+        70% {
+          transform: translateX(-0.4em);
+        }
+
+        20%,
+        40%,
+        60% {
+          transform: translateX(0.4em);
+        }
+
+        80% {
+          transform: translateX(0.3em);
+        }
+
+        90% {
+          transform: translateX(-0.3em);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <form>
+      <label for="trip">Tell us about your first trip to the zoo:</label>
+      <textarea id="trip" name="about-my-trip" rows="5"></textarea>
+      <button type="submit" id="submit-button">Save</button>
+    </form>
+
+    <script>
+      const input = document.getElementById('trip');
+      const button = document.getElementById('submit-button');
+
+      let timeout = null;
+
+      // 按钮点击事件
+      button.addEventListener('click', function (event) {
+        // 阻止表单提交
+        event.preventDefault();
+        // 设置按钮加载状态
+        button.classList.add('is-loading');
+        button.disabled = true;
+        input.disabled = true;
+      });
+
+      // 输入框输入事件
+      input.addEventListener('keyup', function () {
+        // 取消等待的超时函数
+        clearTimeout(timeout);
+        timeout = setTimeout(function () {
+          // 添加左右摇晃动画
+          button.classList.add('shake');
+        }, 1000);
+      });
+
+      // 按钮动画结束回调
+      button.addEventListener('animationend', function () {
+        // 移除左右摇晃动画
+        button.classList.remove('shake');
+      });
+    </script>
+  </body>
+</html>

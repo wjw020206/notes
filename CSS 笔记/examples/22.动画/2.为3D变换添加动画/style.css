@@ -16,7 +16,6 @@ body {
   line-height: 1.4;
   margin: 0;
   min-height: 100vh;
-  overflow: hidden;
 }
 
 h1,
@@ -200,6 +199,9 @@ img {
     flex-wrap: wrap;
     /* 增加两侧的外边距 */
     margin: 0 5rem;
+    padding: 2rem;
+    /* 隐藏动画时出现的滚动条 */
+    overflow: hidden;
   }
 
   .flyin-grid__item {
