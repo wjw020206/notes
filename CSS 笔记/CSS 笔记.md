@@ -4780,3 +4780,69 @@ CSS 中的动画包括以下部分：
 - 上述动画重复的时候，颜色立即变成了红色，如果希望动画重复整体衔接流畅，需要确保结束值和初始值相同
 - 作者样式优先级高于用户代理样式，**但动画中应用的声明有更高的优先级来源**，为某个属性添加动画的时候，会覆盖样式表中其他地方应用的样式，这样确保关键帧中所有的声明可以相互配合完成动画
 - 部分移动浏览器需要使用 `-webkit-` 前缀才能支持动画，动画属性（`-webkit-animation`）和关键帧@规则（`@-webkit-keyframes`）都要用到，推荐使用 Autoprefixer 来实现
+
+
+
+### 动画延迟和填充模式
+
+使用 `animation-delay` 属性可以推迟动画开始的时间，类似于过渡的 `transition-delay` 属性
+
+假设使用延迟动画实现元素交错飞入的效果，例如下述代码
+
+```css
+@keyframes fly-in {
+  0% {
+    /* 以旋转后的状态从远处开始 */
+    transform: translateZ(-800px) rotateY(90deg);
+    opacity: 0;
+  }
+  56% {
+    /* 逐渐靠近，依旧是旋转状态 */
+    transform: translateZ(-160px) rotateY(87deg);
+    opacity: 1;
+  }
+  100% {
+    /* 在正常位置结束 */
+    transform: translateZ(0) rotateY(0);
+  }
+}
+
+.flyin-grid {
+  margin: 0 1rem;
+  /* 在容器上设置共享的透视距离 */
+  perspective: 500px;
+}
+
+.flyin-grid__item {
+  /* 为每个元素添加动画 */
+  animation: fly-in 600ms ease-in;
+}
+
+/* 设置每个元素动画开始时间比之前的晚一点 */
+.flyin-grid__item:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.flyin-grid__item:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.flyin-grid__item:nth-child(4) {
+  animation-delay: 0.45s;
+}
+```
+
+上述代码存在一个问题：**动画还没开始的元素提前展示在了页面上**
+
+因为 `transform` 和 `opacity` 属性只应用在了动画执行期间，动画没开始的时候元素默认可见并在正常的位置，动画开始的时候才会瞬间变成 `0%` 关键帧上应用的属性值
+
+要解决这个问题要让元素一开始就使用动画第一帧上的属性，可以使用 `animation-fill-mode` 动画填充模式来实现
+
+![image-20250322101102501](images/image-20250322101102501.png)
+
+`animation-fill-mode` 属性有以下的值
+
+- `none`：**初始值**，表示动画执行前或执行后动画样式都不会应用到元素上
+- `backwards`：表示动画执行前，浏览器会取出动画第一帧的样式应用在元素上
+- `forwards`：表示动画播放完成后，仍然取出最后一帧的样式应用在元素上
+- `both`：表示会同时向前和向后应用样式到元素上
