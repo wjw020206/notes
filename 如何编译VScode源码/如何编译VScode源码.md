@@ -42,7 +42,7 @@
 
    ![image-20250408134443239](images/image-20250408134443239.png)
 
-8. 在命令行终端中输入 `npm config edit` 命令，会打开一个记事本，添加或修改与您的 Visual Studio 生成工具版本相同的 `msvs_version` 设置（例如，对于 Visual Studio 生成工具 2022， `msvs_version=2022`）
+8. 在命令行终端中输入 `npm config edit` 命令，会打开一个记事本，添加或修改与 Visual Studio 生成工具版本相同的 `msvs_version` 设置（例如，对于 Visual Studio 生成工具 2022， `msvs_version=2022`）
 
    ![image-20250408134911465](images/image-20250408134911465.png)
 
