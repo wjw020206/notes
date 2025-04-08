@@ -46,3 +46,21 @@
 
    ![image-20250408134911465](images/image-20250408134911465.png)
 
+
+
+## 克隆 VScode 源码
+
+```
+git clone https://github.com/microsoft/vscode.git
+```
+
+**⚠️ 注意：** 确保将 `vscode` 克隆到路径层次结构中没有任何空格的文件夹中
+
+
+
+## 构建编译 VScode
+
+1. 进入 `vscode` 项目目录
+2. 执行 `git checkout main` 命令切换到 `main` 分支
+3. 执行 `npm install -g node-gyp` 命令安装 `node-gyp`
+
