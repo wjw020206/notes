@@ -61,6 +61,28 @@ git clone https://github.com/microsoft/vscode.git
 ## 构建编译 VScode
 
 1. 进入 `vscode` 项目目录
+
 2. 执行 `git checkout main` 命令切换到 `main` 分支
-3. 执行 `npm install -g node-gyp` 命令安装 `node-gyp`
+
+3. 执行 `npm install -g node-gyp` 命令全局安装 `node-gyp`
+
+4. 设置终端网络代理，涉及访问 Github 上的文件以及 npm 依赖下载
+
+   - PowerShell
+
+     ```powershell
+     $env:http_proxy="http://127.0.0.1:7890";$env:https_proxy="http://127.0.0.1:7890"
+     ```
+
+   - CMD（Command）
+
+     ```cmd
+     set http_proxy=http://127.0.0.1:7890 && set https_proxy=http://127.0.0.1:7890
+     ```
+
+5. 执行 `npm install` 命令下载项目依赖
+
+6. 执行 `npm run watch` 进行文件编译，编译成功后结果如下
+
+   ![image-20250409113718787](images/image-20250409113718787.png)
 
