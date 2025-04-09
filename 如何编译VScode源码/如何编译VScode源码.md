@@ -12,10 +12,6 @@
 
 ## 安装 AC/C++ 编译器工具链
 
-
-
-### Windows 10/11（x64 或 ARM64）
-
 1. 安装 [Visual Studio 构建工具](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools)
 
 2. 勾选 `使用 C++ 的桌面开发`
@@ -82,15 +78,41 @@ git clone https://github.com/microsoft/vscode.git
 
 5. 执行 `npm install` 命令下载项目依赖
 
-7. 执行 `npm run gulp vscode-win32-x64` 构建 Windows 平台（64 位）下的主程序并生成运行目录，构建成功后结果如下
+6. 执行 `npm run gulp vscode-win32-x64-min` 构建 Windows 平台（64 位）下的主程序并生成运行目录，构建成功后结果如下
 
    ![image-20250409114022455](images/image-20250409114022455.png)
-   
+
    **⚠️ 注意：** 此时构建的出来的是一个文件夹（绿色免安装版），出现在 vscode 同级目录中
-   
+
    ![image-20250409143916825](images/image-20250409143916825.png)
-   
+
    双击 `Code - OSS.exe` 即可运行
-   
+
    ![image-20250409145155254](images/image-20250409145155254.png)
 
+7. 在第六步的基础上构建可安装文件
+
+   1. 下载 [Inno Setup](https://jrsoftware.org/isdl.php#stable) 并安装，用于构建安装程序
+
+      ![image-20250409162739234](images/image-20250409162739234.png)
+
+   2. 找到 `ISCC.exe`
+   
+      - `ISCC.exe` 默认位置在 `C:\Program Files (x86)\Inno Setup 6` 目录下
+   
+        ![image-20250409163206751](images/image-20250409163206751.png)
+   
+   
+   4. 将两个 `ISCC.exe` 复制到第六步生成的目录 `VSCode-win32-x64` 的 `tools` 文件夹中，**如果没有 `tools` 文件夹手动创建即可**
+   
+      ![image-20250409164932293](images/image-20250409164932293.png)
+   
+   5. 在终端中输入 `npm run gulp vscode-win32-x64-system-setup` 执行构建操作，出现下述情况则为构建成功
+   
+      ![image-20250409164237344](images/image-20250409164237344.png)
+   
+   6. 构建的安装程序在 `vscode\.build\win32-x64\system-setup` 目录下可以找到，双击即可安装
+
+      ![image-20250409164414285](images/image-20250409164414285.png)
+   
+      ![image-20250409164442667](images/image-20250409164442667.png)
