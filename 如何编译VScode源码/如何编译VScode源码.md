@@ -96,23 +96,22 @@ git clone https://github.com/microsoft/vscode.git
 
       ![image-20250409162739234](images/image-20250409162739234.png)
 
-   2. 找到 `ISCC.exe`
+   2. 找到 `ISCC.exe`，默认位置在 `C:\Program Files (x86)\Inno Setup 6` 目录下
    
-      - `ISCC.exe` 默认位置在 `C:\Program Files (x86)\Inno Setup 6` 目录下
+      ![image-20250409163206751](images/image-20250409163206751.png)
    
-        ![image-20250409163206751](images/image-20250409163206751.png)
+   3. 将两个 `ISCC.exe` 复制到第六步生成的目录 `VSCode-win32-x64` 的 `tools` 文件夹中，**如果没有 `tools` 文件夹手动创建即可**
+   
+   ![image-20250409164932293](images/image-20250409164932293.png)
    
    
-   4. 将两个 `ISCC.exe` 复制到第六步生成的目录 `VSCode-win32-x64` 的 `tools` 文件夹中，**如果没有 `tools` 文件夹手动创建即可**
-   
-      ![image-20250409164932293](images/image-20250409164932293.png)
-   
-   5. 在终端中输入 `npm run gulp vscode-win32-x64-system-setup` 执行构建操作，出现下述情况则为构建成功
+   4. 在终端中输入 `npm run gulp vscode-win32-x64-system-setup` 执行构建操作，出现下述情况则为构建成功
    
       ![image-20250409164237344](images/image-20250409164237344.png)
    
-   6. 构建的安装程序在 `vscode\.build\win32-x64\system-setup` 目录下可以找到，双击即可安装
-
-      ![image-20250409164414285](images/image-20250409164414285.png)
+   5. 构建的安装程序在 `vscode\.build\win32-x64\system-setup` 目录下可以找到，双击即可安装
    
+      ![image-20250409164414285](images/image-20250409164414285.png)
+
       ![image-20250409164442667](images/image-20250409164442667.png)
+   
