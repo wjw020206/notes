@@ -86,7 +86,7 @@ git clone https://github.com/microsoft/vscode.git
 
    ![image-20250409114022455](images/image-20250409114022455.png)
    
-   **⚠️ 注意：**此时构建的出来的是一个文件夹（绿色免安装版），出现在 vscode 同级目录中
+   **⚠️ 注意：** 此时构建的出来的是一个文件夹（绿色免安装版），出现在 vscode 同级目录中
    
    ![image-20250409143916825](images/image-20250409143916825.png)
    
