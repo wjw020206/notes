@@ -66,7 +66,7 @@ git clone https://github.com/microsoft/vscode.git
 
 3. 执行 `npm install -g node-gyp` 命令全局安装 `node-gyp`
 
-4. 设置终端网络代理，涉及访问 Github 上的文件以及 npm 依赖下载
+4. 设置终端网络代理，涉及下载 Github 上的扩展以及 npm 依赖下载，以下命令可以在对应终端**临时设置网络代理**
 
    - PowerShell
 
@@ -82,7 +82,15 @@ git clone https://github.com/microsoft/vscode.git
 
 5. 执行 `npm install` 命令下载项目依赖
 
-6. 执行 `npm run watch` 进行文件编译，编译成功后结果如下
+7. 执行 `npm run gulp vscode-win32-x64` 构建 Windows 平台（64 位）下的主程序并生成运行目录，构建成功后结果如下
 
-   ![image-20250409113718787](images/image-20250409113718787.png)
+   ![image-20250409114022455](images/image-20250409114022455.png)
+   
+   **⚠️ 注意：**此时构建的出来的是一个文件夹（绿色免安装版），出现在 vscode 同级目录中
+   
+   ![image-20250409143916825](images/image-20250409143916825.png)
+   
+   双击 `Code - OSS.exe` 即可运行
+   
+   ![image-20250409145155254](images/image-20250409145155254.png)
 
