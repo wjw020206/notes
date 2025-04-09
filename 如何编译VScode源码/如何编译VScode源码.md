@@ -79,7 +79,7 @@ git clone https://github.com/microsoft/vscode.git
      set http_proxy=http://127.0.0.1:7890 && set https_proxy=http://127.0.0.1:7890
      ```
 
-   **⚠️ 注意：** 这里代理的 IP 和端口要和 Windows 设置的代理中相同，`设置面板 -> 网络和 Internet -> 代理`
+   **⚠️ 注意：** 这里代理的 IP 和端口要和 Windows 的代理相同，`设置面板 -> 网络和 Internet -> 代理`
 
    ![image-20250409170731526](images/image-20250409170731526.png)
 
