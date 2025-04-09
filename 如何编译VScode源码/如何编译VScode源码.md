@@ -7,6 +7,7 @@
 - Git
 - Node.js（版本 `>=20.x`  **x64** 或 **ARM64**）
 - Python（需要安装 `node-gyp` 支持的版本，可以查看 [node-gyp readme](https://github.com/nodejs/node-gyp#installation)）
+- 网络代理（能正常访问 Github）
 
 
 
@@ -38,9 +39,11 @@
 
    ![image-20250408134443239](images/image-20250408134443239.png)
 
-8. 在命令行终端中输入 `npm config edit` 命令，会打开一个记事本，添加或修改与 Visual Studio 生成工具版本相同的 `msvs_version` 设置（例如，对于 Visual Studio 生成工具 2022， `msvs_version=2022`）
+8. 在命令行终端中输入 `npm config edit` 命令，会打开一个记事本，添加或修改与 Visual Studio 生成工具版本相同的 `msvs_version` 设置（例如，对于 Visual Studio 生成工具 2022， 添加 `msvs_version=2022`）
 
    ![image-20250408134911465](images/image-20250408134911465.png)
+
+**⚠️ 注意：**配置项之间以分号分隔，前面的分号不要忘记加
 
 
 
@@ -76,6 +79,10 @@ git clone https://github.com/microsoft/vscode.git
      set http_proxy=http://127.0.0.1:7890 && set https_proxy=http://127.0.0.1:7890
      ```
 
+   **⚠️ 注意：** 这里代理的 IP 和端口要和 Windows 设置的代理中相同，`设置面板 -> 网络和 Internet -> 代理`
+
+   ![image-20250409170731526](images/image-20250409170731526.png)
+
 5. 执行 `npm install` 命令下载项目依赖
 
 6. 执行 `npm run gulp vscode-win32-x64-min` 构建 Windows 平台（64 位）下的主程序并生成运行目录，构建成功后结果如下
@@ -97,21 +104,26 @@ git clone https://github.com/microsoft/vscode.git
       ![image-20250409162739234](images/image-20250409162739234.png)
 
    2. 找到 `ISCC.exe`，默认位置在 `C:\Program Files (x86)\Inno Setup 6` 目录下
-   
+
       ![image-20250409163206751](images/image-20250409163206751.png)
-   
+
    3. 将两个 `ISCC.exe` 复制到第六步生成的目录 `VSCode-win32-x64` 的 `tools` 文件夹中，**如果没有 `tools` 文件夹手动创建即可**
-   
+
    ![image-20250409164932293](images/image-20250409164932293.png)
-   
-   
+
+
    4. 在终端中输入 `npm run gulp vscode-win32-x64-system-setup` 执行构建操作，出现下述情况则为构建成功
-   
+
       ![image-20250409164237344](images/image-20250409164237344.png)
-   
+
    5. 构建的安装程序在 `vscode\.build\win32-x64\system-setup` 目录下可以找到，双击即可安装
-   
+
       ![image-20250409164414285](images/image-20250409164414285.png)
 
       ![image-20250409164442667](images/image-20250409164442667.png)
-   
+
+
+
+## 参考文章
+
+- [How to Contribute · microsoft/vscode Wiki](https://github.com/microsoft/vscode/wiki/How-to-Contribute)
