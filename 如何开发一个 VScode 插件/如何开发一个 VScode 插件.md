@@ -138,3 +138,9 @@ module.exports = {
   deactivate,
 };
 ```
+
+
+
+## 参考文章
+
+- [vscode插件开发（从创建到发布）vscode插件开发方法，包含项目创建、项目文件结构介绍、功能实现方式、项目发布方式 - 掘金](https://juejin.cn/post/7375041782780706842)
