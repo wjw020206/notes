@@ -13,5 +13,5 @@
 11. [常用杂项命令](https://github.com/wjw020206/notes/blob/main/%E5%B8%B8%E7%94%A8%E6%9D%82%E9%A1%B9%E5%91%BD%E4%BB%A4/%E5%B8%B8%E7%94%A8%E6%9D%82%E9%A1%B9%E5%91%BD%E4%BB%A4.md)
 12. [现代 JavaScript 教程笔记](https://github.com/wjw020206/notes/blob/main/%E7%8E%B0%E4%BB%A3%20JavaScript%20%E6%95%99%E7%A8%8B%E7%AC%94%E8%AE%B0/%E7%8E%B0%E4%BB%A3%20JavaScript%20%E6%95%99%E7%A8%8B%E7%AC%94%E8%AE%B0.md)
 13. [认知觉醒读书笔记](https://github.com/wjw020206/notes/blob/main/%E8%AE%A4%E7%9F%A5%E8%A7%89%E9%86%92%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E8%AE%A4%E7%9F%A5%E8%A7%89%E9%86%92%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0.md)
-14. [如何编译 VScode 源码](https://github.com/wjw020206/notes/blob/main/%E5%A6%82%E4%BD%95%E7%BC%96%E8%AF%91%20VScode%20%E6%BA%90%E7%A0%81/%E5%A6%82%E4%BD%95%E7%BC%96%E8%AF%91VScode%E6%BA%90%E7%A0%81.md)
+14. [如何编译 VScode 源码](https://github.com/wjw020206/notes/blob/main/%E5%A6%82%E4%BD%95%E7%BC%96%E8%AF%91%20VScode%20%E6%BA%90%E7%A0%81/%E5%A6%82%E4%BD%95%E7%BC%96%E8%AF%91%20VScode%20%E6%BA%90%E7%A0%81.md)
 15. [如何开发一个 VScode 插件](https://github.com/wjw020206/notes/blob/main/%E5%A6%82%E4%BD%95%E5%BC%80%E5%8F%91%E4%B8%80%E4%B8%AA%20VScode%20%E6%8F%92%E4%BB%B6/%E5%A6%82%E4%BD%95%E5%BC%80%E5%8F%91%E4%B8%80%E4%B8%AA%20VScode%20%E6%8F%92%E4%BB%B6.md)
