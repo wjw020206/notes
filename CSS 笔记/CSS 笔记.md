@@ -2653,9 +2653,7 @@ place-self: <align-self> <justify-self>;
 - `(min-resolution: 2dppx)` 表示匹配屏幕分辨率大于等于 2dppx（dppx 指每个 CSS 像素里包含的物理像素点数）的设备，比如视网膜屏幕
 - `(max-resolution: 2dppx)` 表示匹配屏幕分辨率小于等于 2dppx 的设备
 
-**⚠️ 注意：** 基于分辨率的媒体查询因为比较新，浏览器支持得不好，比如 IE9~11 和 Opera Mini 不支持 dppx 单位，因此需要使用 dpi（每
-
-英寸的像素点数）单位代替（比如用 192dpi 代替 2dpx），Safari 和 iOS 的 Safari 支持前缀版的媒体特征 `-webkit-min-device-pixel-ratio`，推荐将两种方式组合起来使用
+**⚠️ 注意：** 基于分辨率的媒体查询因为比较新，浏览器支持得不好，比如 IE9~11 和 Opera Mini 不支持 dppx 单位，因此需要使用 dpi（每英寸的像素点数）单位代替（比如用 192dpi 代替 2dppx），Safari 和 iOS 的 Safari 支持前缀版的媒体特征 `-webkit-min-device-pixel-ratio`，推荐将两种方式组合起来使用
 
 ```css
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
