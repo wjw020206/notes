@@ -783,5 +783,87 @@ typeof alert // 'function'
 
 
 
+## 交互：alert、prompt 和 confirm
+
+
+
+**alert**
+
+用来显示信息。
+
+```js
+alert("Hello World");
+```
+
+![image-20250601161621237](images/image-20250601161621237.png)
+
+**⚠️ 注意：** 弹出信息的小框称为**模态窗（modal）**，这意味着用户不能与页面的其他部分（例如点击其他按钮等）进行交互，直到处理完模态窗（例如这里点 “确定” 按钮）。
+
+
+
+**prompt**
+
+显示一个带有文本消息的模态窗口，还有 input 框和确定/取消按钮。
+
+`prompt` 函数接收两个参数：
+
+```js
+const result = prompt(title, [default]);
+```
+
+- **`title`：** 显示给用户的文本
+- **`default`：** 指定 input 输入框的初始值，**该参数是可选的**
+
+例如：
+
+```js
+const age = prompt('How old are you?', 100);
+```
+
+![image-20250601182956730](images/image-20250601182956730.png)
+
+访问者可以在提示输入框中输入内容，然后按 “确定” 键，然后我们在 `result` 中获取该文本。如果用户按取消键或者按 `Esc` 键取消输入，那我们在 `result` 中得到的是 `null`。
+
+**⚠️ 注意：** 在 IE 浏览器中第二个参数如果不提供的话，默认会是 `'undefined'`，为了 prompt 始终有好的效果，**建议始终提供第二个参数**，就像下面这样。
+
+```js
+const test = prompt('Test', ''); // <-- 用于 IE 浏览器
+```
+
+
+
+**confirm**
+
+显示一个带有 `question` 以及确定和取消两个按钮的模态窗口。
+
+```js
+const result = confirm(question);
+```
+
+例如：
+
+```js
+const isBoss = confirm("Are you the boss?");
+
+alert( isBoss ); // 如果 “确定” 按钮被按下，则显示 true
+```
+
+![image-20250601183649473](images/image-20250601183649473.png)
+
+点击确定返回 `true`，点击取消或者按 `Esc` 键返回 `false`。
+
+
+
+前面这些方法都是模态的：它们会**暂停脚本的执行**，并且不允许用户与该页面的其余部分进行交互，直到窗口被解除。
+
+上述所有方法共有两个限制：
+
+1. 模态窗口位置由浏览器决定，通常在页面中心，无法修改
+2. 模态窗口外观由浏览器决定，无法修改
+
+
+
+
+
 
 
