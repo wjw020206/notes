@@ -93,5 +93,37 @@ IDE 编辑器具有强大功能，是一个完整的 “开发环境”，通常
 
 - [Sublime Text](http://www.sublimetext.com/)（跨平台，共享软件）
 - [Vim](http://www.vim.org/)
-- [Emacs](https://www.gnu.org/software/emacs/) 
+- [Emacs](https://www.gnu.org/software/emacs/)
 
+代码编辑器没有最好的，取决于个人的习惯和喜好。
+
+
+
+## 开发者控制台
+
+控制台可以用来查看错误、执行命令、检查变量，**推荐使用 Chrome 或 Firefox 进行开发**，因为它们有最好的开发者工具。
+
+大多浏览器都是通过 `F12` 来打开开发者工具。
+
+**Chrome 直接打开控制台快捷键**
+
+- Mac：`Command + Option + J` 或者 `Command + Option + I`
+- Windows：`Ctrl + Shift + J` 或者 `Ctrl + Shift + I`
+
+**Firefox 直接打开控制台快捷键**
+
+- Mac：`Command + Option + K`
+- Windows：`Ctrl + Shift + K`
+
+**Safari 直接打开控制台快捷键**
+
+- Mac：`Command + Option + C`
+
+
+**⚠️ 注意：** Safari 需要**先提前在设置中开启“网页开发者功能”** ，“设置” -> “高级” -> “显示网页开发者功能”。
+
+![image-20250601091238441](images/image-20250601091238441.png)
+
+在控制台中 `>` 标志处表示命令行，可以输入 JavaScript 命令，按下 `Enter` 执行，如果需要输入多行代码则使用 `Shift + Enter` 来进行换行。
+
+![image-20250601092116006](images/image-20250601092116006.png)
