@@ -380,3 +380,152 @@ alert('Hello')[1, 2].forEach(alert);
   ```
   
 - **建议始终使用严格模式开发，在现代 JavaScript 支持的 `class` 和 `module` 中会自动启用 `'use strict'`**，所以如果使用它们就不需要手动添加 `'use strict'`
+
+
+
+## 变量
+
+变量是数据的 “命名存储”，在 JavaScript 中**使用 `let` 关键字创建一个变量**。
+
+```js
+let message;
+```
+
+这段代码表示**声明**或者**定义**了一个名为 `message` 的变量，可以**通过赋值运算符 `=` 为变量添加数据**。
+
+```js
+let message;
+message = 'Hello'; // 将字符串 'Hello' 保存在名为 message 的变量中
+```
+
+此时字符串 `Hello` 已经保存到与该变量相关联的内存区域，我们可以通过**变量名称**来访问它。
+
+```js
+let message;
+message = 'Hello';
+
+alert(message); // 显示变量内容
+```
+
+可以简化写法，将变量定义和赋值合并为一行。
+
+```js
+let message = 'Hello'; // 定义变量，并且赋值
+
+alert(message); // Hello
+```
+
+可以在一行声明多个变量。
+
+```js
+let user = 'CodePencil', age = 22, message = 'Hello';
+```
+
+**⚠️ 注意：** 这样可读性较差，**推荐一行只声明一个变量**，例如下面这样：
+
+```js
+let user = 'CodePencil';
+let age = 22;
+let message = 'Hello';
+```
+
+当然也可以写成下面这样：
+
+```js
+let user = 'CodePencil',
+  age = 22,
+  message = 'Hello';
+```
+
+**⚠️ 注意：** 过去定义变量使用的是 `var`，与 `let` 大体相同，但是存在微妙的差别，**更加推荐使用 `let`**。
+
+前面的变量 `message` 可以看做是标有 `message` 的盒子，盒子里的值为 `Hello`。
+
+![image-20250601123340455](images/image-20250601123340455.png)
+
+对变量重新赋值，就相当于先把变量盒子中原来的值删除，再放入新的值。
+
+```js
+let message;
+
+message = 'Hello';
+
+message = 'World'; // 值改变了
+
+alert(message); // World
+```
+
+![image-20250601123528350](images/image-20250601123528350.png)
+
+**⚠️ 注意：** 重复声明变量两次会触发错误，例如下面这段代码。
+
+```js
+let message = "This";
+
+// 重复声明 message 变量会触发错误
+let message = "That"; // Uncaught SyntaxError: Identifier 'message' has already been declared.
+```
+
+我们应该**对同一个变量只声明一次**，之后在不使用 `let` 的情况下对其引用。
+
+
+
+**变量命名**
+
+JavaScript 的变量命名有两个限制：
+
+1. **变量名称只能包含字母、数字、符号 `$` 和 `_`**
+2. **变量名称首字符不能是数字**
+
+```js
+let userName; // 有效命名
+let 123test; // 无效命名
+```
+
+如果命名包括多个单词，通常采样驼峰式命名法（camelCase），**JavaScript 中的变量名称区分大小写，也允许使用非英文字符，但不推荐**。
+
+
+
+**保留字**
+
+JavaScript 有一张[保留字段列表](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Lexical_grammar#保留字)，这里面的**保留字都无法用作变量名使用**，例如：`let`、`class` 等。
+
+
+
+**未采用 `use strict` 下的赋值**
+
+在早期，可以不使用 `let` 进行变量声明，直接通过赋值来创建一个变量。
+
+```js
+num = 5; // 如果变量 "num" 不存在，就会被创建
+
+alert(num); // 5
+```
+
+但是这样做是糟糕的做法，**在严格模式下会报错**。
+
+```js
+'use strict';
+
+num = 5; // Uncaught ReferenceError: num is not defined.
+```
+
+
+
+**常量**
+
+常量用于声明一个**常数（不变）变量**，使用 `const` 而非 `let`。
+
+```js
+const myBirthday = '06.02.2002';
+```
+
+**`const` 声明的变量的值无法进行修改**，如果尝试修改会触发错误。
+
+```js
+const myBirthday = '06.02.2002';
+myBirthday = '01.01.2002'; // Uncaught TypeError: Assignment to constant variable.
+```
+
+当确定一个变量的值不会发生改变的时候，就可以使用 `const` 来确保这个行为。
+
