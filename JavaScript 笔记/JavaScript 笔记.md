@@ -255,7 +255,7 @@ alert(3 +
 **存在 JavaScript 无法确定是否真的需要自动插入分号的情况**
 
 ```js
-alert("Hello");
+alert('Hello');
 
 [1, 2].forEach(alert);
 ```
@@ -265,7 +265,7 @@ alert("Hello");
 如果不加分号是这样的
 
 ```js
-alert("Hello")
+alert('Hello')
 
 [1, 2].forEach(alert)
 ```
@@ -277,7 +277,7 @@ alert("Hello")
 上述代码会被 JavaScript 理解为
 
 ```js
-alert("Hello")[1, 2].forEach(alert);
+alert('Hello')[1, 2].forEach(alert);
 ```
 
 **⚠️ 注意：** 虽然大多数的时候可以省略分号，**但最好不要省略分号**。
@@ -317,7 +317,66 @@ alert("Hello")[1, 2].forEach(alert);
   /*
     /* 嵌套注释 ?!? */
   */
-  alert( 'World' );
+  alert('World');
   ```
 
 - 注释虽然会增加代码量，但很多工具会在代码构建打包时缩减代码，移除注释，这样注释就不会产生任何影响。
+
+
+
+## 现代模式 'use strict'
+
+在过去 JavaScript 不断的向前发展，一直在增加新的特性，同时保持旧的功能没有改变，这样做有利于兼容旧的代码，**缺点就是 JavaScript 创造者的任何错误或不完善的决定也将永远被保留在 JavaScript 语言中**。
+
+直到 2009 年 ECMAScript 5 (ES5) 的出现，改变了这个情况，增加了新的语言特性的同时又修改了一些已经存在的特性。但为了确保旧的功能能够使用，所以大部分修改默认是不生效的，需要使用一个特殊的指令 `'use strict'` 来告诉浏览器启用这些特性。
+
+
+
+**'use strict'**
+
+该指令像一个字符串，双引号和单引号都可以使用。
+
+```js
+'use strict';
+// 代码以现代模式工作
+...
+```
+
+**⚠️ 注意：**
+
+- 必须确保 `'use strict'` 出现在脚本的最顶部，否则严格模式无法启用，**只有注释可以出现在 `'use strict'` 的上面**
+
+  ```js
+  alert('some code');
+  // 下面的 "use strict" 会被忽略，必须在最顶部。
+  
+  'use strict';
+  
+  // 严格模式没有被激活
+  ```
+
+- `'use strict'`  也可以放在函数体的顶部，这样可以只在该函数中启用严格模式，不过**通常会在整个脚本中启用严格模式**
+
+- **没有办法取消 `'use strict'`**，一旦进入了严格模式，就没有回头路了
+
+- **在浏览器的开发者控制台中，默认是不启用 `'use strict'` 严格模式**
+
+  如果需要启用严格模式，可以在控制台搭配 `Shift + Enter` 来换行输入多行代码，将 `'use strict'`放在代码的顶部。
+
+  ```js
+  'use strict'; <Shift+Enter 换行>
+  //  ...你的代码
+  <按下 Enter 以运行>
+  ```
+
+  对于旧版本的浏览器，可以将代码放入以下的包装器中。
+
+  ```js
+  (function() {
+    'use strict';
+    
+    // ...你的代码...
+  })()
+  ```
+  
+- **建议始终使用严格模式开发，在现代 JavaScript 支持的 `class` 和 `module` 中会自动启用 `'use strict'`**，所以如果使用它们就不需要手动添加 `'use strict'`
