@@ -863,7 +863,95 @@ alert( isBoss ); // 如果 “确定” 按钮被按下，则显示 true
 
 
 
+## 类型转换
 
 
 
+**字符串转换**
 
+将值转换为字符串形式。
+
+- `alert(value)` 会先将 `value` 转换为字符串类型，然后再显示这个值
+
+- `String(value)` 显式地讲 `value` 转换为字符串类型
+
+  ```js
+  let value = true;
+  alert(typeof value); // 'boolean'
+  
+  value = String(value); // 现在，值是一个字符串形式的 'true'
+  alert(typeof value); // string
+  ```
+
+  `false` 变成 `'false'`、`null` 变成 `'null'`、`0` 变成 `'0'` 等。
+
+
+
+**数字型转换**
+
+在**算术函数和表达式**中，会自动进行 `number` 类型转换。
+
+例如在除法 `/` 用于非 `number` 类型时：
+
+```js
+alert( '6' / '2' ); // 3
+```
+
+上述代码中 `string` 类型的值被自动转换成 `number` 类型后进行计算。
+
+也可以通过 `Number(value)` 显式地将 `value` 转化为 `number` 类型。
+
+```js
+const str = '123';
+alert(typeof str); // string
+
+const num = Number(str); // 变成 number 类型 123
+
+alert(typeof num); // number
+```
+
+**⚠️ 注意：** 如果该字符串不是有效的数字，则转换结果为 `NaN`，例如下面这样：
+
+```js
+const age = Number("an arbitrary string instead of a number");
+
+alert(age); // NaN，转换失败
+```
+
+具体转换规则如下：
+
+| 值                | 变成                                                         |
+| :---------------- | :----------------------------------------------------------- |
+| `undefined`       | `NaN`                                                        |
+| `null`            | `0`                                                          |
+| `true` 和 `false` | `1` 和 `0`                                                   |
+| `string`          | 去掉首尾空白字符（空格、换行符 `\n`、制表符 `\t` 等）后的纯数字字符串中含有的数字。如果剩余字符串为空，则转换结果为 `0`。否则，将会从剩余字符串中 “读取” 数字。当类型转换出现 error 时返回 `NaN`。 |
+
+具体例子：
+
+```js
+alert( Number("   123   ") ); // 123
+alert( Number("123z") );      // NaN（从字符串“读取”数字，读到 "z" 时出现错误）
+alert( Number(true) );        // 1
+alert( Number(false) );       // 0
+```
+
+**⚠️ 注意：**
+
+- `undefined` 变成 `NaN`，`null` 变成数字 `0`
+- 大多数数学运算符都会进行上述转换
+
+
+
+**布尔型转换**
+
+通常发生在**逻辑运算**中，也可以使用 `Boolean(value)` 显式地进行转换。
+
+具体转换规则如下：
+
+| 值                                    | 变成    |
+| :------------------------------------ | :------ |
+| `0`, `null`, `undefined`, `NaN`, `""` | `false` |
+| 其他值                                | `true`  |
+
+**⚠️ 注意：** 字符串 `'0'` 和非空的字符串 `' '` 进行布尔型转换时，输出结果都为 `true`。
