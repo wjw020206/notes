@@ -957,7 +957,7 @@ alert( Number(false) );       // 0
 
 
 
-## 基础运算符，数学运算
+## 算数运算符
 
 ```js
 5 * 2
@@ -1299,7 +1299,7 @@ for (a = 1, b = 3, c = a * b; a < 10; a++) {
 
 
 
-## 值的比较
+## 比较运算符
 
 在 JavaScript 中有以下几个比较大小的运算符：
 
@@ -1559,4 +1559,175 @@ if (company === 'Netscape') {
   alert('Wrong.');
 }
 ```
+
+
+
+## 逻辑运算符
+
+在 JavaScript 中有四个逻辑运算符：
+
+- 或 `||`
+- 与 `&&`
+- 非 `!`
+- 空值合并运算符 `??`
+
+**这些运算符可以应用于任意类型的值，它们的返回结果也可以是任意类型，而不仅仅是布尔值**。
+
+
+
+**或 `||`**
+
+参与运算的任意一个参数为 `true`，返回的结果就为 `true`。
+
+```js
+alert( true || true );   // true
+alert( false || true );  // true
+alert( true || false );  // true
+alert( false || false ); // false
+```
+
+如果操作数不是布尔类型，会被转换为布尔值来进行计算，例如下面这样：
+
+```js
+if (1 || 0) { // 等同于 if( true || false )
+  alert( 'truthy!' );
+}
+```
+
+
+
+**或运算寻找第一个真值**
+
+在 JavaScript 中对或 `||` 运算符有提供附加的特性。
+
+```js
+result = value1 || value2 || value3;
+```
+
+或运算符 `||` 做了如下的事情：
+
+- 从左到右依次计算操作数
+- 处理每一个操作数时，**都将其转化为布尔值**，如果结果是 `true`，就停止计算，返回这个**操作数的初始值**
+- 如果所有的操作数都被计算过（也就是，转换结果都是 `false`），则**返回最后一个操作数**
+
+例如：
+
+```js
+alert( 1 || 0 ); // 1
+
+alert( null || 1 ); // 1
+alert( null || 0 || 1 ); // 1
+
+alert( undefined || null || 0 ); // 0
+```
+
+
+
+**短路求值（Short-circuit evaluation）**
+
+指 `||` 运算符如果第一个参数为真值，会立即返回该值，**后面的参数不会进行转换和处理**。
+
+```js
+true || alert('not printed'); // alert 不会执行
+false || alert('printed');
+```
+
+可以利用这个特性，只在左侧的条件为假时才执行命令。
+
+
+
+**与 `&&`**
+
+参与运算的所有参数都为 `true`，返回的结果才为 `true`。
+
+```js
+alert( true && true );   // true
+alert( false && true );  // false
+alert( true && false );  // false
+alert( false && false ); // false
+```
+
+就像或运算一样，与运算的操作数可以是任意类型的值，会被转换为布尔值来进行计算。
+
+```js
+if (1 && 0) { // 等价于 true && false
+  alert( "won't work, because the result is falsy" );
+}
+```
+
+
+
+**与运算寻找第一个假值**
+
+```js
+result = value1 && value2 && value3;
+```
+
+与运算 `&&` 做了如下的事：
+
+- 从左到右依次计算操作数
+- 在处理每一个操作数时，都将其转化为布尔值，如果结果是 `false`，就停止计算，并返回这个**操作数的初始值**
+- 如果所有的操作数都被计算过（也就是，转换结果都是 `true`），则返回**最后一个操作数**
+
+```js
+alert( 1 && 0 ); // 0
+alert( 1 && 5 ); // 5
+
+alert( null && 5 ); // null
+alert( 0 && "no matter what" ); // 0
+```
+
+**⚠️ 注意：** 
+
+- **与运算 `&&` 或运算 `||` 之前进行**，例如：`a && b || c && d` 等同于 `(a && b) || (c && d)`
+
+- **不要用 `||` 或 `&&` 来取代`if`**，例如下面这样：
+
+  ```js
+  let x = 1;
+  
+  (x > 0) && alert( 'Greater than zero!' );
+  ```
+
+  这样缺乏可读性，换成 `if` 更加明显。
+
+  ```js
+  let x = 1;
+  
+  if (x > 0) alert( 'Greater than zero!' );
+  ```
+
+
+
+**非 `!`**
+
+```js
+result = !value;
+```
+
+逻辑非运算符接受一个参数，计算过程如下：
+
+1. 将操作数转化为布尔类型：`true/false`
+2. 返回相反的值
+
+```js
+alert( !true ); // false
+alert( !0 ); // true
+```
+
+可以通过 `!!` 将某个值转换为布尔类型：
+
+```js
+alert( !!'non-empty string' ); // true
+alert( !!null ); // false
+```
+
+等同于 `Boolean` 函数的效果。
+
+```js
+alert( Boolean("non-empty string") ); // true
+alert( Boolean(null) ); // false
+```
+
+**⚠️ 注意： 非运算符 `!` 的优先级在所有逻辑运算符里面最高**，所以它总是在 `&&` 和 `||` 之前执行。
 
