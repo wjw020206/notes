@@ -343,7 +343,7 @@ alert('Hello')[1, 2].forEach(alert);
 
 **⚠️ 注意：**
 
-- 必须确保 `'use strict'` 出现在脚本的最顶部，否则严格模式无法启用，**只有注释可以出现在 `'use strict'` 的上面**
+- **必须确保 `'use strict'` 出现在脚本的最顶部**，否则严格模式无法启用，**只有注释可以出现在 `'use strict'` 的上面**
 
   ```js
   alert('some code');
