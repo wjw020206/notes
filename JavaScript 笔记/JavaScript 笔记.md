@@ -1412,7 +1412,7 @@ alert( 0 === false ); // false
   alert( undefined == undefined); // true
   ```
 
-- 当使用数学式或其他比较方法 `< > <= >=` 时
+- 当使用数学式或其他比较方法 `<`、`>`、` <=`、`>=` 时
 
   - **`null` 被转化为 `0`**
 
@@ -1429,3 +1429,134 @@ alert( 0 === false ); // false
     alert( undefined < 0 ); // false
     alert( undefined == 0 ); // false, 非严格相等中，undefined 不会转换为 NaN
     ```
+
+
+
+## 条件分支：if 和 ?
+
+**if 语句**
+
+`if(...)` 语句计算括号里的条件表达式，如果计算结果是 `true`，就会执行对应的代码块。
+
+```js
+if (year == 2025) alert( 'You are right!' );
+```
+
+如果有多条语句，**必须**要将执行的代码放入 `{}` 中。
+
+```js
+if (year == 2025) {
+  alert( "That's correct!" );
+  alert( "You're so smart!" );
+}
+```
+
+**⚠️ 注意：建议每次使用 `if` 语句都用大括号 `{}` 来包装代码块，即使只有一条语句**，这样可以提高代码可读性。
+
+
+
+**布尔转换**
+
+`if(...)` 语句会计算括号内的表达式，并**将计算结果转换为布尔型**，遵守前面学的**布尔型转换**规则。
+
+```js
+if (0) { // 0 转换为 false
+  ...
+}
+
+if (1) { // 0 转换为 true
+  ...
+}
+```
+
+
+
+**else 语句**
+
+`if` 语句中可以包含一个**可选的 `else` 块**，如果判断条件不成立，就会执行它内部的代码。
+
+```js
+if (year == 2025) {
+  alert( 'You guessed it right!' );
+} else {
+  alert( 'How can you be so wrong?' ); // 2025 以外的任何值
+}
+```
+
+
+
+**多个条件 else if**
+
+当一个条件有多个变体时，可以通过使用 `else if` 子句实现。
+```js
+const year = prompt('In which year was ECMAScript-2015 specification published?', '');
+
+if (year < 2015) {
+  alert( 'Too early...' );
+} else if (year > 2015) {
+  alert( 'Too late' );
+} else {
+  alert( 'Exactly!' );
+}
+```
+
+上述代码先检查 `year < 2015`，如果条件不符合，就会转到下一个条件 `year > 2015`，如果这个也不符合就显示最后 `else` 块中的语句。
+
+**⚠️ 注意：** 可以有更多的的 `else if`，**结尾的 `else` 是可选的**。
+
+
+
+**条件运算符 ?**
+
+当需要根据一个条件去赋值一个变量时可以使用条件运算符。
+
+这个运算符通过问号 `?` 表示。有时它被称为**三元运算符**。
+
+```js
+const result = condition ? value1 : value2;
+```
+
+上述代码中，当 `condition` 为真时，返回 `value1`，否则返回 `value2`。
+
+**使用括号可以增强可读性**，例如下面这样：
+
+```js
+const accessAllowed = (age > 18) ? true : false;
+```
+
+**问号运算符的优先级较低**，会在比较运算符 `>` 之后执行。
+
+多个 `?` 可以嵌套使用，类似于 `else if` 语句，例如下面这样。
+
+```js
+const age = prompt('age?', 18);
+
+const message = (age < 3) ? 'Hi, baby!' :
+  (age < 18) ? 'Hello!' :
+  (age < 100) ? 'Greetings!' :
+  'What an unusual age!';
+
+alert( message );
+```
+
+**⚠️ 注意：** 不推荐下面这种情况下使用 `?` 替代 `if` 语句。
+
+```js  
+const company = prompt('Which company created JavaScript?', '');
+
+(company === 'Netscape') ?
+   alert('Right!') : alert('Wrong.');
+```
+
+**这里不是把结果赋值给变量，而是根据条件执行不同的代码**，使用 `if` 语句实现更加的直观。
+
+```js
+const company = prompt('Which company created JavaScript?', '');
+
+if (company === 'Netscape') {
+  alert('Right!');
+} else {
+  alert('Wrong.');
+}
+```
+
