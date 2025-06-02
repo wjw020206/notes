@@ -1301,3 +1301,131 @@ for (a = 1, b = 3, c = a * b; a < 10; a++) {
 
 ## 值的比较
 
+在 JavaScript 中有以下几个比较大小的运算符：
+
+- 大于 `a > b`
+- 小于 `a < b`
+- 大于等于 `a >= b`
+- 小于等于 `a <= b`
+- 相等 `a == b`
+- 不相等 `a != b`
+- 严格相等 `a === b`
+- 严格不相等 `a !== b`
+
+**所有比较运算符都返回布尔值**。
+
+```js
+alert( 2 > 1 );  // true
+alert( 2 == 1 ); // false
+alert( 2 != 1 ); // true
+```
+
+
+
+**字符串比较**
+
+在比较字符串之间的大小时，JavaScript 会**按照 Unicode 编码顺序进行比较**。
+
+简单来说，**字符串是按字符（母）逐个进行比较的**。
+
+```js
+alert( 'Z' > 'A' ); // true
+alert( 'Glow' > 'Glee' ); // true
+alert( 'Bee' > 'Be' ); // true
+```
+
+比较过程如下：
+
+1. 首先比较两个字符串的首位字符大小
+2. 如果一方字符较大（或较小），则该字符串大于（或小于）另一个字符串。比较结束
+3. 否则，如果两个字符串的首位字符相等，则继续取出两个字符串各自的后一位字符进行比较
+4. 重复上述步骤进行比较，直到比较完成某字符串的所有字符为止
+5. 如果两个字符串的字符同时用完，那么则判定它们相等，否则未结束（还有未比较的字符）的字符串更大
+
+
+
+**不同类型之间的比较**
+
+在对不同类型的值进行比较时，JavaScript 会**首先将其转化为数字（`number`）类型后再进行比较**。
+
+```js
+alert( '2' > 1 ); // true，字符串 '2' 会被转化为数字 2
+alert( '01' == 1 ); // true，字符串 '01' 会被转化为数字 1
+```
+
+对于布尔值来说，`true` 会被转化为 `1`、`false` 转化为 `0`。
+
+```js
+alert( true == 1 ); // true
+alert( false == 0 ); // true
+```
+
+
+
+**严格相等**
+
+普通的相等 `==` 无法区分出 `0` 和 `false`，也无法区分空字符串 `''` 和 `false`。
+
+```js
+alert( 0 == false ); // true
+alert( '' == false ); // true
+alert( 0 == '' ); // true
+```
+
+因为在比较不同类型的值时，**处于相等判断符号 `==` 两侧的值会先被转化为数字**，它们转换后的值都为 `0`。
+
+如果需要区分则需要使用**严格相等运算符 `===`**，它在**进行比较时不会做任何的类型转换**。
+
+如果 `a` 和 `b` 属于不同的数据类型，`a === b` 会立刻返回 `false`，例如下面这样：
+
+```js
+alert( 0 === false ); // false
+```
+
+**同样也有严格不相等运算符 `!==`**。
+
+
+
+**null 和 undefined 进行比较**
+
+- 使用严格相等 `===` 比较时
+
+  ```js
+  alert( null === undefined ); // false
+  ```
+
+- 使用非严格相等 `==` 比较时
+
+  ```js
+  alert( null == undefined ); // true
+  ```
+
+**⚠️ 注意：** 
+
+- 在非严格相等 `==` 中，**`null` 和 `undefined` 不会进行类型转换，并且两者相等**
+
+  ```css
+  alert( null == 0 ); // false
+  alert( null == undefined); // true
+  
+  alert( null == null); // true
+  alert( undefined == undefined); // true
+  ```
+
+- 当使用数学式或其他比较方法 `< > <= >=` 时
+
+  - **`null` 被转化为 `0`**
+
+    ```js
+    alert( null > 0 );  // false
+    alert( null == 0 ); // false, 非严格相等中，null 不会转换为 0
+    alert( null >= 0 ); // true
+    ```
+
+  - **`undefined` 转换为 `NaN`**
+
+    ```js
+    alert( undefined > 0 ); // false
+    alert( undefined < 0 ); // false
+    alert( undefined == 0 ); // false, 非严格相等中，undefined 不会转换为 NaN
+    ```
