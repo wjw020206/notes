@@ -8,14 +8,14 @@
   <body>
     <script>
       'use strict';
-      let admin;
-      let name;
-
-      name = 'John';
-
-      admin = name;
-
-      alert(admin);
+      let message =
+        login == 'Employee'
+          ? 'Hello'
+          : login == 'Director'
+          ? 'Greetings'
+          : login == ''
+          ? 'No login'
+          : '';
     </script>
   </body>
 </html>
