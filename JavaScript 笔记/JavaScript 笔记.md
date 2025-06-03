@@ -2060,3 +2060,105 @@ label: {
 不过 99.9% 的情况下 `break` 都被用在循环体内。
 
 **⚠️ 注意： `continue` 只能放在循环体内部**，不能像 `break` 可以放在代码块中。
+
+
+
+## swtich 语句
+
+`switch` 语句可以替代多个 `if` 判断，为多分支选择的情况提供了一个更具描述性的方式。
+
+```js
+switch(x) {
+  case 'value1':  // if (x === 'value1')
+    ...
+    [break]
+
+  case 'value2':  // if (x === 'value2')
+    ...
+    [break]
+
+  default:
+    ...
+    [break]
+}
+```
+
+上述代码中，`swtich` 语句首先判断 `x` 值与第一个 `case` 后的值（也是就是 `value1`）是否**严格相等**，然后再比较第二个 `case`（`value2`），以此类推。
+
+- 如果相等，`switch` 语句就执行相应 `case` 下的代码块，**直到遇到最靠近的 `break` 语句（或者直到 `switch` 语句末尾）**
+- 如果没有符合的 `case`，则执行 `default` 代码块
+
+**⚠️ 注意：**
+
+- **`switch` 语句中的比较都是严格相等 `===` 的**
+
+- **`switch` 语句中至少有一个 `case` 代码块**和一个可选的 `default` 代码块
+
+- 如果没有 `break`，程序将不经过任何检查就继续执行下一个 `case`
+
+  ```js
+  let a = 2 + 2;
+  
+  switch (a) {
+    case 3:
+      alert( 'Too small' );
+    case 4:
+      alert( 'Exactly!' );
+    case 5:
+      alert( 'Too big' );
+    default:
+      alert( "I don't know such values" );
+  }
+  ```
+
+  上述代码会连续执行的三个 `alert`，分别是：
+
+  ```js
+  alert( 'Exactly!' );
+  alert( 'Too big' );
+  alert( "I don't know such values" );
+  ```
+
+- `switch` 和 `case` 允许使用任意表达式，例如下面这样：
+
+  ```js
+  let a = "1";
+  let b = 0;
+  
+  switch (+a) {
+    case b + 1:
+      alert("this runs, because +a is 1, exactly equals b+1");
+      break;
+    default:
+      alert("this doesn't run");
+  }
+  ```
+
+  会执行 `alert("this runs, because +a is 1, exactly equals b+1");`。
+
+
+
+**case 分组**
+
+可以将共享同一段代码的几个 `case` 分为一组。
+
+```js
+let a = 3;
+
+switch (a) {
+  case 4:
+    alert('Right!');
+    break;
+  case 3: // 下面这两个 case 被分在一组
+  case 5:
+    alert('Wrong!');
+    alert("Why don't you take a math class?");
+    break;
+  default:
+    alert('The result is strange. Really.');
+}
+```
+
+上述代码中当 `a` 是 `3` 或者 `5` 时，都会显示相同的信息。
+
+**⚠️ 注意：** `case` 分组的能力其实是 `switch` 语句没有 `break` 时的副作用，没有 `break` 时会从 `case3` 执行到 `case5`。
