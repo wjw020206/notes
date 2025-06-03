@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      // 使用三元运算符重写函数
+      function checkAge(age) {
+        return age > 18
+          ? true
+          : confirm('Do you have your parents permission to access this page?');
+      }
+
+      // 使用或运算符 || 重写函数
+      function checkAge(age) {
+        return (
+          age > 18 ||
+          confirm('Do you have your parents permission to access this page?')
+        );
+      }
+    </script>
+  </body>
+</html>
