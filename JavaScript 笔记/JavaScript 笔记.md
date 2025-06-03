@@ -2162,3 +2162,113 @@ switch (a) {
 上述代码中当 `a` 是 `3` 或者 `5` 时，都会显示相同的信息。
 
 **⚠️ 注意：** `case` 分组的能力其实是 `switch` 语句没有 `break` 时的副作用，没有 `break` 时会从 `case3` 执行到 `case5`。
+
+
+
+## 函数
+
+函数是程序的主要构建块，可以使一段代码被调用多次，不需要写重复的代码。
+
+
+
+**函数声明**
+
+```js
+function name(parameter1, parameter2, ... parameterN) {
+  // 函数体 body
+}
+```
+
+`function` 关键字首先出现，然后再是**函数名**，括号中的是**参数列表**（使用逗号分隔，参数列表可以为空），最后花括号之间的代码是**函数体**，例如：
+
+```js
+function sum(a, b) {
+  return a + b;
+}
+```
+
+通过 `sum()` 可以调用函数。
+
+```js
+function sum(a, b) {
+  return a + b;
+}
+
+sum(1, 3); // 4
+sum(2, 5); // 7
+```
+
+
+
+**局部变量**
+
+函数中声明的变量**只在该函数内部可见**。
+
+```js
+function showMessage() {
+  let message = "Hello, I'm JavaScript!"; // 局部变量
+  alert(message);
+}
+
+showMessage(); // Hello, I'm JavaScript!
+
+alert(message); // ReferenceError: message is not defined
+```
+
+
+
+**外部变量**
+
+函数可以访问外部的变量。
+
+```js
+let userName = 'CodePencil';
+
+function showMessage() {
+  let message = 'Hello, ' + userName;
+  alert(message);
+}
+
+showMessage(); // Hello, CodePencil
+```
+
+函数也可以修改外部变量。
+
+```js
+let userName = 'CodePencil';
+
+function showMessage() {
+  userName = 'Bob'; // 修改外部变量
+  let message = 'Hello, ' + userName;
+  alert(message);
+}
+
+alert(userName); // CodePencil
+
+showMessage(); // Hello, Bob
+
+alert(userName); // Bob
+```
+
+**⚠️ 注意：** 当函数内声明了**同名的变量**（局部变量），就不会使用函数外的变量。
+
+```js
+let userName = 'Bob';
+
+function showMessage() {
+  let userName = 'CodePencil'; // 声明一个局部变量
+
+  let message = 'Hello, ' + userName; // CodePencil
+  alert(message);
+}
+
+showMessage(); // Hello, CodePencil
+
+alert( userName ); // Bob，未被更改，函数没有访问外部变量
+```
+
+**⚠️ 注意：** 
+
+- **任何函数之外声明的变量被称为全局变量**，例如上述代码中函数外的 `userName` 变量，全局变量在任意函数中都是可见的（除非被局部变量遮蔽）
+- 现代开发很少甚至没有全局变量，大多数变量都存在于函数之中，不过有时候，全局变量能够用于存储项目级别的数据
+
