@@ -2272,3 +2272,215 @@ alert( userName ); // Bob，未被更改，函数没有访问外部变量
 - **任何函数之外声明的变量被称为全局变量**，例如上述代码中函数外的 `userName` 变量，全局变量在任意函数中都是可见的（除非被局部变量遮蔽）
 - 现代开发很少甚至没有全局变量，大多数变量都存在于函数之中，不过有时候，全局变量能够用于存储项目级别的数据
 
+
+
+**参数**
+
+- 参数（parameter）是函数**声明**中括号内列出的变量（它是函数声明时的术语）
+
+  ```js
+  function sum(a, b) { // a，b 都是 parameter
+    return a + b;
+  }
+  ```
+
+- 参数（argument）是**调用**函数时传递给函数的值（它是函数调用时的术语）
+
+  ```js
+  sum(1, 3); // 1, 3 都是 argument
+  ```
+
+修改函数内部的参数，在函数外部看不到更改。
+
+```js
+function showMessage(from, text) {
+  from = '*' + from + '*'; // 修改的是复制的变量值副本
+  alert(from + ': ' + text);
+}
+
+let from = 'CodePencil';
+showMessage(from, 'Hello'); // *CodePencil*: Hello
+
+// from 值相同，函数修改了一个局部的副本
+alert(from); // CodePencil
+```
+
+
+
+**默认值**
+
+如果函数调用，**有参数（parameter）但没有提供，相应的值就会变成 `undefined`**。
+
+```js
+function showMessage(from, text) {
+  from = '*' + from + '*';
+  alert(from + ': ' + text);
+}
+
+let from = 'CodePencil';
+showMessage(from); // *CodePencil*: undefined
+```
+
+可以通过 `=` 为函数参数（parameter）指定默认值。
+
+```js
+function showMessage(from, text = 'no text given') { // 为 text 参数指定默认值
+  from = '*' + from + '*';
+  alert(from + ': ' + text);
+}
+
+let from = 'CodePencil';
+showMessage(from); // *CodePencil*: no text given
+```
+
+上述代码中当 `text` 参数没传递时，将会使用默认值 `no text given`。
+
+默认值也可以是一个复杂的表达式。
+
+```js
+function showMessage(from, text = anotherFunction()) {
+  ...
+}
+```
+
+当 `text` 参数没传递时，`anotherFunction` 函数会被调用，反之不会调用。
+
+**⚠️ 注意：** 对于不支持默认参数的浏览器中，可以使用以下方式来兼容。
+
+```js
+function showMessage(from, text) {
+  if (text === undefined) { // 显式检查是否为 undefined
+    text = 'no text given';
+  }
+
+  alert( from + ": " + text );
+}
+```
+
+也可以使用 `||` 运算符。
+
+```js
+function showMessage(from, text) {
+  text = text || 'no text given';
+  ...
+}
+```
+
+如果 `text` 的值为假值，则分配默认值。
+
+
+
+**返回值**
+
+函数可以将一个值返回作为调用函数的结果。
+
+```js
+function sum(a, b) {
+  return a + b;
+}
+
+let result = sum(1, 2);
+alert( result ); // 3
+```
+
+**`return` 指令可以在函数的任意位置**，当执行 `return` 时，函数停止，并将值返回给调用函数的地方（例如：上述代码会返回给 `result` 变量）。
+
+一个函数中可以有多个 `return`。
+
+```js
+function checkAge(age) {
+  if (age >= 18) { // 比较 age 大小返回不同的值
+    return true;
+  } else {
+    return confirm('Got a permission from the parents?');
+  }
+}
+
+let age = prompt('How old are you?', 18);
+
+if (checkAge(age)) {
+  alert('Access granted');
+} else {
+  alert('Access denied');
+}
+```
+
+**⚠️ 注意：**
+
+- 可以只使用 `return` 但没有返回值也是可行的，但会导致**函数立即退出**。
+
+  ```js
+  function showMovie(age) {
+    if (!checkAge(age)) {
+      return; // 使用空值 return
+    }
+    alert( "Showing you the movie" );
+  }
+  ```
+
+  上述代码中，如果 `checkAge` 返回 `false`，则会执行 `return` 指令停止函数，导致后面的 `alert` 语句不会执行。
+
+- **空值的** `return` **或没有** `return` **的函数返回值都为** `undefined`
+
+  ```js
+  function doNothing() { /* 没有代码 */ }
+  
+  alert( doNothing() === undefined ); // true
+  ```
+
+  ```js
+  function doNothing() {
+    return;
+  }
+  
+  alert( doNothing() === undefined ); // true
+  ```
+
+- **不要在 `return` 与返回值之间添加新行**
+
+  ```js
+  return
+   (some + long + expression + or + whatever * f(a) + f(b))
+  ```
+
+  上述代码换行等价于下列代码，**`return` 后面的语句不会执行**，实际返回的是空值。
+
+  ```js
+  return;
+   (some + long + expression + or + whatever * f(a) + f(b))
+  ```
+
+  如果想写成跨多行的形式，需要在 `return` 同一行，并且按如下方式使用括号。
+
+  ```js
+  return (
+    some + long + expression
+    + or +
+    whatever * f(a) + f(b)
+    )
+  ```
+
+
+
+**函数命名**
+
+函数是行为（action），所以函数名通常是动词，应该简短且尽可能准确地描述函数的作用。
+
+普遍的做法是使用动词前缀来开始一个函数。
+
+- `"get…"` 返回一个值
+- `"calc…"` 计算某些内容
+- `"create…"` 创建某些内容
+- `"check…"` 检查某些内容并返回 `boolean` 值
+- `"show…"` 显示某些内容
+
+例如下面这些例子：
+
+```js
+showMessage(..)     // 显示信息
+getAge(..)          // 返回 age 值
+calcSum(..)         // 计算求和并返回结果
+createForm(..)      // 创建表单（通常会返回它）
+checkPermission(..) // 检查权限并返回 true/false
+```
+
