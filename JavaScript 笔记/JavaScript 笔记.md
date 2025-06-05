@@ -2464,7 +2464,7 @@ if (checkAge(age)) {
 
 **函数命名**
 
-函数是行为（action），所以函数名通常是动词，应该简短且尽可能准确地描述函数的作用。
+函数是行为（action），所以函数名通常是动词，**应该简短且尽可能准确地描述函数的作用**。
 
 普遍的做法是使用动词前缀来开始一个函数。
 
@@ -2484,3 +2484,42 @@ createForm(..)      // 创建表单（通常会返回它）
 checkPermission(..) // 检查权限并返回 true/false
 ```
 
+**⚠️ 注意：**
+
+- **一个函数应该只包含函数名所指定的功能，不做更多与函数名无关的功能**，如果一个函数的功能很复杂，应该把该函数拆分为几个小的函数
+
+- 一个单独的函数不仅更容易测试和调试，**它的存在本身就是一个很好的注释**
+
+  ```js
+  function showPrimes(n) {
+    nextPrime: for (let i = 2; i < n; i++) {
+  
+      for (let j = 2; j < i; j++) {
+        if (i % j == 0) continue nextPrime;
+      }
+  
+      alert( i ); // 一个素数
+    }
+  }
+  ```
+
+  上述代码我们可以将判断素数的部分拆分为一个单独的函数，就像下面这样。
+
+  ```js
+  function showPrimes(n) {
+    for (let i = 2; i < n; i++) {
+      if (!isPrime(i)) continue;
+  
+      alert(i);  // 一个素数
+    }
+  }
+  
+  function isPrime(n) {
+    for (let i = 2; i < n; i++) {
+      if ( n % i == 0) return false;
+    }
+    return true;
+  }
+  ```
+
+  通过 `isPrime` 函数名可以很清晰的看出函数的行为，不需要通过注释和代码，这样的代码称为**自描述**。
