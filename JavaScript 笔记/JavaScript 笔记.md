@@ -2562,7 +2562,7 @@ checkPermission(..) // 检查权限并返回 true/false
   alert(sayHi); // 显示函数代码
   ```
 
-  上述代码中 `alert(sayHi);` 不会执行函数，因为 `sayHi` 没有加括号，所以只会显示函数的源码，如下图。
+  上述代码中 **`alert(sayHi);` 不会执行函数，因为 `sayHi` 没有加括号**，所以只会显示函数的源码，如下图。
 
   ![image-20250606074913246](images/image-20250606074913246.png)
 
@@ -2657,7 +2657,52 @@ ask(
 
   之所以会这样是因为内部算法的缘故，当 JavaScript **准备**运行脚本时，**首先会在脚本中寻找全局函数声明，并创建这些函数**。
 
-  **⚠️ 注意：在严格模式下，当一个函数声明在一个代码块内时，它在代码块中的任何位置都是可见的，但是在代码块外不可见 **。
+  **⚠️ 注意：在严格模式下，当一个函数声明在一个代码块内时，它在代码块中的任何位置都是可见的，但是在代码块外不可见 **，例如下面这样：
+
+  ```js
+  let age = prompt('What is your age?', 18);
+  
+  // 有条件地声明一个函数
+  if (age < 18) {
+  
+    function welcome() {
+      alert('Hello!');
+    }
+  
+  } else {
+  
+    function welcome() {
+      alert('Greetings!');
+    }
+  
+  }
+  
+  welcome(); // Uncaught ReferenceError: welcome is not defined
+  ```
+
+  上述代码中**如果需要 `welcome` 在 `if` 外可见，可以使用函数表达式**。
+
+  ```js
+  let age = prompt("What is your age?", 18);
+  
+  let welcome;
+  
+  if (age < 18) {
+  
+    welcome = function() {
+      alert("Hello!");
+    };
+  
+  } else {
+  
+    welcome = function() {
+      alert("Greetings!");
+    };
+  
+  }
+  
+  welcome(); // 可以正常运行
+  ```
 
   
 
