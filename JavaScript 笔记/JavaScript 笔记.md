@@ -2522,4 +2522,152 @@ checkPermission(..) // 检查权限并返回 true/false
   }
   ```
 
-  通过 `isPrime` 函数名可以很清晰的看出函数的行为，不需要通过注释和代码，这样的代码称为**自描述**。
+  通过 `isPrime` 函数名可以清晰的看出函数的行为，不需要通过注释和代码，这样的代码称为**自描述**。
+
+
+
+## 函数表达式
+
+在 JavaScript 中函数不是一个 “神奇的语言结构”，而是一种**特殊的值**。
+
+字符串或数字等常规值代表**数据**。
+
+函数可以被视为一个**行为（action）**。
+
+- **函数声明**
+
+  ```js
+  function sayHi() {
+    alert('Hello');
+  }
+  ```
+
+-  **函数表达式**
+
+  ```js
+  let sayHi = function() {
+    alert('Hello');
+  };
+  ```
+
+**⚠️ 注意：**
+
+- 上述两种创建方式虽然不同，但都是在 `sayHi` 变量中存储了一个函数
+
+  ```js
+  function sayHi() {
+    alert('Hello');
+  }
+  
+  alert(sayHi); // 显示函数代码
+  ```
+
+  上述代码中 `alert(sayHi);` 不会执行函数，因为 `sayHi` 没有加括号，所以只会显示函数的源码，如下图。
+
+  ![image-20250606074913246](images/image-20250606074913246.png)
+
+- **函数表达式结尾有一个分号 `;`，这个分号不是函数语法的一部分**，而是赋值语句的一部分，例如：
+
+  ```js
+  let sayHi = 5;
+  ```
+
+- 函数表达式中 `function` 关键字后面没有函数名，**函数表达式允许省略函数名**
+
+
+
+**回调函数**
+
+```js
+function ask(question, yes, no) {
+  if (confirm(question)) {
+    yes();
+  } else {
+    no();
+  }
+}
+
+function showOk() {
+  alert('You agreed.');
+}
+
+function showCancel() {
+  alert('You canceled the execution.');
+}
+
+// 函数 showOk 和 showCancel 被作为参数传入到 ask
+ask('Do you agree?', showOk, showCancel);
+```
+
+上述代码中 `ask` 函数的参数值 `showOk` 和 `showCancel` 被称为**回调函数**或者**回调**，也可以使用**匿名函数**来简化代码：
+
+```js
+function ask(question, yes, no) {
+  if (confirm(question)) {
+    yes();
+  } else {
+    no();
+  }
+}
+
+ask(
+  'Do you agree?',
+  function() { alert('You agreed.'); },
+  function() { alert('You canceled the execution.'); }
+);
+```
+
+**⚠️ 注意：** 上述代码中 `ask` 函数中的两个匿名函数因为没有分配变量，所以在 `ask` 函数的外部无法访问。
+
+
+
+**函数声明和函数表达式的区别**
+
+首先是两者在语法上不同：
+
+- **函数声明**：在主代码流中声明为单独的语句的函数
+
+  ```js
+  // 函数声明
+  function sum(a, b) {
+    return a + b;
+  }
+  ```
+
+- **函数表达式**：在一个表达式中或另一个语法结构中创建的函数，例如下面这个函数是在赋值表达式 `=` 右侧创建的
+
+  ```js
+  // 函数表达式
+  let sum = function(a, b) {
+    return a + b;
+  };
+  ```
+
+其次是两者在 JavaScript 引擎创建函数时机上的不同：
+
+- **在函数声明被定义之前，它就可以被调用**
+
+  ```js
+  sayHi('John'); // Hello, John
+  
+  function sayHi(name) {
+    alert( `Hello, ${name}` );
+  }
+  ```
+
+  之所以会这样是因为内部算法的缘故，当 JavaScript **准备**运行脚本时，**首先会在脚本中寻找全局函数声明，并创建这些函数**。
+
+  
+
+- **函数表达式是在代码执行到达时被创建，并且仅从那一刻起可用**
+
+  ```js
+  sayHi('John'); // Uncaught ReferenceError: sayHi is not defined
+  
+  let sayHi = function(name) {
+    alert( `Hello, ${name}` );
+  };
+  ```
+
+
+
