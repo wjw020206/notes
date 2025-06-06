@@ -2651,7 +2651,7 @@ ask(
   sayHi('John'); // Hello, John
   
   function sayHi(name) {
-    alert( `Hello, ${name}` );
+    alert(`Hello, ${name}`);
   }
   ```
 
@@ -2683,20 +2683,20 @@ ask(
   上述代码中**如果需要 `welcome` 在 `if` 外可见，可以使用函数表达式**。
 
   ```js
-  let age = prompt("What is your age?", 18);
+  let age = prompt('What is your age?', 18);
   
   let welcome;
   
   if (age < 18) {
   
     welcome = function() {
-      alert("Hello!");
+      alert('Hello!');
     };
   
   } else {
   
     welcome = function() {
-      alert("Greetings!");
+      alert('Greetings!');
     };
   
   }
@@ -2712,9 +2712,68 @@ ask(
   sayHi('John'); // Uncaught ReferenceError: sayHi is not defined
   
   let sayHi = function(name) {
-    alert( `Hello, ${name}` );
+    alert(`Hello, ${name}`);
   };
   ```
 
 
+
+## 箭头函数
+
+创建函数的另外一种简单的语法，通常比函数表达式更好。
+
+```js
+let func = (arg1, arg2, ..., argN) => expression;
+```
+
+上述代码中创建了一个函数 `func`，它接收多个参数 `arg1..argN`，然后使用参数对右侧的 `expression` 求值并返回其结果，例如：
+
+```js
+let sum = (a, b) => a + b;
+
+alert(sum(1, 2)); // 3
+```
+
+- 如果只有一个参数**可以不使用括号**
+
+  ```js
+  let double = n => n * 2;
+  
+  alert(double(3)); // 6
+  ```
+
+- 如果没有参数，**需要保留空的括号**
+
+  ```js
+  let sayHi = () => alert('Hello!');
+  
+  sayHi();
+  ```
+
+箭头函数可以像函数表达式一样使用。
+
+```js
+let age = prompt('What is your age?', 18);
+
+let welcome = (age < 18) ?
+  () => alert('Hello!') :
+  () => alert('Greetings!');
+
+welcome();
+```
+
+
+
+**多行箭头函数**
+
+如果函数内有多行的表达式或语句，需要使用 `{}` 括起来，并需要包含 `return` 才能返回值。
+
+```js
+let sum = (a, b) => {  // 花括号表示开始一个多行函数
+  let result = a + b;
+  return result; // 如果我们使用了花括号，那么我们需要一个显式的 return
+};
+
+alert(sum(1, 2)); // 3
+```
 
