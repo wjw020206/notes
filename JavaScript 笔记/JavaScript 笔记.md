@@ -2264,7 +2264,7 @@ function showMessage() {
 
 showMessage(); // Hello, CodePencil
 
-alert( userName ); // Bob，未被更改，函数没有访问外部变量
+alert(userName); // Bob，未被更改，函数没有访问外部变量
 ```
 
 **⚠️ 注意：** 
@@ -2353,7 +2353,7 @@ function showMessage(from, text) {
     text = 'no text given';
   }
 
-  alert( from + ": " + text );
+  alert(from + ": " + text);
 }
 ```
 
@@ -2380,7 +2380,7 @@ function sum(a, b) {
 }
 
 let result = sum(1, 2);
-alert( result ); // 3
+alert(result); // 3
 ```
 
 **`return` 指令可以在函数的任意位置**，当执行 `return` 时，函数停止，并将值返回给调用函数的地方（例如：上述代码会返回给 `result` 变量）。
@@ -2414,7 +2414,7 @@ if (checkAge(age)) {
     if (!checkAge(age)) {
       return; // 使用空值 return
     }
-    alert( "Showing you the movie" );
+    alert('Showing you the movie');
   }
   ```
 
@@ -2498,7 +2498,7 @@ checkPermission(..) // 检查权限并返回 true/false
         if (i % j == 0) continue nextPrime;
       }
   
-      alert( i ); // 一个素数
+      alert(i); // 一个素数
     }
   }
   ```
@@ -2580,7 +2580,7 @@ checkPermission(..) // 检查权限并返回 true/false
 
 ```js
 function ask(question, yes, no) {
-  if (confirm(question)) {
+  if ( confirm(question) ) {
     yes();
   } else {
     no();
@@ -2603,7 +2603,7 @@ ask('Do you agree?', showOk, showCancel);
 
 ```js
 function ask(question, yes, no) {
-  if (confirm(question)) {
+  if ( confirm(question) ) {
     yes();
   } else {
     no();
@@ -2731,7 +2731,7 @@ let func = (arg1, arg2, ..., argN) => expression;
 ```js
 let sum = (a, b) => a + b;
 
-alert(sum(1, 2)); // 3
+alert( sum(1, 2) ); // 3
 ```
 
 - 如果只有一个参数**可以不使用括号**
@@ -2739,7 +2739,7 @@ alert(sum(1, 2)); // 3
   ```js
   let double = n => n * 2;
   
-  alert(double(3)); // 6
+  alert( double(3) ); // 6
   ```
 
 - 如果没有参数，**需要保留空的括号**
@@ -2774,7 +2774,7 @@ let sum = (a, b) => {  // 花括号表示开始一个多行函数
   return result; // 如果我们使用了花括号，那么我们需要一个显式的 return
 };
 
-alert(sum(1, 2)); // 3
+alert( sum(1, 2) ); // 3
 ```
 
 
