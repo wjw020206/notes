@@ -2930,3 +2930,252 @@ console.log('Hello World');
 ```
 
 在代码中有足够的日志记录，那么可以从记录中看到发生了什么，而不需要借助调试器。
+
+
+
+## 代码风格
+
+代码必须尽可能的清晰和易读。
+
+
+
+**花括号**
+
+- 如果代码短的话，可以只写成一行
+
+  ```js
+  if (n < 0) alert(`Power ${n} is not supported`);
+  ```
+
+- 最好的方式，这样更具有可读性
+
+  ```js
+  if (n < 0) {
+    alert(`Power ${n} is not supported`);
+  }
+  ```
+
+
+
+**行的长度**
+
+没有人喜欢读一长串代码，最好将代码分割一下。
+
+```js
+// 回勾引号 ` 允许将字符串拆分为多行
+let str = `
+  ECMA International's TC39 is a group of JavaScript developers,
+  implementers, academics, and more, collaborating with the community
+  to maintain and evolve the definition of JavaScript.
+`;
+```
+
+对于 `if` 语句：
+
+```js
+if (
+  id === 123 &&
+  moonPhase === 'Waning Gibbous' &&
+  zodiacSign === 'Libra'
+) {
+  letTheSorceryBegin();
+}
+```
+
+**⚠️ 注意：** 一行代码的最大长度应该在团队层面上达成一致，通常是 80 或 120 个字符。
+
+
+
+**缩进**
+
+- **水平方向上的缩进：2 或 4 个空格**
+
+  一个水平缩进通常由 2 或 4 个空格或者 “Tab” 制表符（Tab 键）构成，目前空格使用更普遍一点。
+
+  ```js
+  show(
+    parameters,
+    aligned, // 左边有 2 个空格
+    one,
+    after,
+    another
+    ) {
+    // ...
+  }
+  ```
+
+- **垂直方向上的缩进：用于将代码拆分成逻辑块的空行**
+
+  即使是单个函数通常也被分割为数个逻辑块。
+
+  ```js
+  function pow(x, n) {
+    let result = 1;
+    //              <--
+    for (let i = 0; i < n; i++) {
+      result *= x;
+    }
+    //              <--
+    return result;
+  }
+  ```
+
+  **⚠️ 注意：** 插入一个额外的空行有助于使代码更具可读性，写代码时，**不应该出现连续超过 9 行都没有被垂直分割的代码**。
+
+
+
+**分号**
+
+每一个语句后面都应该有一个分号，即使 JavaScript 可以省略分号。
+
+**⚠️ 注意：** 有经验的 JavaScript 程序员可以选择无分号的代码风格，否则最好还是使用分号来避免可能出现的陷阱。
+
+
+
+**嵌套的层级**
+
+尽量避免代码嵌套层级过深。
+
+- 不好的做法
+
+  ```js
+  function pow(x, n) {
+    if (n < 0) {
+      alert("Negative 'n' not supported");
+    } else {
+      let result = 1;
+  
+      for (let i = 0; i < n; i++) {
+        result *= x;
+      }
+  
+      return result;
+    }
+  }
+  ```
+
+- 好的做法
+
+  ```js
+  function pow(x, n) {
+    if(n < 0) {
+      alert("Negative 'n' not supported");
+      return;
+    }
+  
+    let result = 1;
+  
+    for (let i = 0; i < n; i++) {
+      result *= x;
+    }
+  
+    return result;
+  }
+  ```
+
+  第二个代码比第一个代码更具有可读性，`n < 0` 特殊情况在一开始就被处理。
+
+
+
+**函数位置**
+
+有三种方式来组织函数定义和函数使用代码的位置。
+
+1. 在调用函数的代码**上方**声明函数
+
+   ```js
+   // 函数声明
+   function createElement() {
+     ...
+   }
+   
+   function setHandler(elem) {
+     ...
+   }
+   
+   function walkAround() {
+     ...
+   }
+   
+   // 调用函数的代码
+   let elem = createElement();
+   setHandler(elem);
+   walkAround();
+   ```
+
+2. 先写调用函数的代码，再写声明函数
+
+   ```js
+   // 调用函数的代码
+   let elem = createElement();
+   setHandler(elem);
+   walkAround();
+   
+   // 函数声明
+   function createElement() {
+     ...
+   }
+   
+   function setHandler(elem) {
+     ...
+   }
+   
+   function walkAround() {
+     ...
+   }
+   ```
+
+3. 混合使用
+
+   ```js
+   // 调用函数的代码
+   let elem = createElement();
+   
+   // 函数声明
+   function createElement() {
+     ...
+   }
+   
+   // 调用函数的代码
+   setHandler(elem);
+   
+   // 函数声明
+   function setHandler(elem) {
+     ...
+   }
+   
+   // 调用函数的代码
+   walkAround();
+   
+   // 函数声明
+   function walkAround() {
+     ...
+   }
+   ```
+
+**⚠️ 注意：** 大多数情况下，使用第二种方式更好，因为在阅读代码时，我们首先想要知道的是它执行了哪些函数，不一定要阅读这些函数具体的内容
+
+
+
+**风格指南**
+
+有很多受欢迎现成的风格指南：
+
+- [Google JavaScript 风格指南](https://google.github.io/styleguide/jsguide.html)
+- [Airbnb JavaScript 风格指南](https://github.com/airbnb/javascript)
+- [Idiomatic.JS](https://github.com/rwaldron/idiomatic.js)
+- [StandardJS](https://standardjs.com/)
+
+
+
+**自动检查器**
+
+检查器（Linters）是可以自动检查代码样式，还可以发现一些代码错误。
+
+有很多出名的代码检查工具：
+
+- [JSLint](https://www.jslint.com/)：最早一批检查器之一
+- [JSHint](https://www.jshint.com/)：比 JSLint 多了更多设置
+- [ESLint](https://eslint.org/)：最新的一个检查器
+
+**推荐使用 ESLint，目前也是前端中用的最多的检查器之一**。
