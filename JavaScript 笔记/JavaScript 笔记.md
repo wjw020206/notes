@@ -3179,3 +3179,134 @@ if (
 - [ESLint](https://eslint.org/)：最新的一个检查器
 
 **推荐使用 ESLint，目前也是前端中用的最多的检查器之一**。
+
+
+
+##  注释
+
+**在好的代码中，“解释性” 的注释应该是最少的。**
+
+不推荐像下面这样的注释：
+
+```js
+// 这里的代码会先做这件事（……）然后做那件事（……）
+// ……谁知道还有什么……
+very;
+complex;
+code;
+```
+
+一个很棒的原则：“如果代码不够清晰以至于需要一个注释，那么或许它应该被重写。”
+
+
+
+**用函数替代注释**
+
+用一个函数来代替一个代码片段是更好的
+
+```js
+function showPrimes(n) {
+  nextPrime:
+  for (let i = 2; i < n; i++) {
+
+    // 检测 i 是否是一个质数（素数）
+    for (let j = 2; j < i; j++) {
+      if (i % j == 0) continue nextPrime;
+    }
+
+    alert(i);
+  }
+}
+```
+
+上述代码可以调整为
+
+```js
+function showPrimes(n) {
+
+  for (let i = 2; i < n; i++) {
+    if (!isPrime(i)) continue;
+
+    alert(i);
+  }
+}
+
+function isPrime(n) {
+  for (let i = 2; i < n; i++) {
+    if (n % i == 0) return false;
+  }
+
+  return true;
+}
+```
+
+
+
+**为代码块创建函数替代注释**
+
+```js
+// 在这里我们添加威士忌
+for(let i = 0; i < 10; i++) {
+  let drop = getWhiskey();
+  smell(drop);
+  add(drop, glass);
+}
+
+// 在这里我们添加果汁
+for(let t = 0; t < 3; t++) {
+  let tomato = getTomato();
+  examine(tomato);
+  let juice = press(tomato);
+  add(juice, glass);
+}
+```
+
+上述代码可以调整为
+```js
+addWhiskey(glass);
+addJuice(glass);
+
+function addWhiskey(container) {
+  for(let i = 0; i < 10; i++) {
+    let drop = getWhiskey();
+    smell(drop);
+    add(drop, glass);
+  }
+}
+
+function addJuice(container) {
+  for(let t = 0; t < 3; t++) {
+    let tomato = getTomato();
+    examine(tomato);
+    let juice = press(tomato);
+    add(juice, glass);
+  }
+}
+```
+
+函数本身就可以说明功能，所以可以不需要注释，每一个函数做什么、需要什么和返回什么都非常地清晰。
+
+**⚠️ 注意：** 在实际开发中，**不能完全避免 “解释型” 注释**，例如在一些复杂的算法中，会有一些出于优化的目的而做的一些巧妙的 “调整”，但通常情况下，应该尽可能地保持代码的简单和 “自我描述” 性。
+
+
+
+**好的注释**
+
+一种专门用于记录函数的语法  JSDoc，可以用来描述函数的用法、参数和返回值。
+
+```js
+/**
+ * 返回 x 的 n 次幂的值
+ *
+ * @param {number} x 要改变的值。
+ * @param {number} n 幂数，必须是一个自然数
+ * @return {number} x 的 n 次幂的值
+ */
+function pow(x, n) {
+  ...
+}
+```
+
+在类似 VSCode、WebStorm 这样的编辑器中，都可以很好地理解和使用这些注释，来提供自动补全和一些自动化代码检查工作。
+
+像 [JSDoc 3](https://github.com/jsdoc/jsdoc) 这样的工具，可以通过注释直接生成 HTML 文档。
