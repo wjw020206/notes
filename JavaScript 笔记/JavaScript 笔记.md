@@ -3310,3 +3310,61 @@ function pow(x, n) {
 在类似 VSCode、WebStorm 这样的编辑器中，都可以很好地理解和使用这些注释，来提供自动补全和一些自动化代码检查工作。
 
 像 [JSDoc 3](https://github.com/jsdoc/jsdoc) 这样的工具，可以通过注释直接生成 HTML 文档。
+
+
+
+## Polyfill 和转译器
+
+JavaScript 语言在稳步发展，有很多新的特性在老的浏览器上无法很好的支持，所以要让现代的代码能够正常运行在旧引擎的浏览器上，需要使用 Polyfill 和转译器。
+
+
+
+**转译器（Transpilers）**
+
+**转译器是一种可以将源码转译为另一种源码的软件**，它可以解析现代代码，并使用旧的语法结构进行重写，使其可以在旧的引擎上工作。
+
+例如在 ES2020 之前没有 “空值合并运算符” `??`，旧的引擎不明白 `height = height ?? 100` 这段代码的含义，所以需要使用转译器。
+
+-  在运行转译器之前：
+
+  ```js
+  height = height ?? 100;
+  ```
+
+- 运行转译器之后：
+
+  ```js
+  height = (height !== undefined && height !== null) ? height : 100;
+  ```
+
+通常，会在自己的计算机上运行转译器，然后将转译后的代码部署到服务器。
+
+[Babel](https://babeljs.io/) 是最著名的转译器之一，通常会在现代项目构建系统（例如 [Webpack](https://webpack.js.org/)）中集成转译器，在每次代码更改时自动运行转译器的方法。
+
+
+
+**垫片（Polyfills）**
+
+新的语言特性可能不仅包括语法结构和运算符，还可能包括内建函数。
+
+垫片可以用来添加缺少的特性。
+
+例如 `Math.trunc(n)` 是一个“截断” 数字小数部分的函数，在旧的 JavaScript 引擎中不支持，此时谈论的是新函数，而不是语法更改，因此无需在转译任何内容，而是要**补全缺失的函数。**
+
+```js
+if (!Math.trunc) { // 如果没有这个函数
+  // 实现它
+  Math.trunc = function(number) {
+    return number < 0 ? Math.ceil(number) : Math.floor(number);
+  };
+}
+```
+
+`Math.ceil` 和 `Math.floor` 老的 JavaScript 引擎都支持。
+
+[Core js](https://github.com/zloirock/core-js) 是著名的 Polyfill 库之一，支持很多特性，允许只包含需要的特性。
+
+
+
+
+

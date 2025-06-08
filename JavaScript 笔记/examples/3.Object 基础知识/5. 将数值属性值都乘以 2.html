@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      // 在调用之前
+      let menu = {
+        width: 200,
+        height: 300,
+        title: 'My menu',
+      };
+
+      multiplyNumeric(menu);
+
+      console.log(menu);
+
+      function multiplyNumeric(obj) {
+        for (const key in obj) {
+          if (typeof obj[key] === 'number') {
+            obj[key] *= 2;
+          }
+        }
+      }
+    </script>
+  </body>
+</html>

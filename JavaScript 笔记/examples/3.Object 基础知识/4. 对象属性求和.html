@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      let salaries = {
+        John: 100,
+        Ann: 160,
+        Pete: 130,
+      };
+
+      function getSum(obj) {
+        let sum = 0;
+
+        for (const key in obj) {
+          sum += obj[key];
+        }
+
+        return sum;
+      }
+
+      alert(getSum(salaries)); // 390
+      alert(getSum({})); // 0
+    </script>
+  </body>
+</html>
