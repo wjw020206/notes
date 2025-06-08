@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <!-- 添加 Mocha CSS 样式文件，用于可视化显示测试结果  -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/mocha/3.2.0/mocha.css"
+    />
+    <!-- 添加 Mocha 核心库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mocha/3.2.0/mocha.js"></script>
+    <script>
+      mocha.setup('bdd'); // 最小设置
+    </script>
+    <!-- 添加 Chai 断言库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chai/3.5.0/chai.js"></script>
+    <script>
+      // 将 assert 设置为全局变量
+      let assert = chai.assert;
+    </script>
+  </head>
+  <body>
+    <script>
+      function pow(x, n) {
+        if (n < 0) return NaN;
+        if (Math.round(n) !== n) return NaN;
+
+        let result = 1;
+
+        for (let i = 0; i < n; i++) {
+          result *= x;
+        }
+
+        return result;
+      }
+    </script>
+
+    <!-- 测试脚本 -->
+    <script src="test.js"></script>
+
+    <!-- 显示测试结果的容器 -->
+    <div id="mocha"></div>
+
+    <script>
+      // 运行 Mocha 测试
+      mocha.run();
+    </script>
+  </body>
+</html>
