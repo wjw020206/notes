@@ -3739,3 +3739,174 @@ for (let code in codes) {
 }
 ```
 
+
+
+## 对象复制和引用
+
+对象： “通过引用” 存储和复制的。
+
+原始类型：字符串、数字、布尔值等总是 “作为一个整体” 复制。
+
+
+
+例如将 `message` 复制到 `phrase`。
+
+```js
+let message = 'Hello!';
+let phrase = message;
+```
+
+![image-20250609100335727](images/image-20250609100335727.png)
+
+
+
+但对象不是这样。
+
+**赋值了对象的变量存储的不是对象本身，而是该对象 “在内存中的地址”，简单来说就是对该对象的 “引用”**。
+
+```js
+let user = {
+  name: 'John',
+};
+```
+
+![image-20250609103752828](images/image-20250609103752828.png)
+
+所以当一个对象变量被复制，**其实是引用被复制，而该对象自身并没有被复制**。
+
+```js
+let user = { name: 'John' };
+
+let admin = user; // 复制引用
+```
+
+![image-20250609104149309](images/image-20250609104149309.png)
+
+```js
+let user = { name: 'John' };
+
+let admin = user;
+
+admin.name = 'Pete'; // 通过 'admin' 引用来修改
+
+alert(user.name); // 'Pete'，修改能通过 'user' 引用看到
+```
+
+
+
+**对象比较**
+
+只有当两个对象为同一对象时，两者才相等。
+
+- 这里 `a` 和 `b` 两个变量都引用同一个对象，所以它们相等
+
+  ```js
+  let a = {};
+  let b = a; // 复制引用
+  
+  alert(a == b);  // true，都引用同一对象
+  alert(a === b); // true
+  ```
+
+- 两个独立的对象则并不相等，即使它们都是 `{}`
+
+  ```js
+  let a = {};
+  let b = {}; // 两个独立的对象
+  
+  alert( a == b ); // false
+  ```
+
+对于 `obj1 > obj2` 的比较，或者跟一个原始类型值的比较 `obj == 5` 时，**对象都会被转换为原始值**。
+
+**⚠️ 注意：** 通常来说很少需要这样的比较，通常是在编程错误的时候才会出现这种情况。
+
+
+
+**浅拷贝**
+
+如果要复制一个对象，可以通过遍历已有对象的属性，在原始类型值的层面复制它们。
+
+```js
+let user = {
+  name: 'John',
+  age: 23,
+};
+
+let clone = {}; // 新的空对象
+
+// 将 user 中所有的属性拷贝到其中
+for (let key in user) {
+  clone[key] = user[key];
+}
+
+clone.name = 'CodePencil';
+
+alert(user.name); // 原来的对象中的 name 属性依然是 John
+```
+
+也可以使用 `Object.assign` 方法达到同样的效果。
+
+语法：
+
+```js
+Object.assign(dest, [src1, src2, src3...])
+```
+
+- `dest` 是指目标对象
+- `src1, ..., srcN` 是指源对象（可按需传递多个参数）
+
+该方法可以**将第二个开始的所有参数的属性都被拷贝到第一个参数的对象中**，重写前面的例子：
+
+```js
+let user = {
+  name: 'John',
+  age: 23,
+};
+
+let clone = Object.assign({}, user);
+```
+
+上述代码中 `Object.assign` 将 `user` 对象中所有的属性都拷贝到一个空对象中，并返回这个新的对象。
+
+
+
+**深拷贝**
+
+如果对象的属性是其它对象的引用。
+
+```js
+let user = {
+  name: 'CodePencil',
+  sizes: {
+    height: 182,
+    width: 50,
+  }
+};
+
+let clone = Object.assign({}, user);
+
+alert( user.sizes === clone.sizes ); // true，同一个对象
+```
+
+使用 `Object.assign` 克隆的新对象的 `sizes` 属性依旧是引用形式被拷贝。
+
+这时需要使用递归并进行拷贝循环来检查 `user[key]` 的每个值，如果它是一个对象，那么也复制它的结构。
+
+**推荐使用 lodash 库的 [_.cloneDeep(obj)](https://lodash.com/docs#cloneDeep)**。
+
+
+
+**使用 const 声明的对象也是可以被修改的**
+
+```js
+const user = {
+  name: 'John',
+};
+
+user.name = 'CodePencil'; // 这行不会报错
+
+alert(user.name); // CodePencil
+```
+
+上述代码中 `user` 变量**必须始终引用同一个对象**，但该对象的属性可以被自由修改。
