@@ -3362,9 +3362,380 @@ if (!Math.trunc) { // 如果没有这个函数
 
 `Math.ceil` 和 `Math.floor` 老的 JavaScript 引擎都支持。
 
-[Core js](https://github.com/zloirock/core-js) 是著名的 Polyfill 库之一，支持很多特性，允许只包含需要的特性。
+[Core.js](https://github.com/zloirock/core-js) 是著名的 Polyfill 库之一，支持很多特性，允许只包含需要的特性。
 
 
 
+## 对象
 
+原始类型的值只能存储一种东西（字符串，数字或者其他），但对象可以用来存储键值对和更复杂的实体。
+
+
+
+**创建对象**
+
+有以下两种语法可以创建一个空的对象。
+
+```js
+let user = new Object(); // “构造函数” 的语法
+let user = {};  // “字面量” 的语法
+```
+
+
+
+**对象属性**
+
+可以在创建对象的时候，立即将一些属性以**键值对**的形式放入 `{...}` 中。
+
+```js
+let user = {
+  name: 'CodePencil',  // 键 name，值 CodePencil
+  age: 23,             // 键 age，值 23
+};
+```
+
+位于冒号 `:` 前面的是键（`key`）,也叫做属性名，值（`value`）在冒号的后面。
+
+也可以使用多字词语作为属性名，但是**必须加上引号：**
+
+```js
+let user = {
+  name: 'CodePencil',
+  age: 23,
+  'likes birds': true,  // 多词属性名必须加引号
+};
+```
+
+**⚠️ 注意：列表中的最后一个属性应以逗号结尾**，这叫做尾随（trailing）或悬挂（hanging）逗号，便于添加、删除和移动属性。
+
+
+
+**访问属性值**
+可以使用点操作符 `.` 访问属性值。
+
+```js
+alert(user.name); // CodePencil
+alert(user.age); // 23
+```
+
+
+
+**修改属性**
+
+可以通过 `=` 来修改对象属性的值，**属性的值可以是任意类型**，例如添加布尔类型。
+
+```js
+user.isAdmin = true;
+```
+
+
+
+**删除属性**
+
+可以使用 `delete` 操作符来移除属性。
+
+```js
+delete user.age;
+```
+
+
+
+**方括号**
+
+对于多字词语的属性，无法使用点操作符 `.` 。
+
+```js
+// 这将提示有语法错误
+user.likes birds = true; // Uncaught SyntaxError: Unexpected identifier 'birds'
+```
+
+JavaScript 会认为在处理 `user.likes`，然后遇到意外的 `birds` 时给出语法错误。
+
+**点符号要求 `key` 是有效的变量标识符。这意味着：不包含空格，不以数字开头，也不包含特殊字符（允许使用 `$` 和 `_`）。**
+
+这时可以使用方括号，可以用于任何字符串。
+
+```js
+let user = {};
+
+// 设置
+user['likes birds'] = true;
+
+// 读取
+alert(user['likes birds']); // true
+
+// 删除
+delete user['likes birds'];
+```
+
+**⚠️ 注意：** 方括号中的字符串要放在引号中，单引号或双引号都可以。
+
+方括号中也支持通过任意表达式来获取属性名的方式。
+
+```js
+let key = 'likes birds';
+
+user[key] = true; // 等价于 user['likes birds'] = true;
+```
+
+但点符号 `.` 不支持这样。
+
+```js
+let user = {
+  name: 'CodePencil',
+  age: 23,
+};
+
+let key = 'name';
+alert(user.key); // undefined
+```
+
+
+
+**计算属性**
+
+创建一个对象时，可以在对象字面量中使用方括号，这被称为计算属性。
+
+```js
+let fruit = prompt('Which fruit to buy?', 'apple');
+
+let bag = {
+  [fruit]: 5, // 属性名是从 fruit 变量中得到的
+};
+
+alert(bag.apple); // 5 如果 fruit='apple'
+```
+
+也支持使用更复杂的表达式：
+
+```js
+let fruit = 'apple';
+let bag = {
+  [fruit + 'Computers']: 5, // bag.appleComputers = 5
+};
+```
+
+**⚠️ 注意：** 
+
+- 当属性名是已知且简单的时候，就使用点符号
+- 如果需要一些更复杂的内容，就使用方括号
+
+
+
+**属性简写**
+
+在实际开发中，通常用已存在的变量当做属性名。
+
+```js
+function makeUser(name, age) {
+  return {
+    name: name,
+    age: age,
+    // ……其他的属性
+  };
+}
+
+let user = makeUser('CodePencil', 23);
+alert(user.name); // CodePencil
+```
+
+上述代码中属性名跟变量名一样，此时可以使用一种**属性值缩写**方法，使属性名变得更短。
+
+```js
+function makeUser(name, age) {
+  return {
+    name, // 与 name: name 相同
+    age,  // 与 age: age 相同
+    // ...
+  };
+}
+```
+
+属性名简写方式可以和正常方式混用。
+
+```js
+let user = {
+  name,   // 与 name:name 相同
+  age: 30,
+};
+```
+
+
+
+**属性名限制**
+
+- **属性名可以是任何字符串或者 `symbol`，使用 JavaScript 的保留字也没问题**
+
+  ```js
+  let obj = {
+    for: 1,
+    let: 2,
+    return: 3,
+  };
+  
+  alert( obj.for + obj.let + obj.return );  // 6
+  ```
+
+- **其它类型的属性名会被自动转换为字符串**
+
+  ```js
+  let obj = {
+    0: 'test', // 等同于 '0': 'test'
+  };
+  
+  // 都会输出相同的属性（数字 0 被转为字符串 '0'）
+  alert(obj['0']); // test
+  alert(obj[0]);   // test (相同的属性)
+  ```
+
+
+**⚠️ 注意：** 名为 `__proto__` 的属性，不能将它设置为一个非对象的值。
+
+```js
+let obj = {};
+obj.__proto__ = 5; // 分配一个数字
+alert(obj.__proto__); // [object Object]
+```
+
+上述代码中赋值结果与预期不符，具体解决方案可以参考原型链相关的内容。
+
+
+
+**属性存在测试符 “in” 操作符**
+
+JavaScript 的对象中能够访问任何属性，即使属性不存在也不会报错。
+
+读取不存在的属性只会得到 `undefined`，可以通过以下方式判断属性是否存在。
+
+```js
+let user = {};
+
+alert( user.noSuchProperty === undefined ); // true 表示该属性不存在
+```
+
+也可以使用操作符 `in` 来检测属性是否存在。
+
+语法：
+
+```js
+'key' in object
+```
+
+例如：
+
+```js
+let user = { age: 23, };
+
+let key = 'age';
+alert(key in user); // true，属性 'age' 存在
+```
+
+**⚠️ 注意：** 如果对象中一个属性存在，但是存储的值是 `undefined` 的时候，只能使用 `in` 符号来检测属性是否存在。
+
+```js
+let obj = {
+  test: undefined,
+};
+
+alert(obj.test); // 显示 undefined，所以属性不存在？
+
+alert('test' in obj); // true，属性存在！
+```
+
+通常情况下不应该给对象的属性赋值 `undefined`，会用 `null` 来表示未知的或者空的值。
+
+
+
+**for in 遍历对象属性**
+
+用于遍历一个对象的所有键（`key`）。
+
+语法：
+
+```js
+for (key in object) {
+  // 对此对象属性中的每个键执行的代码
+}
+```
+
+例如：
+
+```js
+let user = {
+  name: 'CodePencil',
+  age: 23,
+  isAdmin: true,
+};
+
+for (let key in user) {
+  // keys
+  alert(key);  // name, age, isAdmin
+  // 属性键的值
+  alert(user[key]); // CodePencil, 23, true
+}
+```
+
+也可以用其他属性名来替代 `key`，例如 `for(let prop in obj)` 也很常用。
+
+
+
+**对象属性顺序**
+
+使用 `for in` 遍历对象属性有特别的顺序，**整数属性会被进行排序，其他属性则按照创建的顺序显示**。
+
+```js
+let codes = {
+  '49': 'Germany',
+  '41': 'Switzerland',
+  '44': 'Great Britain',
+  '1': 'USA',
+};
+
+for(let code in codes) {
+  alert(code); // 1, 41, 44, 49
+}
+```
+
+**整数属性：** 指的是一个可以在不做任何更改的情况下与一个整数进行相互转换的字符串。
+
+例如 `'49'` 是一个整数属性名，因为我们把它转换成整数，再转换回来，它还是一样的，但是 `'+49'` 和 `'1.2'` 就不行了：
+
+```js
+// Number(...) 显式转换为数字
+// Math.trunc 是内建的去除小数部分的方法。
+alert( String(Math.trunc(Number('49'))) );  // '49'，相同，整数属性
+alert( String(Math.trunc(Number('+49'))) ); // '49'，不同于 '+49' ⇒ 不是整数属性
+alert( String(Math.trunc(Number('1.2'))) ); // '1'，不同于 '1.2' ⇒ 不是整数属性
+```
+
+对于非整数属性，就按照创建时的顺序来排序，例如：
+
+```js
+let user = {
+  name: 'John',
+  surname: 'Smith'
+};
+user.age = 25; // 增加一个
+
+// 非整数属性是按照创建的顺序来排列的
+for (let prop in user) {
+  alert( prop ); // name, surname, age
+}
+```
+
+如果同时有整数属性和非整数属性，则会先输出整数属性（从小到大），再输出非整数属性（添加顺序），例如：
+
+```js
+let codes = {
+  name: 'CodePencil',
+  44: 'Great Britain',
+  1: 'USA',
+};
+
+codes.age = 23;
+
+for (let code in codes) {
+  alert(code); // 1, 44, name, age
+}
+```
 
