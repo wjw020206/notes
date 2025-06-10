@@ -4236,3 +4236,183 @@ user.sayHi(); // CodePencil
 上述代码中 `arrow()` 使用的 `this` 来自于外部的 `user.sayHi()` 方法。
 
 **⚠️ 注意：** 当不想要一个独立的 `this`，想从外部上下文中获取时它很有用。
+
+
+
+## 构造器和操作符 "new"
+
+常规的 `{...}` 对象字面量允许创建一个对象，但有时候需要创建很多类似的对象，这时可以使用构造函数和 `new` 操作符来实现。
+
+
+
+**构造函数**
+
+构造函数的主要目的就是**实现可重用的对象创建代码**。
+
+构造函数本质上是常规函数，不过有以下两个约定：
+
+1. **函数名以大写字母开头**
+2. **只能使用 `new` 操作符来执行函数**
+
+```js
+function User(name) { // 函数名以大写字母开头
+  this.name = name;
+  this.isAdmin = false;
+}
+
+let user = new User('CodePencil'); // 使用 new 操作符来执行函数
+
+alert(user.name);    // CodePencil
+alert(user.isAdmin); // false
+```
+
+
+
+**构造函数执行步骤**
+
+当一个函数被使用 `new` 操作符执行时，它按照以下步骤：
+
+1. **创建一个新的空对象并分配给 `this`**
+2. **函数体执行，通常会修改 `this`，为其添加新的属性或方法**
+3. **返回 `this` 的值**
+
+拿前面 `new User(...)` 来说就是做了以下类似的事情：
+
+```js
+function User(name) {
+  // this = {};（隐式创建）
+
+  // 添加属性到 this
+  this.name = name;
+  this.isAdmin = false;
+
+  // return this;（隐式返回）
+}
+```
+
+**⚠️ 注意：** 
+
+- 从技术上讲，任何函数（除了箭头函数，它没有自己的 `this`）都可以作为构造函数（构造器），都可以通过 `new` 来运行，并执行上述的算法，“首字母大写”是一个共同的约定，以明确表示一个函数将被使用 `new` 来运行
+
+- 如果有许多行用于创建单个复杂对象的代码，可以将它们封装在一个立即调用的构造函数中，例如下面这样：
+
+  ```js
+  // 创建一个函数并立即使用 new 调用它
+  let user = new function() {
+    this.name = 'CodePencil';
+    this.isAdmin = false;
+  
+    // ……用于用户创建的其他代码
+    // 也许是复杂的逻辑和语句
+    // 局部变量等
+  };
+  ```
+
+  **⚠️ 注意：** 上述构造函数不能被再次调用，因为它没有保存在任何地方，只是被创建和调用，**该技巧便于封装构建单个对象的代码，而无需将来重用**。
+
+
+
+**构造器模式检测 new.target**
+
+在一个函数的内部，可以通过 `new.target` 属性来检查它是否被使用 `new` 进行调用了。
+
+对于常规调用，它为 `undefined`，但对于使用 `new` 的调用，则等于该函数：
+
+```js
+function User() {
+  alert(new.target);
+}
+
+// 不带 new：
+User(); // undefined
+
+// 带 new：
+new User(); // function User { ... }
+```
+
+可以利用该属性让 `new` 调用和常规调用都做相同的工作，例如下面这样：
+
+```js
+function User(name) {
+  if(!new.target) {
+    return new User(name);
+  }
+
+  this.name = name;
+}
+
+let user = User('CodePencil'); // 将调用重定向到新用户
+alert(user.name); // CodePencil
+```
+
+**⚠️ 注意：** 该技巧用在库中可以使语法更加灵活，在调用函数时，无论是否使用了 `new`，程序都能工作，但到处使用它也不是一件好事，因为省略了 `new` 使得很难观察代码中到底是创建对象还是普通调用函数。
+
+
+
+**构造器的 return**
+
+通常构造器没有 `return` 语句，它的任务就是将所有必要的东西写入 `this`，并自动转换为结果。
+
+如果构造器中有 `return` 语句，会按照以下规则返回结果：
+
+- **如果 `return` 返回的是一个对象，则返回这个对象，而不是 `this`**
+- **如果 `return` 返回的是一个原始类型，则忽略**
+
+例如：
+
+- 通过 `return` 返回一个对象覆盖 `this`
+
+  ```js
+  function BigUser() {
+  
+    this.name = 'CodePencil';
+  
+    return { name: 'John' };  // <-- 返回这个对象
+  }
+  
+  alert( new BigUser().name );  // John，得到了那个对象
+  ```
+
+- `return` 返回为空（或者其它原始类型值也可以）
+
+  ```js
+  function SmallUser() {
+  
+    this.name = 'CodePencil';
+  
+    return; // <-- 返回 this
+  }
+  
+  alert( new SmallUser().name );  // CodePencil
+  ```
+
+**⚠️ 注意：** 如果没有参数，我们可以省略 `new` 后的括号，例如下面这样：
+
+```js
+let user = new User; // <-- 没有参数
+// 等同于
+let user = new User();
+```
+
+**但省略括号不被认为是一种 “好风格”，不推荐**。
+
+
+
+**构造器中的方法**
+
+构造器不仅可以将属性添加到 `this` 中，还可以添加方法，例如下面这样：
+
+```js
+function User(name) {
+  this.name = name;
+
+  this.sayHi = function() {
+    alert('My name is: ' + this.name);
+  };
+}
+
+let user = new User('CodePencil');
+
+user.sayHi(); // My name is: CodePencil
+```
+
