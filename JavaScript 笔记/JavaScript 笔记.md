@@ -4203,5 +4203,36 @@ admin.sayHi(); // Uncaught TypeError: Cannot read properties of null (reading 'n
 
 **"this" 不受限制**
 
-在 JavaScript 中
+在 JavaScript 中 `this` 可以用于任何函数，即使它不是对象方法。
 
+```js
+function sayHi() {
+  alert(this);
+}
+
+sayHi(); // undefined
+```
+
+**⚠️ 注意：** 在没有对象的情况下调用函数，**严格模式下的 `this` 值为 `undefined`**，此时如果尝试访问 `this.name` 将会报错，**在非严格模式下，`this` 值为全局对象**（在浏览器中是 `window`），这是一个历史行为。
+
+
+
+**箭头函数没有自己的 "this"**
+
+在箭头函数中引用 `this`，`this` 的值取决于外部 “正常的” 函数。
+
+```js
+let user = {
+  name: 'CodePencil',
+  sayHi() {
+    let arrow = () => alert(this.name);
+    arrow();
+  }
+};
+
+user.sayHi(); // CodePencil
+```
+
+上述代码中 `arrow()` 使用的 `this` 来自于外部的 `user.sayHi()` 方法。
+
+**⚠️ 注意：** 当不想要一个独立的 `this`，想从外部上下文中获取时它很有用。
