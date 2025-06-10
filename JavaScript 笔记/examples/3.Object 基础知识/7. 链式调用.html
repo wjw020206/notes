@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      let ladder = {
+        step: 0,
+        up() {
+          this.step++;
+          return this;
+        },
+        down() {
+          this.step--;
+          return this;
+        },
+        showStep: function () {
+          // 显示当前的 step
+          alert(this.step);
+          return this;
+        },
+      };
+
+      ladder.up().up().down().showStep().down().showStep(); // 展示 1，然后 0
+    </script>
+  </body>
+</html>

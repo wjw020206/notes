@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      let calculator = {
+        read() {
+          this.a = +prompt('请输入第一个值', 0);
+          this.b = +prompt('请输入第二个值', 0);
+        },
+        sum() {
+          return this.a + this.b;
+        },
+        mul() {
+          return this.a * this.b;
+        },
+      };
+
+      calculator.read();
+      alert(calculator.sum());
+      alert(calculator.mul());
+    </script>
+  </body>
+</html>
