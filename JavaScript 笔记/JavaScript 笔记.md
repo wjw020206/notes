@@ -4084,3 +4084,124 @@ family = null;
 - JavaScript 引擎做了许多优化，使垃圾回收运行速度更快，并且不会对代码执行引入任何延迟
 - 还有其它的垃圾回收算法的优化和风格，不过大多都是类似的
 
+
+
+## 对象方法，"this"
+
+
+
+**对象方法**
+
+对象属性中的函数被称为**方法**。
+
+```js
+let user = {
+  name: 'CodePencil',
+  age: 23,
+};
+
+user.sayHi = function() {
+  alert('Hello!');
+};
+
+user.sayHi(); // Hello!
+```
+
+也可以提前声明函数，然后再赋值给对象。
+
+```js
+let user = {
+  name: 'CodePencil',
+  age: 23,
+};
+
+// 首先，声明函数
+function sayHi() {
+  alert('Hello!');
+}
+
+// 然后将其作为一个方法添加
+user.sayHi = sayHi;
+
+user.sayHi(); // Hello!
+```
+
+
+
+**方法简写**
+
+在对象字面量中，可以使用更短的语法来声明方法。
+
+```js
+let user = {
+  sayHi: function() {
+    alert('Hello');
+  }
+};
+```
+
+可以简化为：
+
+```js
+let user = {
+  sayHi() {
+    alert('Hello');
+  }
+};
+```
+
+**⚠️ 注意：** 这两种方式并不完全相等，在对象继承方面有一些细微的差别，**不过通常情况下更短的语法是首选**。
+
+
+
+**方法中的 "this"**
+
+通常对象的方法需要访问对象中存储的信息才能完成工作，**为了访问该对象，在方法中可以使用 `this` 关键字**。
+
+在 JavaScript 中 **`this` 关键字的值是在代码运行时计算出来的，取决于代码上下文**。
+
+简单来说，`this` 的值就是 `.` 之前的对象，即调用该方法的对象。
+
+```js
+let user = {
+  name: 'CodePencil',
+  age: 23,
+
+  sayHi() {
+    // this 指的是 “当前的对象”
+    alert(this.name);
+  }
+
+};
+
+user.sayHi(); // CodePencil
+```
+
+在 `user.sayHi();` 执行过程中，`this` 的值为 `user`。
+
+**⚠️ 注意：** 前面的例子也可以不使用 `this`，通过外部变量来实现，但这样的代码是不可靠的，例如：
+
+```js
+let user = {
+  name: 'CodePencil',
+  age: 23,
+
+  sayHi() {
+    alert(user.name); // 'user' 替代 'this'
+  }
+
+};
+
+let admin = user;
+user = null;
+admin.sayHi(); // Uncaught TypeError: Cannot read properties of null (reading 'name')
+```
+
+上述代码将 `user` 复制给另一个变量 `admin`，并赋 `null` 给 `user`，导致它访问错误的对象。
+
+
+
+**"this" 不受限制**
+
+在 JavaScript 中
+
