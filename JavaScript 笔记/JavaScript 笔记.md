@@ -4416,3 +4416,71 @@ let user = new User('CodePencil');
 user.sayHi(); // My name is: CodePencil
 ```
 
+
+
+## 可选链
+
+例如当 `user` 对象中 `address` 属性（假设是可选属性）不存在时读取 `address.street` 会发生以下错误：
+
+```js
+let user = {};
+
+alert(user.address.street); // Uncaught TypeError: Cannot read properties of undefined (reading 'street')
+```
+
+上述代码可以使用 `if` 或者条件运算符 `?` 对该值进行检查，像下面这样：
+
+```js
+let user = {};
+
+alert(user.address ? user.address.street : undefined); // undefined（不报错）
+```
+
+也可以使用 `&&` 运算符：
+
+```js
+let user = {};
+
+alert(user.address && user.address.street); // undefined（不报错）
+```
+
+但是上述代码都重复写了好几遍对象属性名 `user.address`，这时可以使用可选链 `?.` 来解决这个问题。
+
+
+
+**如果可选链 `?.` 前面的值为 `undefined` 或者 `null`，它会停止运算并返回 `undefined`**。
+
+```js
+let user = {};
+
+alert(user.address?.street); // undefined（不报错）
+```
+
+上述代码简单来说：
+
+- 如果 `user.address` 存在，则结果与 `user.address.street` 相同
+- 否则（当 `user.address` 为 `undefined/null` 时）则返回 `undefined`
+
+这样代码更加简洁明了，不用重复写好几遍属性名。
+
+
+
+即使前面代码中 `user` 对象不存在，可以使用以下方法来读取：
+
+```js
+let user = null;
+
+alert(user?.address.street); // undefined（不报错）
+```
+
+**⚠️ 注意：** 
+
+- `?.` 语法使其前面的值成为可选值，但不会对其后面的起作用，例如在 `user?.address.street` 中，`?.` 允许 `user` 为 `null/undefined`，但是这仅对于 `user` 对象，**更深层次的属性是通过常规方式访问的**
+
+- **不要过度使用可选链**，如果 `user` 对象必须存在，但是 `address` 是可选的，应该写成 `user.address?.street` 而不是 `user?.address?.street`，如果当  `user` 恰巧为 `undefined`，滥用可选链会导致我们看不到错误，导致调试更加困难
+
+- **`?.` 前的变量必须已声明（例如 `let/const/var user` 或作为一个函数参数）**，可选链仅适用于已声明的变量
+
+  ```js
+  user?.address; // Uncaught ReferenceError: user is not defined
+  ```
