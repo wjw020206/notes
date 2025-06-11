@@ -4484,3 +4484,81 @@ alert(user?.address.street); // undefined（不报错）
   ```js
   user?.address; // Uncaught ReferenceError: user is not defined
   ```
+
+
+
+
+**短路效应**
+
+如果 `?.` 左边的部分不存在，就会立即停止运算（“短路效应”）。
+
+```js
+let user = null;
+let x = 0;
+
+user?.sayHi(x++);
+alert(x); // 0，因为代码执行没有到达 sayHi 调用和 x++，所以 x 的值没有增加
+```
+
+
+
+**其它变体：?.()，?.[]**
+
+可选链 `?.` 不是一个运算符，而是一个特殊的语法结构，**还可以与函数和方括号一起使用**。
+
+```js
+let userAdmin = {
+  admin() {
+    alert('I am admin');
+  }
+};
+
+let userGuest = {};
+
+userAdmin.admin?.(); // I am admin
+
+userGuest.admin?.(); // 啥都没发生（没有这样的方法）
+```
+
+上述代码中，如果 `admin` 方法不存在，则不调用函数，反之会调用函数。
+
+
+
+也可以使用 `[]` 而不是点符号 `.` 来访问属性，例如：
+
+```js
+let key = 'name';
+
+let user1 = {
+  name: 'CodePencil',
+};
+
+let user2 = null;
+
+alert(user1?.[key]); // CodePencil
+alert(user2?.[key]); // undefined
+```
+
+上述代码中如果对象存在则读取属性，反之则不读取属性。
+
+
+
+**与 delete 一起使用**
+
+`?.` 还可以与 `delete` 一起使用：
+
+```js
+delete user?.name;
+```
+
+上述代码中，如果 `user` 存在，则删除 `name` 属性，反之不会删除 `name` 属性。
+
+**⚠️ 注意：`?.` 可以安全地读取或删除属性，但不能写入**，例如下面这样：
+
+```js
+let user = null;
+
+user?.name = 'John'; // Uncaught SyntaxError: Invalid left-hand side in assignment
+// 等同于：undefined = 'John'
+```
+
