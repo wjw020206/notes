@@ -4562,3 +4562,218 @@ user?.name = 'John'; // Uncaught SyntaxError: Invalid left-hand side in assignme
 // 等同于：undefined = 'John'
 ```
 
+
+
+## symbol 类型
+
+
+
+**symbol**
+
+`symbol` 值表示唯一标识符，可以通过 `Symbol()` 来创建：
+
+```js
+let id = Symbol();
+```
+
+创建时也可以给 `symbol` 一个描述（也称为 `symbol` 名），便于代码调试：
+
+```js
+let id = Symbol('id'); // id 是描述为 'id' 的 symbol
+```
+
+**⚠️ 注意：**
+
+- **描述只是一个标签，不影响任何东西，`symbol` 始终确保是唯一**，即使描述相同的 `symbol` 它们也不相等：
+
+  ```js
+  let id1 = Symbol('id');
+  let id2 = Symbol('id');
+  
+  alert(id1 == id2); // false
+  ```
+
+- **`symbol` 不会被自动转换为字符串**
+
+  ```js
+  let id = Symbol('id');
+  alert(id); // Uncaught TypeError: Failed to execute 'alert' on 'Window': Cannot convert a Symbol value to a string
+  ```
+
+  虽然 JavaScript 中的大多数值都支持字符串的隐式转换，但 `symbol` 比较特殊，这是一种防止混乱的“语言保护”，因为字符串和 `symbol` 有本质上的不同，不应该意外地将它们转换成另一个。
+
+  如果真的需要显示一个 `symbol`，可以调用它的 `.toString()`。
+
+  ```js
+  let id = Symbol('id');
+  alert(id.toString()); // Symbol(id)
+  ```
+
+  或者通过 `symbol.description` 只显示描述（description）。
+
+  ```js
+  let id = Symbol('id');
+  alert(id.description); // id
+  ```
+
+
+
+**隐藏属性**
+
+`symbol` 允许创建对象的 “隐藏” 属性，使代码的其它任何部分都不能意外访问或重写这些属性。
+
+假如使用第三方的代码的 `user` 对象，我们想给它添加一些属性：
+
+```js
+let user = { // 属于另一个代码
+  name: 'CodePencil',
+};
+
+let id = Symbol('id');
+let user[id] = 1;
+
+alert(user[id]); /// 1
+```
+
+上述代码中 `user` 对象是属于另一个代码库的，给它添加字段是不安全的，可能会不小心覆盖原有字段的值，但使用 `symbol` 是安全的，因为 `symbol` 是唯一的，不会覆盖 `user` 对象中的属性。
+
+
+
+**对象字面量中的 symbol**
+
+在对象字面量 `{...}` 使用 `symbol`，需要使用方括号 `[]`。
+
+```js
+let id = Symbol('id');
+
+let user = {
+  name: 'CodePencil',
+  [id]: 123,
+};
+```
+
+
+
+**symbol 在 for...in 中会被跳过**
+
+`symbol` 属性不会参与 `for...in` 循环。
+
+```js
+let id = Symbol('id');
+let user = {
+  name: 'CodePencil',
+  age: 23,
+  [id]: 123
+};
+
+for (let key in user) alert(key); // name, age（没有 symbol）
+
+// 使用 symbol 任务直接访问
+alert('Direct: ' + user[id]); // Direct: 123
+```
+
+**⚠️ 注意： `Object.keys(user)` 也会忽略 `symbol`**，因为这是一般 “隐藏符号属性” 原则的一部分，避免另一个脚本或者库遍历对象访问到符号属性，不过 **`Object.assign` 会同时复制字符串和符号属性**：
+
+```js
+let id = Symbol('id');
+let user = {
+  [id]: 123
+};
+
+let clone = Object.assign({}, user);
+
+alert( clone[id] ); // 123
+```
+
+这样设计是对的，因为当克隆或者合并一个 `object` 时，通常希望**所有**属性被复制（包括像 `id` 这样的 `symbol`）。
+
+
+
+**全局 symbol**
+
+通常所有的 `symbol` 都是不同的，即使它们有相同的名字，如果想要名字相同的 `symbol` 具有相同的实体，可以使用**全局 `symbol` 注册表**，它可以确保每次访问相同名字的 `symbol` 时，返回的都是相同的 `symbol`。
+
+语法：
+
+```js
+Symbol.for(key); 
+```
+
+表示从全局 `symbol` 注册表中读取 `key` 名字的 `symbol`，如果不存在则创建。
+
+例如：
+
+```js
+// 从全局注册表中读取
+let id = Symbol.for('id'); // 如果该 symbol 不存在，则创建它
+
+// 再次读取（可能是在代码中的另一个位置）
+let idAgain = Symbol.for('id');
+
+// 相同的 symbol
+alert( id === idAgain ); // true
+```
+
+全局 `symbol` 注册表中的 `symbol` 被称为**全局 `symbol`**，用于在一个应用程序范围内在代码中可以随处访问 `symbol`。
+
+
+
+**Symbol.keyFor**
+
+`Symbol.for(key)` 是按名字返回一个**全局 `symbol`**，也可以通过全局 `symbol` 来返回一个名字。
+
+语法：
+
+```js
+Symbol.keyFor(symbol);
+```
+
+例如：
+
+```js
+// 通过 name 获取 symbol
+let sym = Symbol.for('name');
+let sym2 = Symbol.for('id');
+
+// 通过 symbol 获取 name
+alert(Symbol.keyFor(sym));  // name
+alert(Symbol.keyFor(sym2)); // id
+```
+
+**⚠️ 注意：** `Symbol.keyFor` 内部使用全局 `symbol` 注册表来查找 `symbol` 的键，所以**它不适用于非全局 `symbol`**，如果 `symbol` 不是全局的，它将无法找到它并返回 `undefined`，例如：
+
+```js
+let globalSymbol = Symbol.for('name');
+let localSymbol = Symbol('name');
+
+alert(Symbol.keyFor(globalSymbol)); // name，全局 symbol
+alert(Symbol.keyFor(localSymbol)); // undefined，非全局 symbol
+
+alert(localSymbol.description); // name
+```
+
+不过所有 `symbol` 都具有 `description` 属性。
+
+```js
+let globalSymbol = Symbol.for('name');
+let localSymbol = Symbol('name');
+
+alert(Symbol.keyFor(globalSymbol)); // name，全局 symbol
+alert(Symbol.keyFor(localSymbol)); // undefined，非全局
+
+alert(localSymbol.description); // name
+```
+
+
+
+**系统 Symbol**
+
+JavaScript 内部有很多 ”系统“ `symbol`，可以使用它们来微调对象的各个方面，例如：
+
+- `Symbol.hasInstance`
+- `Symbol.isConcatSpreadable`
+- `Symbol.iterator`
+- `Symbol.toPrimitive`
+- ……等等
+
+完整的列表可以参考 [ECMAScript® 2026 Language Specification](https://tc39.es/ecma262/#sec-well-known-symbols)。
