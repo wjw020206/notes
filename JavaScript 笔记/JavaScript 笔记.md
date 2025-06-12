@@ -4783,3 +4783,136 @@ JavaScript 内部有很多 ”系统“ `symbol`，可以使用它们来微调�
 - ……等等
 
 完整的列表可以参考 [ECMAScript® 2026 Language Specification](https://tc39.es/ecma262/#sec-well-known-symbols)。
+
+
+
+## 对象原始值转换
+
+
+
+**转换规则**
+
+1. **对象转换为布尔值始终为 `true`**，`{}` 也是为 `true`
+2. **对象转换为数字发生在对象相减或者应用数学函数时**
+3. **对象转换为字符串发生在像 `alert(obj)` 这样的上下文中**
+
+
+
+**hint**
+
+对象的类型转换在各种情况下有三种变体，它们都称为 **hint**。
+
+- **`'string'`**
+
+  对象转换到字符串，当**对一个对象执行期望是字符串的操作**时，例如下面的例子：
+
+  ```js
+  // 输出
+  alert(obj);
+  
+  // 将对象作为属性键
+  anotherObj[obj] = 123;
+  ```
+
+- **`'number'`**
+
+  对象转换到数字，**当进行数学运算时**，例如下面的例子：
+
+  ```js
+  // 显式转换
+  let num = Number(obj);
+  
+  // 数学运算（除了二元加法）
+  let n = +obj; // 一元加法
+  let delta = date1 - date2;
+  
+  // 小于/大于的比较
+  let greater = user1 > user2;
+  ```
+
+  **⚠️ 注意：** 大多数内建的数学函数也有这种转换。
+
+- **`'default'`**
+
+  在少数情况下发生，**当运算符 “不确定” 期望值的类型时**。
+
+  - 二元加法 `+` 可以用于字符串的连接，也可以用于数字的相加，所以二元加法得到对象类型的参数时，无法确定期望值的类型，所以依据 `'default'` hint 来进行转换
+
+    ```js
+    let num = obj1 + obj2; // 二元加法使用 'default' hint
+    ```
+
+  - 当对象被用于字符串、数字或 `symbol` 进行 `==` 比较时，也无法确定进行哪种转换，所以也是依据 `'default'` hint 来进行转换
+
+    ```js
+    if (user == 1) { ... }; // obj == number 使用 'default' hint
+    ```
+
+    **⚠️ 注意：** 虽然 `<` 和 `>` 也可以同时用于字符串和数字，但是它们都使用 `'number'` hint，而不是 `'default'`，这是**历史原因**。
+
+
+
+**为了进行转换，JavaScript 尝试查找并调用三个对象的方法**
+
+1. 首先调用 `obj[Symbol.toPrimitive](hint)`，该方法是带有 `symbol` 键 `Symbol.toPrimitive`（系统 symbol）的方法，如果该方法存在的话
+2. 否则，如果 hint 是 `'string'`，先调用 `toString` 方法，如果它不存在，则再调用 `valueOf` 方法
+3. 否则，如果 hint 是 `'number'` 或 `'default'`，先调用 `valueOf` 方法，如果它不存在，则再调用 `toString` 方法
+
+
+
+**Symbol.toPrimitive**
+
+如果 `Symbol.toPrimitive` 方法存在，它会被**用于所有 hint**，不需要其它方法。
+
+```js
+// hint 参数的值是 'string'、'number' 或 'default' 中的一个
+obj[Symbol.toPrimitive] = function(hint) { 
+  // 这里是将此对象转换为原始值的代码
+  // 它必须返回一个原始值
+}
+```
+
+例如：
+
+```js
+let user = {
+  name: 'CodePencil',
+  money: 1000,
+
+  [Symbol.toPrimitive](hint) {
+    alert(`hint: ${hint}`);
+    return hint === 'string' ? `{name: '${this.name}'}` : this.money;
+  }
+};
+
+// 转换演示：
+alert(user); // hint: string -> {name: 'CodePencil'}
+alert(+user); // hint: number -> 1000
+alert(user + 500); // hint: default -> 1500
+```
+
+上述代码中根据转换的不同，`user` 变成一个字符串或者一个金额。
+
+
+
+**toString/valueOf**
+
+如果没有 `Symbol.toPrimitive` 方法，JavaScript 会尝试寻找 `toString` 和 `valueOf` 方法。
+
+- 对于 `'string'` hint：调用 `toString` 方法，如果它不存在，则调用 `valueOf` 方法（因此，对于字符串转换，优先调用 `toString`）
+- 对于 `'number'` 和 `'default'` hint：调用 `valueOf` 方法，如果它不存在，则调用 `toString` 方法（因此，对于数学运算，优先调用 `valueOf` 方法）
+
+**这些方法必须返回一个原始值**。如果 `toString` 或 `valueOf` 返回了一个对象，那么返回值会被忽略（和这里没有方法的时候相同）。
+
+**默认情况下，普通对象具有 `toString` 和 `valueOf` 方法：**
+
+- `toString` 方法返回一个字符串 `'[object Object]'`
+- `valueOf` 方法返回对象自身
+
+```js
+let user = {name: 'CodePencil'};
+
+alert(user); // [object Object]
+alert(user.valueOf() === user); // true
+```
+
