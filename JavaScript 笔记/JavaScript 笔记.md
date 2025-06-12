@@ -4672,20 +4672,26 @@ for (let key in user) alert(key); // name, age（没有 symbol）
 alert('Direct: ' + user[id]); // Direct: 123
 ```
 
-**⚠️ 注意： `Object.keys(user)` 也会忽略 `symbol`**，因为这是一般 “隐藏符号属性” 原则的一部分，避免另一个脚本或者库遍历对象访问到符号属性，不过 **`Object.assign` 会同时复制字符串和符号属性**：
+**⚠️ 注意： **
 
-```js
-let id = Symbol('id');
-let user = {
-  [id]: 123
-};
+- **`Object.keys(user)` 也会忽略 `symbol`**，因为这是一般 “隐藏符号属性” 原则的一部分，避免另一个脚本或者库遍历对象访问到符号属性
 
-let clone = Object.assign({}, user);
+- 从技术上讲，`symbol` 不是 100% 隐藏的，可以使用内建方法 ` Object.getOwnPropertySymbols(obj) ` 来获取所有的 `symbol`，也可以使用 `Reflect.ownKeys(obj)` 返回一个对象所有的键（包括 `symbol`）
 
-alert( clone[id] ); // 123
-```
+-  **`Object.assign` 会同时复制字符串和符号属性**
 
-这样设计是对的，因为当克隆或者合并一个 `object` 时，通常希望**所有**属性被复制（包括像 `id` 这样的 `symbol`）。
+  ```js
+  let id = Symbol('id');
+  let user = {
+    [id]: 123
+  };
+  
+  let clone = Object.assign({}, user);
+  
+  alert( clone[id] ); // 123
+  ```
+
+  这样设计是对的，因为当克隆或者合并一个 `object` 时，通常希望**所有**属性被复制（包括像 `id` 这样的 `symbol`）。
 
 
 
