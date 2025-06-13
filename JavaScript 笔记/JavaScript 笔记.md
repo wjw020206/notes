@@ -4993,3 +4993,117 @@ alert(obj * 2); // 4
 2. 因为 `'2' * 2` 会做进一步转换，变为 `2 * 2`
 
 所以最终的结果为 `4`。
+
+
+
+## 原始类型的方法
+
+原始值和对象之间的区别：
+
+**原始值：**
+
+- 是原始类型中的一种值
+- 在 JavaScript 中有 7 种原始类型：`string`，`number`，`bigint`，`boolean`，`symbol`，`null` 和 `undefined`
+
+**对象：**
+
+- 能够存储多个值作为属性
+
+- 可以使用大括号 `{}` 创建对象，JavaScript 中还有其他种类的对象，例如函数就是对象
+
+- 还可以把一个函数作为对象的属性
+
+  ```js
+  let user = {
+    name: 'CodePencil',
+    sayHi: function() {
+      alert('Hello World!');
+    }
+  };
+  
+  user.sayHi(); // Hello World!
+  ```
+
+  **⚠️ 注意：** 对象的这些特性（feature）都是有成本的，**对象比原始值 “更重”，需要额外的资源来支持运作**。
+
+
+
+**当做对象的原始类型**
+
+在 JavaScript 中为了让原始类型也可以调用方法，并且保持原始类型的简单轻量，会根据以下流程来处理：
+
+1. 原始类型仍然是原始的，存储单个值
+2. JavaScript 允许访问字符串，数字，布尔值和 symbol 的方法和属性
+3. 为了使第二点起作用，**创建了提供额外功能的特殊 “对象包装器” ，使用后即被销毁**
+
+“对象包装器” 对每种原始类型都是不同的，它们被称为 `String`、`Number`、`Boolean`、`Symbol` 和 `BigInt`，所以它们提供了不同的方法。
+
+
+
+例如字符串方法 `str.toUpperCase()` 会返回一个大写字符串的字符串。
+
+```js
+let str = 'Hello';
+
+alert( str.toUpperCase() ); // HELLO
+```
+
+上述代码实际发生的情况如下：
+
+1. 字符串 `str` 是一个原始值，所以在访问其属性时，会**创建一个包含字符串字面值的特殊对象**，并且具有可用的方法，例如：`toUpperCase()`
+2. `toUpperCase` 方法运行并返回一个新的字符串，由 `alert` 显示
+3. 销毁第一步创建的特殊对象，保证字符串 `str` 依旧是轻量的
+
+**⚠️ 注意：** 
+
+- JavaScript 引擎高度优化了这个过程，它甚至可能跳过创建额外的对象，但是它仍然必须遵守规范，表现得好像它创建了一样
+
+- **构造器 `String/Number/Boolean` 仅供 JavaScript 内部使用**，由于历史原因，在 JavaScript 中也可以通过 `new Number(1)` 等语法去创建原始类型，但是**不推荐这样使用**，例如：
+
+  ```js
+  alert( typeof 0 ); // 'number'
+  alert( typeof new Number(0) ); // 'object'
+  ```
+
+  因为对象转换为布尔值始终为 `true`，会导致如下结果：
+
+  ```js
+  let zero = new Number(0);
+  
+  if (zero) { // zero 为 true，因为它是一个对象
+    alert( 'zero is truthy?!?' );
+  }
+  ```
+
+  不过可以调用不带 `new` 的 `String/Number/Boolean` 函数将一个值转换为相应的类型。
+
+  ```js
+  let num = Number('123'); // 将字符串转成数字
+  ```
+
+- **`null`、`undefined` 是例外，它们没有对应的 “对象包装器”，也没有提供任何方法**
+
+  ```js
+  alert(null.test); // TypeError: Cannot read properties of null (reading 'test')
+  ```
+
+- **无法给原始类型添加属性**
+
+  ```js
+  let str = 'Hello';
+  str.test = 5;
+  alert(str.test);
+  ```
+
+  上述代码中
+
+  - 严格模式 `use strict`，`str.test = 5` 语句会报错
+  - 非严格模式，`str.test` 的值为 `undefined`
+
+  具体发生的操作如下：
+
+  1. 当访问 `str` 的属性时，一个 “对象包装器” 被创建了
+  2. 在严格模式下，像其添加属性会报错
+  3. 否则，在非严格模式下，会继续添加属性，然后对象获得了 `test` 属性后，销毁 “对象包装器”
+
+  所以 `alert(str.test)` 没有返回该属性的值。
