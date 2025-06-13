@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      // alert(randomInteger(1, 5));
+      // alert(randomInteger(1, 5));
+      // alert(randomInteger(1, 5));
+
+      // 0...max + 1 - min
+      // min...max + 1
+
+      function randomInteger(min, max) {
+        return Math.floor(min + Math.random() * (max + 1 - min));
+      }
+
+      const map = new Map();
+      let res;
+
+      for (let i = 0; i < 10000; i++) {
+        res = randomInteger(1, 5);
+        map.set(res, map.has(res) ? map.get(res) + 1 : 0);
+      }
+
+      console.log([...map].sort().toString());
+    </script>
+  </body>
+</html>
