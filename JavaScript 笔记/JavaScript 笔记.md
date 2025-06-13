@@ -4899,8 +4899,8 @@ alert(user + 500); // hint: default -> 1500
 
 如果没有 `Symbol.toPrimitive` 方法，JavaScript 会尝试寻找 `toString` 和 `valueOf` 方法。
 
-- 对于 `'string'` hint：调用 `toString` 方法，如果它不存在，则调用 `valueOf` 方法（因此，对于字符串转换，优先调用 `toString`）
-- 对于 `'number'` 和 `'default'` hint：调用 `valueOf` 方法，如果它不存在，则调用 `toString` 方法（因此，对于数学运算，优先调用 `valueOf` 方法）
+- **对于 `'string'` hint：** 先调用 `toString` 方法，如果它不存在，则调用 `valueOf` 方法（因此，对于字符串转换，优先调用 `toString`）
+- **对于 `'number'` 和 `'default'` hint：** 先调用 `valueOf` 方法，如果它不存在，则调用 `toString` 方法（因此，对于数学运算，优先调用 `valueOf` 方法）
 
 **这些方法必须返回一个原始值**。如果 `toString` 或 `valueOf` 返回了一个对象，那么返回值会被忽略（和这里没有方法的时候相同）。
 
@@ -4916,3 +4916,80 @@ alert(user); // [object Object]
 alert(user.valueOf() === user); // true
 ```
 
+**⚠️ 注意：默认的 `valueOf` 只是为了完整起见，它默认返回对象本身，因此被忽略**，这是历史原因，可以假设它根本就不存在。
+
+例如：
+
+```js
+let user = {
+  name: 'CodePencil',
+  money: 1000,
+
+  // 对于 hint='string'
+  toString() {
+    return `{name: "${this.name}"}`;
+  },
+
+  // 对于 hint='number' 或 'default'
+  valueOf() {
+    return this.money;
+  }
+
+};
+
+alert(user); // toString -> {name: 'CodePencil'}
+alert(+user); // valueOf -> 1000
+alert(user + 500); // valueOf -> 1500
+```
+
+如果希望有一个 “全能” 的地方来处理所有原始转换，**可以只实现对象的 `toString` 方法处理所有原始转换**。
+
+```js
+let user = {
+  name: 'CodePencil',
+  toString() {
+    return this.name;
+  }
+};
+
+alert(user); // toString -> CodePencil
+alert(user + 500); // toString -> CodePencil500
+```
+
+**⚠️ 注意：** `valueOf` 方法不能像 `toString` 方法处理所有原始转换，因为对于 `'string'` hint 来说，会先执行 `toString` 方法返回默认值 `'[object Object]'`，而 `toString` 方法之所以可以处理所有原始转换，主要还是因为 `valueOf` 默认情况下的返回会被忽略，所以就会默认执行 `toStirng`。
+
+
+
+**转换可以返回任何原始类型**
+
+没限制 `toString` 一定要返回字符串，或 `Symbol.toPrimitive` 方法是否为 `'number'` hint 时返回数字。
+
+**唯一强制性的事情是：`toStirng`、`valueOf`、`Symbol.toPrimitive` 必须返回一个原始值，而不是对象**。
+
+**⚠️ 注意：** 因为历史原因，如果 `toString` 或 `valueOf` 返回一个对象，则不会出现 error，但是这种值会被忽略（就像这种方法根本不存在），这是因为在 JavaScript 语言发展初期，没有很好的 error 的概念，相反 `Symbol.toPrimitive` 更加严格，必须返回一个原始值，否则就会出现 error。
+
+
+
+**进一步的转换**
+
+如果将对象作为参数传递，则会出现两个运算阶段：
+
+1. 对象被转换为原始值（通过前面描述的规则）
+2. 如果还需要进一步计算，则生成的原始值会被进一步转换
+
+```js
+let obj = {
+  toString() {
+    return '2';
+  }
+};
+
+alert(obj * 2); // 4
+```
+
+上述代码的转换过程如下：
+
+1. 先将 `obj` 对象转换为原始值 `'2'`
+2. 因为 `'2' * 2` 会做进一步转换，变为 `2 * 2`
+
+所以最终的结果为 `4`。

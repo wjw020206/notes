@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      // 方案1
+      // let a = {
+      //   value: 0,
+
+      //   [Symbol.toPrimitive](hint) {
+      //     return ++this.value;
+      //   },
+      // };
+
+      // 方案2
+      // let a = {
+      //   value: 0,
+      //   toString() {
+      //     return ++this.value;
+      //   },
+      // };
+
+      // 方案3
+      // let a = {
+      //   value: 0,
+      //   valueOf() {
+      //     return ++this.value;
+      //   },
+      // };
+
+      alert(a == 1 && a == 2 && a == 3); // 如何让它为true
+    </script>
+  </body>
+</html>
