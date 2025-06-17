@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      'use strict';
+
+      // function checkSpam(str) {
+      //   return (
+      //     str.toLowerCase().includes('viagra') ||
+      //     str.toUpperCase().includes('XXX')
+      //   );
+      // }
+
+      function checkSpam(str) {
+        let lowerStr = str.toLowerCase();
+
+        return lowerStr.includes('viagra') || lowerStr.includes('xxx');
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      'use strict';
+
+      alert(ucFirst('john')); // John
+
+      function ucFirst(str) {
+        if (!str) return str;
+
+        return str[0].toUpperCase() + str.slice(1);
+      }
+
+      // 第二种写法，charAt(0) 如果不存在则返回空字符串
+      // function ucFirst(str) {
+      //   return str.charAt(0).toUpperCase() + str.slice(1);
+      // }
+    </script>
+  </body>
+</html>
