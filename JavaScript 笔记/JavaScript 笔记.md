@@ -5374,3 +5374,118 @@ JavaScript 中有两个特殊的数值：
 
 **⚠️ 注意：** 虽然它们都属于 `number` 类型，但不是 “普通” 数字，需要使用专门用于检查它们的特殊函数。
 
+- `isNaN(value)` 会将参数转换为数字，如果是 `NaN` 则返回 `true`
+
+  ```js
+  alert( isNaN(NaN) );   // true
+  alert( isNaN('str') ); // true
+  alert( isNaN('123') ); // false
+  ```
+
+  **⚠️ 注意：** 之所以需要这个函数，是因为 **`NaN` 不等于任何东西，包括它自身**：
+
+  ```js
+  alert(NaN === NaN); // false
+  ```
+
+- `isFinite(value)` 会将参数转换为数字，如果是常规数字而不是 `NaN`、`Infinity`、`-Infinity`，则返回 `true`
+
+  ```js
+  alert( isFinite('15') );  // true
+  alert( isFinite('str') ); // false，因为是一个特殊的值：NaN
+  alert( isFinite(Infinity) ); // false，因为是一个特殊的值：Infinity
+  ```
+
+  `isFinite(value)` 常被用于验证字符串值是否为常规数字 ：
+
+  ```js
+  const num = +prompt('Enter a number', '');
+  
+  // 结果会是 true，除非你输入的是 Infinity、-Infinity 或不是数字
+  alert( isFinite(num) );
+  ```
+
+  **⚠️ 注意：** 在所有数字函数中，包括 `isFinite`，**空字符串或仅有空格的字符串均被视为 `0`**。
+
+
+
+**Object.is**
+
+`Object.is` 是一个特殊的内建方法，它类似于 `===` 一样对值进行比较，但对于两种边缘情况更可靠：
+
+1. **它适用于 `NaN`：`Object.is(NaN, NaN) === true`**
+2. **可以区分 `0` 和 `-0` 是不同的：`Object.is(0, -0) === false`**，从技术上讲这是对的，因为在内部，数字的符号位可能会不同，即使其他所有位均为零
+
+**⚠️ 注意：** 在除了以上两种的其它情况下，`Object.is(a, b)` 与 `a === b` 相同。
+
+
+
+**parseInt 和 parseFloat**
+
+**使用 `+` 或 `Number()` 进行数字转换是严格的，如果一个值不完全是数字，就会失败转换为  `NaN`**，例如：
+
+```js
+alert( +'100px' ); // NaN
+```
+
+**⚠️ 注意：** 唯一的例外是字符串开头或结尾的空格，因为它们会被忽略。
+
+但是开发中经常会遇到带有单位的值，例如：`100px`、`50%`，有时候希望从中提取出一个数值，这就是 `parseInt` 和 `parseFloat` 的作用。
+
+它们可以从字符串中 “读取” 数字，直到无法读取为止，如果发生 error，则返回收集到的数字。
+
+```js
+alert( parseInt('100px') ); // 100
+alert( parseFloat('12.5em') ); // 12.5
+
+alert( parseInt('12.3') ); // 12，只有整数部分被返回了
+alert( parseFloat('12.3.4') ); // 12.3，在第二个点出停止了读取
+```
+
+**⚠️ 注意：** 当没有数字可读时依旧会返回 `NaN`：
+
+```js
+alert( parseInt('a123') ); // NaN，第一个符号停止了读取
+```
+
+`parseInt()` 函数具有第二个参数，用来指定数字系统的基数，因此 `parseInt` 还可以解析十六进制数字、二进制数字等的字符串：
+
+```js
+alert( parseInt('0xff', 16) ); // 255
+alert( parseInt('ff', 16) ); // 255，没有 0x 仍然有效
+alert( parseInt('2n9c', 36) ); // 123456
+```
+
+
+
+**其它数学函数**
+
+JavaScript 中有一个内建的 Math 对象，它包含了一个小型的数学函数和常量库。
+
+- **`Math.random()`：** 返回一个从 0 到 1 的随机数（不包括 1）
+
+  ```js
+  alert( Math.random() ); // 0.1234567894322
+  alert( Math.random() ); // 0.5435252343232
+  alert( Math.random() ); // ... (任何随机数)
+  ```
+
+- **`Math.max(a, b, c...)`：** 从任意数量的参数中返回最大值
+
+  ```js
+  alert( Math.max(3, 5, -10, 0, 1) ); // 5
+  ```
+
+- **`Math.min(a, b, c...)`：** 从任意数量的参数中返回最小值
+
+  ```js
+  alert( Math.min(1, 2) ); // 1
+  ```
+
+- **`Math.pow(n, power)`：** 返回 `n` 的给定（power）次幂
+
+  ```js
+  alert( Math.pow(2, 10) ); // 2 的 10 次幂 = 1024
+  ```
+
+  
