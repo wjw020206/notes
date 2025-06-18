@@ -5653,3 +5653,99 @@ for (let char of 'Hello') {
 }
 ```
 
+
+
+**字符串是不可变的**
+
+在 JavaScript 中，字符串是不可更改的。
+
+```js
+let str = 'Hi';
+
+str[0] = 'h'; // TypeError: Cannot assign to read only property '0' of string 'Hi'
+alert(str[0]); // 无法运行
+```
+
+通常的解决方法是创建一个新的字符串，将其分配给 `str`：
+
+```js
+let str = 'Hi';
+
+str = 'h' + str[1];
+alert(str); // hi
+```
+
+
+
+**改变大小写**
+
+通过使用 `toLowerCase()` 和 `toUpperCase()` 改变字符串的大小写：
+
+```js
+alert( 'CodePencil'.toUpperCase() ); // CODEPENCIL
+alert( 'CodePencil'.toLowerCase() ); // codepencil
+```
+
+
+
+**查找子字符串**
+
+- **str.indexOf(substr, pos)**
+
+  从给定位置 `pos` 开始，在 `str` 中查找 `substr`，如果没有找到，则返回 `-1`，否则返回匹配成功的位置。
+
+  ```js
+  let str = 'Widget with id';
+  
+  alert( str.indexOf('Widget') ); // 0，因为 'Widget' 一开始就被找到
+  alert( str.indexOf('widget') ); // -1，没有找到，检索是大小写敏感的
+  
+  alert( str.indexOf('id') ); // 1，'id' 在位置 1 处（……idget 和 id）
+  ```
+
+  第二个参数 `pos` 是可选的，用于从给定的位置开始检索。
+
+  ```js
+  let str = 'Widget with id';
+  
+  alert( str.indexOf('id', 2) ) // 12
+  ```
+  
+  **⚠️ 注意：** 在 `if` 中使用 `indexOf` 不太方便，因为 `if` 会把 `-1` 当做 `true`，而匹配项的下标 `0` 当做 `false`，例如：
+  
+  ```js
+  let str = 'Widget with id';
+  
+  if ( str.indexOf('Widget') ) { // 不正常工作
+    alert('We found it'); 
+  }
+  ```
+  
+  所以应该检查 `-1`：
+  
+  ```js
+  let str = 'Widget with id';
+  
+  if ( str.indexOf('Widget') !== -1 ) { // 正常工作
+    alert('We found it'); 
+  }
+  ```
+  
+  有一个老技巧 `~` 运算符，它将数字转换为 32 位整数（如果存在小数部分，则删除小数部分），然后对其二进制表示形式中的所有位均取反。
+  
+  简单来说就是对于 32 位整数，`~n` 等于 `-(n+1)`。
+  
+  ```js
+  alert( ~2 ); // -3，和 -(2+1) 相同
+  alert( ~1 ); // -2，和 -(1+1) 相同
+  alert( ~0 ); // -1，和 -(0+1) 相同
+  alert( ~-1 ); // 0，和 -(-1+1) 相同
+  ```
+  
+  
+  
+  
+
+- **str.lastIndexOf(substr, pos)**
+
+  该方法与 `str.indexOf(substr, pos)` 用法相同，不过是从字符串的末尾开始搜索到头。
