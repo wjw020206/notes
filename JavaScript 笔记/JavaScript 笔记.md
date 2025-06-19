@@ -5710,9 +5710,9 @@ alert( 'CodePencil'.toLowerCase() ); // codepencil
   
   alert( str.indexOf('id', 2) ) // 12
   ```
-  
+
   **⚠️ 注意：** 在 `if` 中使用 `indexOf` 不太方便，因为 `if` 会把 `-1` 当做 `true`，而匹配项的下标 `0` 当做 `false`，例如：
-  
+
   ```js
   let str = 'Widget with id';
   
@@ -5720,9 +5720,9 @@ alert( 'CodePencil'.toLowerCase() ); // codepencil
     alert('We found it'); 
   }
   ```
-  
+
   所以应该检查 `-1`：
-  
+
   ```js
   let str = 'Widget with id';
   
@@ -5730,22 +5730,145 @@ alert( 'CodePencil'.toLowerCase() ); // codepencil
     alert('We found it'); 
   }
   ```
-  
+
   有一个老技巧 `~` 运算符，它将数字转换为 32 位整数（如果存在小数部分，则删除小数部分），然后对其二进制表示形式中的所有位均取反。
-  
+
   简单来说就是对于 32 位整数，`~n` 等于 `-(n+1)`。
-  
+
   ```js
   alert( ~2 ); // -3，和 -(2+1) 相同
   alert( ~1 ); // -2，和 -(1+1) 相同
   alert( ~0 ); // -1，和 -(0+1) 相同
   alert( ~-1 ); // 0，和 -(-1+1) 相同
   ```
+
+  所以可以用于 `indexOf` 的检查：
+
+  ```js
+  let str = 'Widget with id';
   
-  
-  
+  if ( ~str.indexOf('Widget') ) { // 正常工作
+    alert('We found it'); 
+  }
+  ```
+
+  **⚠️ 注意：** 由于 `~` 运算符将大数字截断为 32 位整数，因此存在给出 `0` 的其他数字，最小的数字是 `~4294967295 === 0`，**这种检查只有在字符串没有那么长的情况下才是正确的**，通常只有在旧代码中看到这个技巧，现代推荐使用 `.includes` 方法。
+
   
 
 - **str.lastIndexOf(substr, pos)**
 
   该方法与 `str.indexOf(substr, pos)` 用法相同，不过是从字符串的末尾开始搜索到头。
+  
+  
+  
+- **str.includes(substr, pos)**
+
+  该方法相比 `indexOf` 更加现代，根据 `str` 中是否包含 `substr` 来返回 `true/false`。
+
+  ```js
+  alert( 'Widget with id'.includes('Widget') ); // true
+  alert( 'Hello'.includes('Bye') ); // false
+  ```
+
+  第二个参数 `pos` 是可选的，设置搜索的起始位置。
+
+  ```js
+  alert( 'Widget'.includes('id') ); // true
+  alert( 'Widget'.includes('id', 3) ); // false, 从位置 3 开始没有 id
+  ```
+
+  
+
+- **str.startsWith(substr, pos)**
+
+  该方法用于检查 `str` 是否以 `substr` 开头，如果是则返回 `true`，反之为 `false`。
+
+  ```js
+  alert( 'Widget'.startsWith('Wid') ); // true，'Widget' 以 Wid 开始
+  ```
+
+  第二个参数 `pos` 是可选的，设置搜索的起始位置。
+
+  
+
+- **str.endsWith(substr, pos)**
+
+  该方法用于检查 `str` 是否以 `substr` 结尾，如果是则返回 `true`，反之为 `false`。
+
+  ```js
+  alert( 'Widget'.endsWith('get') ); // true，'Widget' 以 get 结尾
+  ```
+
+  第二个参数 `pos` 是可选的，设置搜索的起始位置。
+
+
+
+**获取子字符串**
+
+- **str.slice(start [, end])**
+
+  返回字符串从 `start` 到（但不包括）`end` 的部分。
+
+  ```js
+  let str = 'CodePecnil';
+  alert( str.slice(0, 5) ); // 'CodeP'，从 0 到 5 的子字符串（不包括 5）
+  alert( str.slice(0, 1) ); // 'C'，从 0 到 1，但不包括 1，所以只有在 0 处的字符
+  ```
+
+  如果没有第二个参数，`slice` 会一直运行到字符串末尾。
+
+  ```js
+  let str = 'CodePencil';
+  alert( str.slice(2) ); // 'dePencil'
+  ```
+
+  `start/end` 的值也可以是负值，表示起始位置从字符串**结尾计算**：
+
+  ```js
+  let str = 'CodePencil';
+  
+  // 从右边的第四个位置开始，在右边的第一个位置结束
+  alert( str.slice(-4, -1) ); // 'nci'
+  ```
+
+  **⚠️ 注意：** 如果 `start` 大于 `end`，会返回空字符串：
+
+  ```js
+  let str = 'CodePencil';
+  alert( str.slice(2, 0) ); // ''
+  ```
+
+  
+
+- **str.substring(start [, end])**
+
+  返回字符串从 `start` 到（但不包括）`end` 的部分，功能与 `slice` 类似，但**它允许 `start` 大于 `end`**。
+
+  ```js
+  let str = 'CodePecnil';
+  alert( str.substring(0, 6) ); // 'CodePe'
+  alert( str.substring(6, 0) ); // 'CodePe'
+  ```
+
+  **⚠️ 注意：** `start/end` 的值不支持负值，它们被视为 `0`。
+
+  
+
+- **str.substr(start [, length])**
+
+  返回字符串从 `start` 开始的给定 `length` 的部分。
+
+  ```js
+  let str = 'CodePecnil';
+  alert( str.substr(0, 6) ); // 'CodePe'
+  ```
+
+  第一个参数可以是负值，从字符串结尾开始计算。
+
+  ```js
+  let str = 'CodePecnil';
+  alert( str.substr(-2, 2) ); // 'il'
+  ```
+
+  **⚠️ 注意：`substr` 已经被弃用，不推荐使用，推荐优先使用 `slice`**。
