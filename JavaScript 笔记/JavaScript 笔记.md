@@ -6010,3 +6010,183 @@ alert('S\u0307\u0323'.normalize() === '\u1e68'); // true
 ```
 
 **⚠️ 注意：** 并且任何 “复合” 字符都可以使用 `normalize()` 返回对应的代码，上述代码因为符号 `Ṩ` 是 “常用” 的，所以 UTF-16 创建者把它包含在主表中并给它了对应的代码，具体的规则和变体可以参考 [Unicode 规范化形式](https://www.unicode.org/reports/tr15/)。
+
+
+
+## 数组
+
+数组用于存储**有序集合**，里面的元素都是按顺序排列。
+
+
+
+**声明**
+
+创建一个空数组有以下两种方式：
+
+```js
+let arr = new Array();
+let arr = [];
+```
+
+**⚠️ 注意：** 绝大多数情况都使用第二种方式，可以在方括号中添加初始元素。
+
+```js
+let fruits = ['Apple', 'Orange', 'Plum'];
+```
+
+数组中的元素从 `0` 开始编号，可以通过方括号中的数字获取元素：
+
+```js
+let fruits = ['Apple', 'Orange', 'Plum'];
+
+alert( fruits[0] ); // 'Apple'
+alert( fruits[1] ); // 'Orange'
+alert( fruits[2] ); // 'Plum'
+```
+
+除了获取元素，也可以用来替换对应位置的元素：
+
+```js
+fruits[1] = 'Lemon'; // 此时变成了 ['Apple', 'Lemon', 'Plum']
+```
+
+也可以再添加一个元素：
+
+```js
+fruits[3] = 'Pear'; // 此时变成了 ['Apple', 'Lemon', 'Plum', 'Pear']
+```
+
+`length` 属性的值是数组中元素的总个数：
+
+```js
+let fruits = ['Apple', 'Orange', 'Plum'];
+
+alert(fruits.length); // 3
+```
+
+可以使用 `alert` 来显示整个数组。
+
+```js
+let fruits = ['Apple', 'Orange', 'Plum'];
+
+alert(fruits); // Apple,Orange,Plum
+```
+
+数组跟对象一样，内部可以存储任何类型的元素。
+
+```js
+let arr = [ 'Apple', { name: 'CodePencil' }, true, function() { alert('hello'); } ];
+```
+
+**⚠️ 注意：** 和对象属性一样，**推荐数组中每个元素以逗号结尾**，便于移动、插入和移除项。
+
+```js
+let fruits = [
+  'Apple', 
+  'Orange', 
+  'Plum',
+];
+```
+
+
+
+**使用 at 获取数组中最后一个元素**
+
+我们可以显式计算最后一个元素的索引来获取数组中最后一个元素：
+
+```js
+let fruits = ['Apple', 'Orange', 'Plum'];
+alert( fruits[fruits.length - 1] ); // Plum
+```
+
+但是这样的写法有点麻烦，变量名重复写了两次，可以使用更简短的语法：
+
+```js
+let fruits = ['Apple', 'Orange', 'Plum'];
+alert( fruits.at(-1) ); // Plum
+```
+
+`arr.at(i)` 简单来说：
+
+- 如果 `i >= 0`，则与 `arr[i]` 完全相同
+- 如果 `i < 0`，它则从数组的尾部向前数，例如：`-1` 表示倒数第一个元素
+
+
+
+**pop/push, shift/unshift 方法**
+
+**队列（Queue）**是最常见的使用数组的方法之一。
+
+![image-20250620080339207](images/image-20250620080339207.png)
+
+- `push` 在队列的末尾添加一个元素
+- `shift` 取出队列首端的一个元素，整个队列往前移，使原先排第二的元素现在排在了第一
+
+这两种操作数组都支持，对于队列来说，最先放进去的内容是最先接收，叫做 **FIFO（First-In-First-Out），即先进先出法则**。
+
+
+
+**堆栈（Stack）**也是常见的使用数组的方法之一。
+
+![image-20250620083412788](images/image-20250620083412788.png)
+
+- `push` 在末端添加一个元素
+- `pop` 从末端取出一个元素
+
+所以新元素的添加和取出都是从 **“末端”** 开始的，对于栈来说，最后放进去的内容是最先接收的，叫做 **LIFO（Last-In-First-Out），即后进先出法则**。
+
+在 JavaScript 中，数组既可以用作队列，也可以用作栈，在计算机科学中，允许这样的操作的数据结构被称为 **双端队列（Deque）**。
+
+
+
+**作用于数组末端的方法：**
+
+- **`pop`**
+
+  取出并返回数组最后一个元素。
+
+  ```js
+  let fruits = ['Apple', 'Orange', 'Plum'];
+  alert( fruits.pop() ); // Plum
+  ```
+
+  **⚠️ 注意：** `fruits.pop()` 与 `fruits.at(-1)` 不同，虽然它们都返回数组最后一个元素，但前者同时会删除数组的最后一个元素，进而修改了原数组。
+
+- **`push`**
+
+  在数组的末端添加一个元素。
+
+  ```js
+  let fruits = ['Apple', 'Orange'];
+  fruits.push('Lemon');
+  alert(fruits); // Apple, Orange, Lemon
+  ```
+
+  **⚠️ 注意：** `fruits.push(...)` 与 `fruits[fruits.length] = ...` 是一样的。
+
+
+
+**作用于数组首端的方法：**
+
+- **`shift`**
+
+  取出数组第一个元素并返回它。
+
+  ```js
+  let fruits = ['Apple', 'Orange', 'Plum'];
+  alert( fruits.shift() ); // Apple
+  alert(fruits); // Orange, Plum
+  ```
+
+- **`unshift`**
+
+  在数组的首端添加元素。
+
+  ```js
+  let fruits = ['Orange', 'Plum'];
+  fruits.unshift('Apple');
+  alert(fruits); // Apple, Orange, Plum
+  ```
+
+  
+
