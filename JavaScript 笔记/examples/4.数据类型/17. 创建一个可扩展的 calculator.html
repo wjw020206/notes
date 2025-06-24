@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      'use strict';
+
+      let powerCalc = new Calculator();
+      let result = powerCalc.calculate('2 + 3');
+      alert(result); // 5
+
+      function Calculator() {
+        this.methods = {
+          '+': (a, b) => a + b,
+          '-': (a, b) => a - b,
+        };
+
+        this.calculate = function (str) {
+          const split = str.split(' ');
+          const a = +split[0];
+          const op = split[1];
+          const b = +split[2];
+
+          if (!this.methods[op] || isNaN(a) || isNaN(b)) {
+            return NaN;
+          }
+
+          return this.methods[op](a, b);
+        };
+
+        this.addMethod = function (name, func) {
+          this.methods[name] = func;
+        };
+      }
+    </script>
+  </body>
+</html>

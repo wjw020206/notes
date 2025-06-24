@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      'use strict';
+
+      let john = { name: 'John', age: 25 };
+      let pete = { name: 'Pete', age: 30 };
+      let mary = { name: 'Mary', age: 28 };
+
+      let arr = [pete, john, mary];
+
+      sortByAge(arr);
+
+      // now: [john, mary, pete]
+      alert(arr[0].name); // John
+      alert(arr[1].name); // Mary
+      alert(arr[2].name); // Pete
+
+      function sortByAge(users) {
+        users.sort((a, b) => a.age - b.age);
+      }
+    </script>
+  </body>
+</html>

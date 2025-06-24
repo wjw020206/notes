@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      function unique(arr) {
+        const stringList = [];
+
+        arr.forEach((string) => {
+          if (!stringList.includes(string)) {
+            stringList.push(string);
+          }
+        });
+
+        return stringList;
+      }
+
+      let strings = [
+        'Hare',
+        'Krishna',
+        'Hare',
+        'Krishna',
+        'Krishna',
+        'Krishna',
+        'Hare',
+        'Hare',
+        ':-O',
+      ];
+
+      alert(unique(strings)); // Hare, Krishna, :-O
+    </script>
+  </body>
+</html>
