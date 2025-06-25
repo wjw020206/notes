@@ -6159,7 +6159,7 @@ alert( fruits.at(-1) ); // Plum
   ```js
   let fruits = ['Apple', 'Orange'];
   fruits.push('Lemon');
-  alert(fruits); // Apple, Orange, Lemon
+  alert(fruits); // Apple,Orange, Lemon
   ```
 
   **⚠️ 注意：** `fruits.push(...)` 与 `fruits[fruits.length] = ...` 是一样的。
@@ -6175,7 +6175,7 @@ alert( fruits.at(-1) ); // Plum
   ```js
   let fruits = ['Apple', 'Orange', 'Plum'];
   alert( fruits.shift() ); // Apple
-  alert(fruits); // Orange, Plum
+  alert(fruits); // Orange,Plum
   ```
 
 - **`unshift`**
@@ -6185,7 +6185,7 @@ alert( fruits.at(-1) ); // Plum
   ```js
   let fruits = ['Orange', 'Plum'];
   fruits.unshift('Apple');
-  alert(fruits); // Apple, Orange, Plum
+  alert(fruits); // Apple,Orange,Plum
   ```
 
 
@@ -6219,7 +6219,7 @@ let arr = fruits; // 通过引用复制 (两个变量引用的是相同的数组
 alert(arr === fruits); // true
 arr.push('Pear'); // 通过引用修改数组
 
-alert(fruits); // Apple, Pear
+alert(fruits); // Apple,Pear
 ```
 
 **⚠️ 注意：** 
@@ -6443,3 +6443,246 @@ alert('0' == []); // false
    ```
 
 所以对数组进行比较时，**最好不要使用 `==` 运算符**，而是通过循环或者迭代方法逐项比较它们。 
+
+
+
+## 数组方法
+
+除了前面的 `push`、`pop`、`shift`、`unshift` 方法，数组还有其它几种方法。
+
+
+
+**splice**
+
+`splice` 是处理数组的瑞士军刀，可以删除、替换和插入元素。
+
+语法：
+
+```js
+arr.splice(start[, deleteCount, elem1, ..., elemN]);
+```
+
+从索引 `start` 开始修改 `arr`：删除 `deleteCount` 个元素并在当前位置插入 `elem1, ..., elemN`，**最后返回被删除的元素所组成的数组**。
+
+
+
+- **删除元素**
+
+  ```js
+  let arr = ['I', 'study', 'JavaScript'];
+  
+  arr.splice(1, 1); // 从索引 1 开始删除 1 个元素，也就是 'study'
+  
+  alert(arr); // I,JavaScript
+  ```
+
+  **⚠️ 注意：**
+
+  - 数组也是对象，也可以使用 `delete` 来删除数组中的元素，但是这样操作**不会移动剩下元素的位置并释放占据的位置**，应当使用数组的方法来操作数组
+
+    ```js
+    let arr = ['I', 'study', 'JavaScript'];
+    
+    delete arr[1]; // 删除 'study'
+    
+    alert(arr[1]); // undefined
+    
+    alert(arr.length); // 3
+    ```
+
+    
+
+  - 当 `splice` 中只填写了 `start` 参数时，**将删除从索引 `start` 开始的所有数组项**
+
+    ```js
+    let arr = ['I', 'study', 'JavaScript'];
+    
+    arr.splice(1);
+    
+    alert(arr); // I
+    ```
+
+    
+
+- **替换元素**
+
+  ```js
+  let arr = ['I', 'study', 'JavaScript', 'right', 'now'];
+  
+  // 删除数组的前三项，并使用其它内容代替它们
+  arr.splice(0, 3, "Let's", 'dance');
+  
+  alert(arr); // Let's,dance,right,now
+  ```
+
+
+
+- **插入元素**
+
+  将 `deleteCount` 设置为 `0`，`splice` 方法就能够**插入元素而不用删除任何元素**
+
+  ```js
+  let arr = ['I', 'study', 'JavaScript'];
+  
+  arr.splice(2, 0, 'complex', 'language');
+  
+  alert(arr); // I,study,complex,language,JavaScript
+  ```
+
+  
+
+**slice**
+
+与字符串的 `str.slice` 方法类似，用于将从索引 `start` 到 `end`（不包括 `end`）的数组项复制到一个新的数组。
+
+语法：
+
+```js
+arr.slice([start], [end]);
+```
+
+**`start` 和 `end` 都可以是负数**，在这种情况下，从末尾计算索引。
+
+例如：
+
+```js
+let arr = ['t', 'e', 's', 't'];
+
+alert( arr.slice(1, 3) ); // e,s
+
+alert( arr.slice(-2) ); // s,t
+```
+
+**⚠️ 注意：** 可以不带参数地调用它，`arr.slice()` 会创建一个 `arr` 的副本，通常用于获取数组的副本。
+
+
+
+**concat**
+
+创建一个新数组，其中包含来自于其他数组和其他项的值。
+
+语法：
+
+```js
+arr.concat(arg1, arg2...);
+```
+
+**它接受任意数量的参数，数组或值都可以**，如果参数 `argN` 是一个数组，那么其中的所有元素都会被复制，否则将复制参数本身。
+
+例如：
+
+```js
+let arr = [1, 2];
+
+// 从 arr 和 [3,4] 创建一个新数组
+alert( arr.concat([3, 4]) ); // 1,2,3,4
+
+// 从 arr、[3,4] 和 [5,6] 创建一个新数组
+alert( arr.concat([3, 4], [5, 6]) ); // 1,2,3,4,5,6
+
+// 从 arr、[3,4]、5 和 6 创建一个新数组
+alert( arr.concat([3, 4], 5, 6) ); // 1,2,3,4,5,6
+```
+
+**⚠️ 注意：** 
+
+- 通常它只复制数组中的元素，对于其它对象，即使看起来像数组一样，但仍然会被作为一个整体添加
+
+  ```js
+  let arr = [1, 2];
+  
+  let arrayLike = {
+    0: 'something',
+    length: 1,
+  };
+  
+  alert( arr.concat(arrayLike) ); // 1,2,[object Object]
+  ```
+
+  
+
+- 如果类数组对象具有 `Symbol.isConcatSpreadable` 属性，那么它就会被 `concat` 当作一个数组来处理
+
+  ```js
+  let arr = [1, 2];
+  
+  let arrayLike = {
+    0: 'something',
+    1: 'else',
+    length: 1,
+    [Symbol.isConcatSpreadable]: true,
+  };
+  
+  alert( arr.concat(arrayLike) ); // 1,2,something,else
+  ```
+
+
+
+**forEach**
+
+`arr.forEach` 方法允许为数组的每个元素都运行一个函数。
+
+语法：
+
+```js
+arr.forEach(function(item, index, array) {
+  // ... do something with item
+});
+```
+
+`item` 是当前项，`index` 是当前项的下标，`array` 是原数组。
+
+例如：
+
+```js
+['Bilbo', 'Gandalf', 'Nazgul'].forEach((item, index, array) => {
+  alert(`${item} is at index ${index} in ${array}`);
+});
+
+// 输出结果依次为：
+// Bilbo is at index 0 in Bilbo,Gandalf,Nazgul
+// Gandalf is at index 1 in Bilbo,Gandalf,Nazgul
+// Nazgul is at index 2 in Bilbo,Gandalf,Nazgul
+```
+
+**⚠️ 注意：** 该函数的结果如果有返回，会被抛弃和忽略。
+
+
+
+**indexOf / lastIndexOf 和 includes**
+
+这些方法与字符串的方法相同，不过这里是针对数组项而非字符进行操作。
+
+- **`arr.indexOf(item, from)`：** 从索引 `from` 开始搜索 `item`，如果找到则返回索引，否则返回 `-1`
+- **`arr.lastIndexOf(item, from)`：** 与 `indexof` 相同，但从右向左查找
+- **`arr.includes(item, from)`：** 从索引 `from` 开始搜索 `item`，如果找到则返回 `true`，否则返回 `false`
+
+例如：
+
+```js
+let arr = [1, 0, false];
+
+alert( arr.indexOf(0) ); // 1
+alert( arr.indexOf(false) ); // 2
+alert( arr.indexOf(null) ); // -1
+alert( arr.includes(1) ); // true
+```
+
+**⚠️ 注意：** 
+
+- `indexOf` 和 `includes` 使用严格相等 `===` 进行比较
+
+- **方法 `includes` 可以正确处理 `NaN`**
+
+  ```js
+  const arr = [NaN];
+  alert( arr.indexOf(NaN) ); // -1（错，应该为 0）
+  alert( arr.includes(NaN) );// true（正确）
+  ```
+
+  因为 `includes` 是在比较晚的时候才被添加到 JavaScript 中的，并且在内部使用了更新了的比较算法
+
+
+
+**findIndex / findLastIndex 和 find**
+
