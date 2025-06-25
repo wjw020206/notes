@@ -6686,3 +6686,75 @@ alert( arr.includes(1) ); // true
 
 **findIndex / findLastIndex 和 find**
 
+这三个方法通常用于对象数组（即数组中的元素都是对象）。
+
+- **`findIndex`**
+
+  用于寻找具有特定条件的**对象的索引，而不是元素本身**，如果没有找到则返回 `-1`。
+
+  语法：
+
+  ```js
+  let result = arr.findIndex(function(item, index, array) {
+    // 如果返回 true，则返回 index 并停止迭代
+    // 对于假值（falsy）的情况，则返回 -1
+  });
+  ```
+
+  依次对数组中的每个元素调用该函数：
+
+  - `item` 是元素
+  - `index` 是它的索引
+  - `array` 是数组本身
+
+  例如：
+
+  ```js
+  let users = [
+    {id: 1, name: 'John'},
+    {id: 2, name: 'Pete'},
+    {id: 3, name: 'Mary'},
+  ];
+  
+  alert( users.findIndex(user => user.name === 'John') ); // 0
+  alert( users.findIndex(user => user.name === 'CodePencil') ); // -1
+  ```
+
+  
+
+- **`findLastIndex`**
+
+  与 `findIndex` 语法相同，**但从右向左搜索**。
+
+  ```js
+  let users = [
+    {id: 1, name: 'John'},
+    {id: 2, name: 'Pete'},
+    {id: 3, name: 'Mary'},
+    {id: 4, name: 'John'},
+  ];
+  
+  alert( users.findIndex(user => user.name === 'John') ); // 0
+  alert( users.findLastIndex(user => user.name === 'John') ); // 3
+  ```
+
+
+
+- **`find`**
+
+  与 `findIndex` 语法相同，但是它返回的**不是元素索引，而是元素本身**，如果没有找到则返回 `undefined`。
+
+  ```js
+  let users = [
+    {id: 1, name: 'John'},
+    {id: 2, name: 'Pete'},
+    {id: 3, name: 'Mary'},
+  ];
+  
+  let user = users.find(item => item.id === 1);
+  
+  alert(user.name); // John
+  alert( users.find(item => item.id === 4) ); // undefined
+  ```
+
+  
