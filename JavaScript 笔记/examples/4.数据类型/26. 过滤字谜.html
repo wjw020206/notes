@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      'use strict';
+
+      let arr = [
+        'nap',
+        'teachers',
+        'cheaters',
+        'PAN',
+        'ear',
+        'era',
+        'hectares',
+      ];
+
+      alert(aclean(arr)); // "nap,teachers,ear" or "PAN,cheaters,era"
+
+      function aclean(arr) {
+        const map = new Map();
+
+        for (const str of arr) {
+          const key = str.toLowerCase().split('').sort().join('');
+          map.set(key, str);
+        }
+
+        return Array.from(map.values());
+      }
+    </script>
+  </body>
+</html>

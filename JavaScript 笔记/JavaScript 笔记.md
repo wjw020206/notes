@@ -7044,7 +7044,7 @@ arr.map(func, thisArg);
 // thisArg 是可选的最后一个参数
 ```
 
-**`thisArg` 参数的值用于在 `func` 作为 `this`**。
+**`thisArg` 参数的值用于在 `func` 运行时作为 `this`**。
 
 例如：
 
@@ -7081,3 +7081,8 @@ let soldiers = users.filter( user => army.canJoin(user) );
 
 箭头函数在日常开发中的使用频率比使用 `thisArg` 高，也更加容易理解。
 
+
+
+## Iterable object 可迭代对象
+
+**可迭代（Iterable）**对象是数组的泛化（泛化指：更通用、更宽泛），这个概念是说任何对象都可以被定制为可以在 `for..of` 中循环使用的对象。
