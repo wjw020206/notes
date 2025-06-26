@@ -7027,3 +7027,57 @@ alert(typeof []); // object（相同）
 alert(Array.isArray({})); // false
 alert(Array.isArray([])); // true
 ```
+
+
+
+**大多数方法都支持 thisArg**
+
+前面几乎所有调用函数的数组方法，如：`find`、`filter`、`map`（除了 `sort`）等都支持一个可选的附加参数 `thisArg`。
+
+完整的语法如下：
+
+```js
+arr.find(func, thisArg);
+arr.filter(func, thisArg);
+arr.map(func, thisArg);
+// ...
+// thisArg 是可选的最后一个参数
+```
+
+**`thisArg` 参数的值用于在 `func` 作为 `this`**。
+
+例如：
+
+```js
+let army = {
+  minAge: 18,
+  maxAge: 27,
+  canJoin(user) {
+    return user.age >= this.minAge && user.age < this.maxAge;
+  },
+};
+
+let users = [
+  {age: 16},
+  {age: 20},
+  {age: 23},
+  {age: 30}
+];
+
+// 找到 army.canJoin 返回 true 的 user
+let soldiers = users.filter(army.canJoin, army);
+
+alert(soldiers.length); // 2
+alert(soldiers[0].age); // 20
+alert(soldiers[1].age); // 23
+```
+
+上述代码中，如果使用的是 `users.filter(army.canJoin)`，那么 `army.canJoin` 将被作为独立函数调用，并且这时 `this=undefined`，从而导致报错，也可以使用箭头函数。
+
+```js
+// 找到 army.canJoin 返回 true 的 user
+let soldiers = users.filter( user => army.canJoin(user) );
+```
+
+箭头函数在日常开发中的使用频率比使用 `thisArg` 高，也更加容易理解。
+
