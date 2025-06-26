@@ -6758,3 +6758,272 @@ alert( arr.includes(1) ); // true
   ```
 
   
+  
+- **`filter`**
+
+  `filter` 返回所有匹配元素组成的数组。
+
+  语法：
+
+  ```js
+  let results = arr.filter(function(item, index, array) {
+    // 如果 true item 被 push 到 results，迭代继续
+    // 如果什么都没找到，则返回空数组
+  });
+  ```
+
+  例如：
+
+  ```js
+  let users = [
+    {id: 1, name: 'John'},
+    {id: 2, name: 'Pete'},
+    {id: 3, name: 'Mary'},
+  ];
+  
+  // 返回前两个用户的数组
+  let someUsers = users.filter(item => item.id < 3);
+  
+  alert(someUsers.length); // 2
+  ```
+
+
+
+- **`map`**
+
+  `map` 对数组的每个元素都调用函数，并返回结果数组。
+
+  语法：
+
+  ```js
+  let result = arr.map(function(item, index, array) {
+    // 返回新值而不是当前元素
+  });
+  ```
+
+  例如：
+
+  ```js
+  let lengths = ['Bilbo', 'Gandalf', 'Nazgul'].map(item => item.length);
+  
+  alert(lengths); // 5,7,6
+  ```
+
+  
+
+- **`sort`**
+
+  `arr.sort` 方法对数组进行**原位（in-place）**排序（指修改原数组，而非生成一个新数组），更改元素的顺序。
+
+  语法：
+
+  ```js
+  let arr = [15, 1, 2];
+  
+  // 该方法重新排列 arr 的内容
+  arr.sort();
+  
+  alert(arr);  // 1,15,2
+  ```
+
+  **⚠️ 注意：**
+
+  - **`arr.sort` 方法还会返回排序后的数组**，但是在平常开发中返回值通常不会去使用，因为已经修改了原数组本身
+
+  - 上述代码的排序结果不对，是因为 `arr.sort` 中的元素**默认按字符串进行排序**，如果要使用自己的排序顺序，需要提供一个函数作为 `arr.sort` 的参数
+
+    ```js
+    function compareNumeric(a, b) {
+      if (a > b) return 1;   // 如果第一个值比第二个值大
+      if (a === b) return 0; // 如果两个值相等
+      if (a < b) return -1;  // 如果第一个值比第二个值小
+    }
+    
+    let arr = [1, 15, 2];
+    
+    arr.sort(compareNumeric);
+    
+    alert(arr); // 1,2,15
+    ```
+
+    上述代码中 `arr.sort` 内部的算法会将一个元素与多个其他元素进行比较，会尝试尽可能少的比较。
+
+    **⚠️ 注意：**
+
+    - 比较函数可以返回任何数字，**返回一个正数表示 `a` 应该排在 `b` 后面，返回一个负数表示 `a` 应该排在 `b` 前面，返回 `0` 表示顺序不变**，所以前面的代码可以简化为：
+
+      ```js
+      let arr = [1, 15, 2];
+      
+      arr.sort(function(a, b) { 
+        return a - b;
+      });
+      
+      alert(arr); // 1,2,15
+      ```
+
+      代码中的 `a` 和 `b` 表示待比较的两个元素，它们不一定是原数组中**相邻**或**有固定位置的**元素，在排序过程中具体选择哪两个元素进行比较取决于浏览器内部的排序算法。
+
+      
+
+    - 对于不同地区的字母，最好使用 `str.localeCompare` 正确地对字母进行排序
+
+      例如用德语对几个国家/地区进行排序：
+
+      ```js
+      let countries = ['Österreich', 'Andorra', 'Vietnam'];
+      
+      alert( countries.sort( (a, b) => a > b ? 1 : -1) ); // Andorra, Vietnam, Österreich（错的）
+      alert( countries.sort( (a, b) => a.localeCompare(b) ) ); // Andorra,Österreich,Vietnam（对的！）
+      ```
+
+      
+
+- **`reverse`**
+
+  `arr.reverse` 方法对数组进行**原位（in-place）**颠倒，也会返回颠倒后的数组 `arr`。
+
+  ```js
+  let arr = [1, 2, 3, 4, 5];
+  arr.reverse();
+  
+  alert(arr); // 5,4,3,2,1
+  ```
+
+  
+
+- **`split`**
+
+  `str.split` 通过给定的分隔符 `delim` 将字符串分割成一个数组。
+
+  ```js
+  let names = 'Bilbo, Gandalf, Nazgul';
+  let arr = names.split(', '); // 此时 arr = ['Bilbo', 'Gandalf', 'Nazgul']
+  ```
+
+  `split` 还支持可选的第二个数字参数，用于限制数组的长度，如果提供了，额外的元素会被忽略。
+
+  ```js
+  let arr = 'Bilbo, Gandalf, Nazgul, Saruman'.split(', ', 2);
+  alert(arr); // Bilbo, Gandalf
+  ```
+
+  空参数的 `split` 可以将字符串拆分为字母数组：
+
+  ```js
+  let str = 'test';
+  alert( str.split('') ); // t,e,s,t
+  ```
+
+  
+
+- **`join`**
+
+  `arr.join(glue)` 与 `split` 相反，用于将数组中的每一项通过给定的 `glue` 粘合为一个字符串。
+
+  ```js
+  let arr = ['Bilbo', 'Gandalf', 'Nazgul'];
+  let str = arr.join(';'); // 使用分号 ; 将数组粘合成字符串
+  alert(str); // Bilbo;Gandalf;Nazgul
+  ```
+
+  
+
+- **`reduce`**
+
+  用于根据数组计算单个值。
+
+  语法：
+
+  ```js
+  let value = arr.reduce(function(accumulator, item, index, array) {
+    // ...
+  }, [initial]);
+  ```
+
+  该函数按顺序应用于每个数组元素，并将返回结果 “搬运（carry on）” 到下一个调用。
+
+  参数：
+
+  - `accumulator` 是上一个函数调用的结果，第一次等于 `initial`（如果提供了 `initial` 的话）
+  - `item` 当前的数组元素
+  - `index` 当前索引
+  - `arr` 数组本身
+
+  简单来说第一个参数就是一个累加器，用于存储所有先前执行的结果，最后它成为 `reduce` 的结果。
+
+  例如：
+
+  ```js
+  let arr = [1, 2, 3, 4, 5];
+  let result = arr.reduce((sum, current) => sum + current, 0);
+  
+  alert(result); // 15
+  ```
+
+  上述代码具体的执行过程如下：
+
+  |             | `sum` | `current` | `result` |
+  | :---------- | :---- | :-------- | -------- |
+  | 第 1 次调用 | `0`   | `1`       | `1`      |
+  | 第 2 次调用 | `1`   | `2`       | `3`      |
+  | 第 3 次调用 | `3`   | `3`       | `6`      |
+  | 第 4 次调用 | `6`   | `4`       | `10`     |
+  | 第 5 次调用 | `10`  | `5`       | `15`     |
+
+  也可以省略初始值：
+
+  ```js
+  let arr = [1, 2, 3, 4, 5];
+  
+  // 删除 reduce 的初始值（没有 0）
+  let result = arr.reduce((sum, current) => sum + current);
+  
+  alert( result ); // 15
+  ```
+
+  结果跟前面的代码一样，因为**如果没有初始值，那么 `reduce` 会将数组的第一个元素作为初始值，并从第二个元素开始迭代**。
+
+  它的计算过程如下：
+
+  |             | `sum` | `current` | `result` |
+  | :---------- | :---- | :-------- | -------- |
+  | 第 1 次调用 | `1`   | `2`       | `3`      |
+  | 第 2 次调用 | `3`   | `3`       | `6`      |
+  | 第 3 次调用 | `6`   | `4`       | `10`     |
+  | 第 4 次调用 | `10`  | `5`       | `15`     |
+
+  **⚠️ 注意：** 如果数组为空，那么在没有初始值的情况下调用 `reduce` 会导致错误。
+
+  ```js
+  let arr = [];
+  
+  // 如果初始值存在，则 reduce 将为空 arr 返回它（即这个初始值）。
+  arr.reduce((sum, current) => sum + current); // TypeError: Reduce of empty array with no initial value
+  ```
+
+  **所以建议始终指定初始值。**
+
+  
+
+- **`reduceRight`**
+
+  与 `arr.reduce` 相同，不过遍历方向是从右到左。
+
+
+
+**Array.isArray**
+
+因为数组是基于对象的，在 JavaScript 中不是单独的数据类型，所以**只靠 `typeof` 无法区分普通对象和数组**：
+
+```js
+alert(typeof {}); // object
+alert(typeof []); // object（相同）
+```
+
+所以有一种特殊的方法来判断：`Array.isArray(value)`，如果 `value` 是一个数组，则返回 `true`，反之返回 `false`。
+
+```js
+alert(Array.isArray({})); // false
+alert(Array.isArray([])); // true
+```
