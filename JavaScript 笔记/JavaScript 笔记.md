@@ -7086,3 +7086,96 @@ let soldiers = users.filter( user => army.canJoin(user) );
 ## Iterable object 可迭代对象
 
 **可迭代（Iterable）**对象是数组的泛化（泛化指：更通用、更宽泛），这个概念是说任何对象都可以被定制为可以在 `for..of` 中循环使用的对象。
+
+数组是可迭代的，不仅仅是数组。很多其它内建对象也都是可迭代的，例如字符串也是可迭代的。
+
+
+
+**Symbol.iterator**
+
+有一个对象，它并不是数组，但是看上去很适合使用 `for..of` 循环，例如：
+
+```js
+let range = {
+  from: 1,
+  to: 5,
+};
+```
+
+为了让 `range` 对象可迭代，需要为对象添加一个名为 `Symbol.iterator` 的方法（一个专门用于使对象可迭代的内建 `symbol`）。
+
+1. **当 `for..of` 循环启动时，它会调用这个方法**（如果没找到，就会报错），这个方法必须返回一个**迭代器（iterator）**—— 一个有 `next` 方法的对象
+2. 从此开始，`for..of` **仅适用于这个被返回的对象**
+3. 当 `for..of` 循环希望取得下一个数值，它就调用这个对象的 `next()` 方法
+4. **`next()` 方法返回的结果必须是 `{done: Boolean, value: any}`**，当 `done = true` 时，表示循环结束，否则 `value` 是下一个值
+
+完整的实现如下：
+
+```js
+let range = {
+  from: 1,
+  to: 5,
+};
+
+// 1. for..of 调用首先会调用这个：
+range[Symbol.iterator] = function() {
+  
+  // ……它返回迭代器对象（iterator object）：
+  // 2. 接下来，for..of 仅与下面的迭代器对象一起工作，要求它提供下一个值
+  return {
+		current: this.from,
+    last: this.to,
+
+    // 3. next() 在 for..of 的每一轮循环迭代中被调用
+    next() {
+      // 4. 它将会返回 {done:.., value :...} 格式的对象
+      if (this.current <= this.last) {
+       	return { done: false, value: this.current++ };
+      } else {
+        return { done: true };
+      }
+    }
+  };
+};
+
+// 现在它可以运行了！
+for (let num of range) {
+  alert(num); // 1, 然后是 2, 3, 4, 5
+}
+```
+
+**⚠️ 注意：** 可迭代对象的核心功能：**关注点分离**。
+
+- `range` 对象自身没有 `next()` 方法
+- 相反，是通过调用 `range[Symbol.iterator]()` 创建了另一个对象，即所谓的 “迭代器” 对象，并且它的 `next` 会为迭代生成值，所以迭代器对象和与其进行迭代的对象是分开的
+
+
+
+在技术上也可以将它们进行合并，并使用 `range` 自身作为迭代器来简化代码。
+
+```js
+let range = {
+  from: 1,
+  to: 5,
+  
+  [Symbol.iterator]() {
+    // 记忆当前迭代进程
+    this.current = this.from;
+    return this;
+  },
+  
+  next() {
+    if(this.current <= this.to) {
+      return { done: false, value: this.current++ };
+    } else {
+      return { done: true };
+    }
+  }
+};
+
+for (let num of range) {
+  alert(num); // 1, 然后是 2, 3, 4, 5
+}
+```
+
+上述代码的 `range[Symbol.iterator]()` 返回的是 `range` 对象自身：它包括了必需的 `next()` 方法，并通过 `this.current` 记忆了当前的迭代进程。
