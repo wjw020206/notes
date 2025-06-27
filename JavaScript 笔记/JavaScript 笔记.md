@@ -7474,3 +7474,91 @@ for (let entry of recipeMap) { // 与 recipeMap.entries() 相同
 }
 ```
 
+**⚠️ 注意：** 
+
+- **`Map` 的迭代顺序和插入值的顺序相同**
+
+- `Map` 也有 `forEach` 方法，与 `Array` 类似
+
+  ```js
+  let recipeMap = new Map([
+    ['cucumber', 500],
+    ['tomatoes', 350],
+    ['onion',    50]
+  ]);
+  
+  recipeMap.forEach((value, key, map) => {
+    alert(`${key}: ${value}`); // cucumber: 500
+  });
+  ```
+  
+
+
+
+**Object.entries**
+
+当创建一个 `Map` 后，可以传入一个**带有键/值对的数组（或其它可迭代对象）来进行初始化**，例如：
+
+```js
+// 键值对 [key, value] 数组
+let map = new Map([
+  ['1', 'str1'],
+  [1, 'num1'],
+  [true, 'bool1'],
+]);
+
+alert( map.get('1') ); // str1
+```
+
+如果想从一个已有的普通对象来创建一个 `Map`，可以使用内置的方法 `Object.entries(obj)`，该方法返回对象的键/值对数组，格式完全按照 `Map` 所需的格式。
+
+```js
+let obj = {
+  name: 'CodePencil',
+  age: 23,
+};
+
+let map = new Map( Object.entries(obj) );
+alert( map.get('name') ); // CodePencil
+```
+
+上述代码中 `Object.entries(obj)` 返回键/值对数组：`[ ["name","CodePencil"], ["age", 23] ]`，这是 `Map` 需要的格式。
+
+
+
+**Object.fromEntries**
+
+`Object.fromEntries` 的作用和 `Object.entries` 是相反的：给定一个具有 `[key, value]` 键/值对的数组，它会根据给定数组创建一个对象，例如：
+
+```js
+let prices = Object.fromEntries([
+  ['banana', 1],
+  ['orange', 2],
+  ['meat', 4]
+]);
+
+// 现在 prices = { banana: 1, orange: 2, meat: 4 }
+alert(prices.orange); // 2
+```
+
+我们也可以将 `Map` 转换为一个对象：
+
+```js
+let map = new Map();
+map.set('banana', 1);
+map.set('orange', 2);
+map.set('meat', 4);
+
+let obj = Object.fromEntries( map.entries() ); // 创建一个普通对象
+// 此时 obj = { banana: 1, orange: 2, meat: 4 }
+
+alert(obj.orange); // 2
+```
+
+上述代码中调用 `map.entries()` 将返回一个可迭代的键/值对，这刚好是 `Object.fromEntries` 所需要的格式，也可以简化为：
+
+```js
+let obj = Object.fromEntries(map); // 省掉 .entries()
+```
+
+上述代码作用是一样的，**因为 `Object.fromEntries` 期望得到一个可迭代的对象作为参数，`map` 的标准迭代会返回跟 `map.entries()` 一样的键/值对**。
