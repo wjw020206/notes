@@ -7790,3 +7790,63 @@ john = null;
 
 
 
+## Object.keys，values，entries
+
+普通对象也支持类似 `map.keys()`，`map.values()` 和 `map.entries()` 等方法，但是语法上有些不同：
+
+- **`Object.keys(obj)`** —— 返回一个包含该对象所有的键的**数组**
+- **`Object.values(obj)`** —— 返回一个包含该对象所有的值的**数组**
+- **`Object.entries(obj)`** —— 返回一个包含该对象所有 `[key, value]` 键值对的**数组**
+
+例如：
+
+```js
+let user = {
+  name: 'CodePenil',
+  age: 23,
+};
+
+// 遍历所有的键
+for (let key of Object.keys(user)) {
+  alert(key); // name, then age
+}
+
+// 遍历所有的值
+for (let value of Object.values(user)) {
+  alert(value); // CodePenil, then 23
+}
+
+// 遍历所有的键值对
+for (let [key, value] of Object.entries(user)) {
+  alert(`键：${key}，值：${value}`); // 键：name，值：CodePenil, then 键：age，值：23
+}
+```
+
+**⚠️ 注意：** 与 `for..in` 循环一样，**Object.keys/values/entries 会忽略 symbol 属性**，如果想要 Symbol 类型的键可以使用 `Object.getOwnPropertySymbols`，它会返回一个只包含 Symbol 类型的键的数组，也可以使用 `Reflect.ownKeys(obj)`，它会返回**所有**键。
+
+
+
+**转换对象**
+
+对象缺少数组存在的许多方法，例如 `map` 和 `filter` 等，如果想使用它们需要先**对数组进行转换**，具体转换步骤如下：
+
+1. 使用 `Object.entries(obj)` 从 `obj` 获取由键/值对组成的数组
+2. 对该数组使用数组方法，例如 `map`，对这些键/值对进行转换
+3. 对结果数组使用 `Object.fromEntries(array)` 方法，将结果转回成对象
+
+例如有一个带有价格的对象，将它们的属性值加倍：
+
+```js
+let prices = {
+  banana: 1,
+  orange: 2,
+  meat: 4,
+};
+
+let doublePrices = Object.fromEntries(
+  Object.entries(prices).map(entry => [entry[0], entry[1] * 2])
+);
+
+alert(doublePrices.meat); // 8
+```
+
