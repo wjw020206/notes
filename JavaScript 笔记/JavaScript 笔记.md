@@ -7627,3 +7627,166 @@ set.forEach((value, valueAgain, set) => {
 - `set.keys()` —— 遍历并返回一个包含所有值的**可迭代对象**
 - `set.values()` —— 与 `set.keys()` 作用相同，这是为了兼容 `Map`
 - `set.entries()` —— 遍历并返回一个包含所有的实体 `[value, value]` 的**可迭代对象**，它的存在也是为了兼容 `Map`
+
+
+
+## WeakMap
+
+JavaScript 引擎**在值 “可达” 和可能被使用时会将其保持在内存中**。
+
+**对象、数组等数据结构在内存中时，它们内部的子元素（如对象属性、数组的元素）都被认为是可达的**，所以当把一个对象放入一个数组中时，只要这个数组存在，那么这个对象也存在，例如：
+
+```js
+let john = { name: 'john' };
+
+let array = [john];
+
+john = null; // 覆盖引用
+```
+
+上述代码中 `john` 引用的对象因为存储在了 `array` 中，所以**不会被垃圾回收**，依旧可以通过 `array[0]` 获取到它。
+
+所以这就会出现一个问题，**当使用对象作为 `Map` 的键，当 `Map` 存在时，该对象也将存在，它会占用内存，并且不会被垃圾回收**，例如：
+
+```js
+let john = { name: 'john' };
+
+const map = new Map();
+map.set(john, '...');
+
+john = null;
+```
+
+所以要解决这个问题，可以使用 `WeakMap`，**`WeakMap` 在这方面有着根本上的不同，它不会阻止垃圾回收机制对作为键的对象的回收**。
+
+
+
+`WeakMap` 和 `Map` 的不同点就是，**`WeakMap` 的键必须是对象，不能是原始值：**
+
+```js
+const weakMap = new WeakMap();
+
+const obj = {};
+
+weakMap.set(obj, 'ok'); // 正常工作（以对象作为键）
+
+// 不能使用字符串作为键
+weakMap.set('test', 'Whoops'); // Uncaught TypeError: Invalid value used as weak map key
+```
+
+前面的例子可以使用 `WeakMap` 来重写：
+
+```js
+let john = { name: 'John' };
+
+let weakMap = new WeakMap();
+weakMap.set(john, '...');
+
+john = null; // 覆盖引用
+```
+
+上述代码与常规的 `Map` 相比，`john` 仅仅是作为 `WeakMap` 的键而存在的，**当外部没有其它变量引用 `john`，它将会被从 WeakMap（和内存）中自动删除**。
+
+`WeakMap` 只有以下的方法：
+
+- `weakMap.get(key)`
+- `weakMap.set(key, value)`
+- `weakMap.delete(key)`
+- `weakMap.has(key)`
+
+**⚠️ 注意：**
+
+- **`WeakMap` 不支持迭代以及 `keys()`，`values()` 和 `entries()` 方法**，所以没有办法获取 `WeakMap` 的所有键或值
+- 之所以有这种限制，是因为技术原因，当一个对象丢失了其它所有的引用，那么它将被垃圾回收机制自动回收，在从技术的角度并不能准确知道**何时会被回收**，这些都是由 JavaScript 引擎决定的，JavaScript 引擎可能会选择立即执行内存清理，如果现在正在发生很多删除操作，那么 JavaScript 引擎可能就会选择等一等，**因此，从技术上讲，`WeakMap` 的当前元素的数量是未知的**
+
+
+
+**WeakMap 使用场景**
+
+- 额外数据存储
+
+  ```js
+  // visitsCount.js
+  let visitsCountMap = new WeakMap(); // weakmap: user => visits count
+  
+  // 递增用户来访次数
+  function countUser(user) {
+    let count = visitsCountMap.get(user) || 0;
+    visitsCountMap.set(user, count + 1);
+  }
+  
+  let john = { name: 'John' };
+  
+  countUser(john); // 记录他的访问次数
+  
+  // 不久之后，john 离开了
+  john = null;
+  ```
+
+  当 `john` 这个对象不可达时，会连同它作为 `WeakMap` 里的键所对应的信息**自动从内存中删除**，无需手动清理。
+
+  
+
+- 缓存
+
+  可以存储（“缓存”）函数的结果，以便将来对同一个对象的调用可以重用这个结果。
+
+  ```js
+  let cache = new WeakMap();
+  
+  // 计算并记结果
+  function process(obj) {
+    if (!cache.has(obj)) {
+      let result = /* 计算结果 */;
+  
+      cache.set(obj, result);
+    }
+  
+    return cache.get(obj);
+  }
+  
+  let result1 = process(obj);
+  let result2 = process(obj);
+  
+  // 稍后，我们不再需要这个对象时
+  obj = null;
+  ```
+
+  上述代码中，当对应的对象不可达时，对应的缓存结果会自动从内存中删除。
+
+
+
+## WeakSet
+
+`WeakSet` 与 `Set` 类似，但是我们**只能向 `WeakSet` 添加对象（而不能是原始值）**。
+
+**`WeakSet` 中的对象只有可达时，才能留在 `WeakSet` 中**。
+
+跟 `Set` 一样，`WeakSet` 支持 `add`，`has` 和 `delete` 方法，**不支持 `size` 和 `keys()`，并且不可迭代**。
+
+`WeakSet` 可以作为额外的存储空间。**但并非针对任意数据，而是针对“是/否”的事实**，例如可以用来追踪访问过网站的用户。
+
+```js
+const visitedSet = new WeakSet();
+
+let john = { name: 'John' };
+let pete = { name: 'Pete' };
+let mary = { name: 'Mary' };
+
+visitedSet.add(john); // John 访问了
+visitedSet.add(pete); // 然后是 Pete
+visitedSet.add(john); // John 再次访问
+
+// 检查 John 是否来访过？
+alert( visitedSet.has(john) ); // true
+
+// 检查 Mary 是否来访过？
+alert(visitedSet.has(mary)); // false
+
+john = null;
+
+// visitedSet 将被自动清理(即自动清除其中已失效的值 john)
+```
+
+
+
