@@ -7365,7 +7365,7 @@ alert( str.slice(1, 3) ); // 乱码
 它的方法和属性如下：
 
 - `new Map()` —— 创建 map
-- `map.set(key, value)` —— 根据键存储值
+- `map.set(key, value)` —— 根据键存储值，**并返回 map 本身**
 - `map.get(key)` —— 根据键来返回值，如果 `map` 中不存在对应的 `key`，则返回 `undefined`
 - `map.has(key)` —— 如果 `key` 存在则返回 `true`，否则返回 `false`
 - `map.delete(key)` —— 删除指定键的值
@@ -7562,3 +7562,68 @@ let obj = Object.fromEntries(map); // 省掉 .entries()
 ```
 
 上述代码作用是一样的，**因为 `Object.fromEntries` 期望得到一个可迭代的对象作为参数，`map` 的标准迭代会返回跟 `map.entries()` 一样的键/值对**。
+
+
+
+## Set
+
+`Set` 是一个特殊的类型集合，它是**值的集合（没有键），它的每一个值都只能出现一次**。
+
+它的方法和属性如下：
+
+- `new Set(iterable)` —— 创建一个 `set`，如果提供了一个 `iterable` 对象（通常是数组），将会从数组里面复制值到 `set` 中
+- `set.add(value)` —— 添加一个值，**返回 set 本身**
+- `set.delete(value)` —— 删除值，如果 `value` 在这个方法调用的时候存在则返回 `true` ，否则返回 `false`
+- `set.has(value)` —— 如果 `value` 在 set 中，返回 `true`，否则返回 `false`
+- `set.clear()` —— 清空 set
+- `set.size` —— 返回元素个数
+
+它的主要特点是，**重复使用同一个值调用 `set.add(value)` 不会发生任何改变**，例如下面的例子：
+
+```js
+let set = new Set();
+
+let john = { name: 'John' };
+let pete = { name: 'Pete' };
+let mary = { name: 'Mary' };
+
+// visits，一些访客来访好几次
+set.add(john);
+set.add(pete);
+set.add(mary);
+set.add(john);
+set.add(mary);
+
+// set 只保留不重复的值
+alert(set.size); // 3
+
+for (let user of set) {
+  alert(user.name); // John（然后 Pete 和 Mary）
+}
+```
+
+**⚠️ 注意：** 上述代码也可以使用数组实现，如果使用数组，**用 `arr.find` 在每次插入值时检查是否重复会导致性能变差，因为这个方法会遍历整个数组来检查每个元素**，所以更推荐使用 `Set` 来做唯一性的检查，因为 `Set` 内部对唯一性检查进行了更好的优化。
+
+
+
+**Set 迭代**
+
+可以使用 `for..of` 或者 `forEach` 来遍历 `Set`。
+
+```js
+let set = new Set(['oranges', 'apples', 'bananas']);
+
+for (let value of set) alert(value);
+
+set.forEach((value, valueAgain, set) => {
+  alert(value);
+});
+```
+
+**⚠️ 注意：** `forEach` 回调函数有三个参数：一个 `value`，然后是**同一个值** `valueAgain`，最后是目标对象，同一个值在参数里出现了两次，**`forEach` 的回调函数有三个参数，是为了与 `Map` 兼容**，便于特定情况下转换为 `Map` 或者普通对象。
+
+`Map` 中用于迭代的方法在 `Set` 中也同样支持：
+
+- `set.keys()` —— 遍历并返回一个包含所有值的**可迭代对象**
+- `set.values()` —— 与 `set.keys()` 作用相同，这是为了兼容 `Map`
+- `set.entries()` —— 遍历并返回一个包含所有的实体 `[value, value]` 的**可迭代对象**，它的存在也是为了兼容 `Map`
