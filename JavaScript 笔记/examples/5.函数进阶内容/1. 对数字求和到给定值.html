@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      alert(sumTo(100)); // 5050
+
+      // 使用循环
+      // function sumTo(n) {
+      //   let sum = 0;
+
+      //   for (let i = n; i >= 1; i--) {
+      //     sum += i;
+      //   }
+
+      //   return sum;
+      // }
+
+      // 使用递归
+      // function sumTo(n) {
+      //   return n === 1 ? 1 : n + sumTo(n - 1);
+      // }
+
+      // 等差数列求和公式
+      function sumTo(n) {
+        return ((1 + n) * n) / 2;
+      }
+    </script>
+  </body>
+</html>

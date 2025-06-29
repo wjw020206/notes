@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      let list = {
+        value: 1,
+        next: {
+          value: 2,
+          next: {
+            value: 3,
+            next: {
+              value: 4,
+              next: null,
+            },
+          },
+        },
+      };
+
+      printReverseList(list);
+
+      // 递归实现
+      // function printReverseList(list) {
+      //   if (list.next) {
+      //     printReverseList(list.next);
+      //   }
+
+      //   alert(list.value);
+      // }
+
+      // 循环实现
+      function printReverseList(list) {
+        let temp = list;
+        let arr = [];
+
+        while (temp) {
+          arr.push(temp.value);
+          temp = temp.next;
+        }
+
+        for (let i = arr.length - 1; i >= 0; i--) {
+          alert(arr[i]);
+        }
+      }
+    </script>
+  </body>
+</html>

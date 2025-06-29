@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      const map = new Map();
+
+      alert(fib(3)); // 2
+      alert(fib(7)); // 13
+      alert(fib(77)); // 5527939700884757
+
+      // 递归
+      // function fib(n) {
+      //   return n <= 1 ? n : fib(n - 1) + fib(n - 2);
+      // }
+
+      // 递归(优化)
+      // function fib(n) {
+      //   if (n <= 1) return n;
+
+      //   if (map.has(n)) return map.get(n);
+
+      //   const sum = fib(n - 1) + fib(n - 2);
+      //   map.set(n, sum);
+
+      //   return sum;
+      // }
+
+      // 循环实现(自下而上的动态规划)
+      function fib(n) {
+        let a = 1;
+        let b = 1;
+
+        for (let i = 3; i <= n; i++) {
+          let c = a + b;
+          a = b;
+          b = c;
+        }
+
+        return b;
+      }
+    </script>
+  </body>
+</html>
