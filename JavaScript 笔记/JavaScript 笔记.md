@@ -9145,7 +9145,7 @@ alert( meetup.date.getDate() ); // 30
 
   ```js
   function pow(x, n) {
-    return n === 1 ? x : (x * pow(x, n - 1));
+    return n == 1 ? x : (x * pow(x, n - 1));
   }
   
   alert( pow(2, 3) ); // 8
@@ -9154,7 +9154,7 @@ alert( meetup.date.getDate() ); // 30
   1. 当 `n == 1`，所有事情都会很简单，这叫做**基础的递归**，它会立即产生明显的结果：`pow(x, 1)` 等于 `x`
   2. 否则，我们可以用 `x * pow(x, n - 1)` 表示 `pow(x, n)`，这叫做**一个递归步骤**：将任务转化为更简单的行为（`x` 的乘法）和更简单的同类任务的调用（带有更小的 `n` 的 `pow` 运算）
 
-  简单来说就是 `pow` **递归地调用自身** 直到 `n === 1`。
+  简单来说就是 `pow` **递归地调用自身** 直到 `n == 1`。
 
   ![image-20250629142818042](images/image-20250629142818042.png)
    **⚠️ 注意：** 
@@ -9446,3 +9446,286 @@ list = { value: 'new item', next: list };
 - 我们可以在 `next` 之外，再添加 `prev` 属性来引用前一个元素，以便轻松地往回移动
 - 我们还可以添加一个名为 `tail` 的变量，该变量引用链表的最后一个元素
 - 链表的数据结构可能会根据我们的需求而变化
+
+
+
+## Rest 参数与 Spread 语法
+
+**Rest 参数**
+
+在 JavaScript 中，无论函数是如何定义的，你都可以在调用它时传入任意数量的参数。
+
+例如：
+
+```js
+function sum(a, b) {
+  return a + b;
+}
+
+alert( sum(1, 2, 3, 4, 5) );
+```
+
+上述代码不会因为传入过多的参数而报错，但只有前两个参数被求和了。
+
+可以**在函数定义中声明一个数组来收集参数**，语法为：`...变量名`，这将会声明一个数组并指定其名称，这三个点的语义就是 **“收集剩余的参数并存进指定数组中”**。
+
+例如需要把所有的参数都放到数组 `args` 中：
+
+```js
+function sumAll(...args) { // 数组名为 args
+  let sum = 0;
+
+  for (let arg of args) sum += arg;
+
+  return sum;
+}
+
+alert( sumAll(1) ); // 1
+alert( sumAll(1, 2) ); // 3
+alert( sumAll(1, 2, 3) ); // 6
+```
+
+也可以选择将前几个参数获取为变量，并将剩余的参数收集起来，例如：
+
+```js
+function showName(firstName, lastName, ...titles) {
+  alert( firstName + ' ' + lastName ); // Julius Caesar
+
+  // 剩余的参数被放入 titles 数组中
+  // titles = ['Consul', 'Imperator']
+  alert( titles[0] ); // Consul
+  alert( titles[1] ); // Imperator
+  alert( titles.length ); // 2
+}
+
+showName('Julius', 'Caesar', 'Consul', 'Imperator');
+```
+
+**⚠️ 注意：Rest 参数必须在参数列表的末尾**，Rest 参数会收集剩余的所有参数，因此下面这种用法没有意义，并且会导致错误：
+
+```js
+function f(arg1, ...rest, arg2) { // arg2 在 ...rest 后面？！
+  // Uncaught SyntaxError: Rest parameter must be last formal parameter
+}
+```
+
+`...rest` 必须写在参数列表的最后。
+
+
+
+**arguments 变量**
+
+有一个名为 `arguments` 的特殊对象可以在函数中被访问，该对象**以参数在参数列表中的索引作为键，存储所有参数**。
+
+**`arguments` 对象既是一个类数组，也是一个可迭代对象**。
+
+例如：
+
+```js
+function showName() {
+  alert(arguments.length);
+  alert(arguments[0]);
+  alert(arguments[1]);
+
+  // 它是可遍历的
+  // for(let arg of arguments) alert(arg);
+}
+
+// 依次显示：2，Julius，Caesar
+showName('Julius', 'Caesar');
+
+// 依次显示：1，Ilya，undefined（没有第二个参数）
+showName('Ilya');
+```
+
+在**过去 JavaScript 中不支持 Rest 参数语法**，使用 `arguments` 是获取函数所有参数的唯一方法，现在它仍然有效，我们可以在一些老代码里找到它。
+
+**⚠️ 注意：** 
+
+- **`arguments` 不是数组，所以不支持数组方法**，而 Rest 参数则是数组
+
+- **`arguments` 始终包含所有参数，不能像 Rest 参数那样只截取参数的一部分**
+
+- **箭头函数没有 `arguments`**，访问到的 `arguments` 并不属于箭头函数，而是属于箭头函数外部的 “普通” 函数
+
+  ```js
+  function f() {
+    let showArg = () => alert(arguments[0]);
+    showArg();
+  }
+  
+  f(1); // 1
+  ```
+
+
+
+**Spread 语法**
+
+例如内建函数 `Math.max` 会返回参数中最大的值：
+
+```js
+alert( Math.max(3, 5, 1) ); // 5
+```
+
+如果有一个数组，直接传入 `Math.max` 是不会奏效的，因为 `Math.max` 期望的是列表形式的数值型参数，而不是一个数组：
+
+```js
+let arr = [3, 5, 1];
+
+alert( Math.max(arr) ); // NaN
+```
+
+这时可以使用**Spread 语法**解决这个问题，它看起来和 Rest 参数很像，也使用 `...`，**但是二者的用途完全相反**。
+
+
+
+当在函数中使用 `...arr` 时，它会把可迭代对象 `arr` “展开” 到参数列表中：
+
+```js
+let arr = [3, 5, 1];
+
+alert( Math.max(...arr) ); // 5（spread 语法把数组转换为参数列表）
+```
+
+
+
+可以用这种方式传递多个可迭代对象：
+
+```js
+let arr1 = [1, -2, 3, 4];
+let arr2 = [8, 3, -8, 1];
+
+alert( Math.max(...arr1, ...arr2) ); // 8
+```
+
+
+
+可以将 Spread 语法与常规值结合使用：
+
+```js
+let arr1 = [1, -2, 3, 4];
+let arr2 = [8, 3, -8, 1];
+
+alert( Math.max(1, ...arr1, 2, ...arr2, 25) ); // 25
+```
+
+
+
+也可以用 Spread 语法来合并数组：
+
+```js
+let arr = [3, 5, 1];
+let arr2 = [8, 9, 15];
+
+let merged = [0, ...arr, 2, ...arr2];
+
+alert(merged); // 0,3,5,1,2,8,9,15（0，然后是 arr，然后是 2，然后是 arr2）
+```
+
+
+
+**Spread 语法可以操作任何可迭代对象**，例如将字符串转换为字符数组：
+
+```js
+let str = 'Hello';
+
+alert([...str]); // H,e,l,l,o
+```
+
+
+
+**Spread 语法内部使用了迭代器来收集元素，与 `for..of` 的方式相同**，上面这个例子也可以使用 `Array.from` 来实现：
+
+```js
+let str = 'Hello';
+
+// Array.from 将可迭代对象转换为数组
+alert( Array.from(str) ); // H,e,l,l,o
+```
+
+上述运行结果与 `[...str]` 相同，**不过 `Array.from(obj)` 和 `[...obj]` 存在一个细微的差别：**
+
+- `Array.from` **适用于类数组对象也适用于可迭代对象**
+
+- Spread 语法在**需要元素的上下文（例如：数组、函数调用）**中使用，**只能用于可迭代对象**，在**需要属性（键值对）的上下文**中使用，**可以用于任何对象**
+
+  ```js
+  let range = {
+    from: 1,
+    to: 5
+  };
+  
+  range[Symbol.iterator] = function () {
+    return {
+      current: this.from,
+      last: this.to,
+      next() {
+        if (this.current <= this.last) {
+          return { done: false, value: this.current++ };
+        } else {
+          return { done: true };
+        }
+      }
+    };
+  };
+  
+  const spreadInArr = [ ...range ]; // 需要元素的上下文
+  const spreadInObj = { ...range }; // 需要键值对的上下文
+  console.log(spreadInArr, spreadInObj);
+  
+  // [1, 2, 3, 4, 5]
+  // {from: 1, to: 5, Symbol(Symbol.iterator): ƒ}
+  ```
+
+  所以**对于将一些 “东西” 转换为数组的任务，`Array.from` 更加通用**。
+
+
+
+**复制 array /object**
+
+Spread 语法可以做与 `Object.assign()` 同样的事情（**浅拷贝对象**）。
+
+```js
+let arr = [1, 2, 3];
+
+let arrCopy = [...arr]; // 将数组 Spread 到参数列表中，然后将结果放到一个新数组
+
+// 两个数组中的内容相同吗？
+alert(JSON.stringify(arr) === JSON.stringify(arrCopy)); // true
+
+// 两个数组相等吗？
+alert(arr === arrCopy); // false（它们的引用是不同的）
+
+// 修改我们初始的数组不会修改副本：
+arr.push(4);
+alert(arr); // 1, 2, 3, 4
+alert(arrCopy); // 1, 2, 3
+```
+
+也可以使用同样的方式来复制一个对象：
+
+```js
+let obj = { a: 1, b: 2, c: 3 };
+
+let objCopy = { ...obj }; // 将对象 Spread 到参数列表中，然后将结果返回到一个新对象
+
+// 两个对象中的内容相同吗？
+alert(JSON.stringify(obj) === JSON.stringify(objCopy)); // true
+
+// 两个对象相等吗？
+alert(obj === objCopy); // false（它们的引用是不同的）
+
+// 修改我们初始的对象不会修改副本：
+obj.d = 4;
+alert(JSON.stringify(obj)); // {"a":1,"b":2,"c":3,"d":4}
+alert(JSON.stringify(objCopy)); // {"a":1,"b":2,"c":3}
+```
+
+这种方式比使用 `let arrCopy = Object.assign([], arr)` 复制数组，或使用 `let objCopy = Object.assign({}, obj)` 复制对象来说更为简便，所以只要情况允许，**更推荐使用它**。
+
+
+
+**如何区分 Rest 语法和 Spread 语法**
+
+- 若 `...` 出现在**函数参数列表的最后**，它是 Rest 语法，它会把参数列表中剩余的参数收集到一个数组
+- 若 `...` 出现在**函数调用或类似的表达式**中，那它就是 Spread 语法，它会把一个数组展开为列表
