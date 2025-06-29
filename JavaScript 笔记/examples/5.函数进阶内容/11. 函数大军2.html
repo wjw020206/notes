@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      function makeArmy() {
+        let shooters = [];
+        let i = { id: 0 };
+
+        while (i.id < 10) {
+          let insider = { ...i };
+
+          let shooter = function () {
+            // shooter 函数
+            alert(insider.id); // 应该显示其编号
+          };
+          shooters.push(shooter);
+          i.id++;
+        }
+        return shooters;
+      }
+
+      let army = makeArmy();
+      army[0](); // 编号为 0 的 shooter 值为 10
+      army[5](); // 编号为 5 的 shooter 值也是 10……
+    </script>
+  </body>
+</html>
