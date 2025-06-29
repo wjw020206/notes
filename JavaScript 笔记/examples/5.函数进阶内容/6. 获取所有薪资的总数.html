@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      let company = {
+        sales: [
+          {
+            name: 'John',
+            salary: 1000,
+          },
+          {
+            name: 'Alice',
+            salary: 1600,
+          },
+        ],
+
+        development: {
+          sites: [
+            {
+              name: 'Peter',
+              salary: 2000,
+            },
+            {
+              name: 'Alex',
+              salary: 1800,
+            },
+          ],
+
+          internals: [
+            {
+              name: 'Jack',
+              salary: 1300,
+            },
+          ],
+        },
+      };
+
+      alert(sumSalaries(company));
+
+      // 递归实现
+      // function sumSalaries(company) {
+      //   if (Array.isArray(company)) {
+      //     return company.reduce((sum, member) => sum + member.salary, 0);
+      //   } else {
+      //     let sum = 0;
+
+      //     for (const subdep of Object.values(company)) {
+      //       sum += sumSalaries(subdep);
+      //     }
+
+      //     return sum;
+      //   }
+      // }
+
+      // 利用 JSON.stringify() 实现（hack 写法，不推荐）
+      function sumSalaries(company) {
+        let sum = 0;
+
+        JSON.stringify(company, function (key, value) {
+          if (key === 'salary') {
+            sum += value;
+          }
+
+          return value;
+        });
+
+        return sum;
+      }
+    </script>
+  </body>
+</html>

@@ -31,17 +31,24 @@
       // }
 
       // 循环实现(自下而上的动态规划)
-      function fib(n) {
-        let a = 1;
-        let b = 1;
+      // function fib(n) {
+      //   let a = 1;
+      //   let b = 1;
 
-        for (let i = 3; i <= n; i++) {
-          let c = a + b;
-          a = b;
-          b = c;
-        }
+      //   for (let i = 3; i <= n; i++) {
+      //     let c = a + b;
+      //     a = b;
+      //     b = c;
+      //   }
 
-        return b;
+      //   return b;
+      // }
+
+      // 递归(尾调用优化)
+      function fib(n, a = 1, b = 1) {
+        if (n === 1 || n === 2) return b;
+
+        return fib(n - 1, b, a + b);
       }
     </script>
   </body>
