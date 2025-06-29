@@ -8259,7 +8259,7 @@ showMenu({}); // 正确，所有值都取默认值
 showMenu(); // 这样会导致错误，不传参数等价于对 undefined 进行解构，所以报错
 ```
 
-也可以通过定空对象 `{}` 为整个参数对象的默认值来解决这个问题：
+也可以**通过定空对象 `{}` 为整个参数对象的默认值**来解决这个问题：
 
 ```js
 function showMenu({ title = "Menu", width = 100, height = 200 } = {}) {
@@ -8270,3 +8270,402 @@ showMenu(); // Menu 100 200
 ```
 
 上述代码中，**整个参数对象的默认是 `{}`，因此总会有内容可以用来解构**。
+
+
+
+## 日期和时间
+
+JavaScript 中有一个内建的对象 `Date`，用来存储日期和时间，并提供了日期/时间的管理方法。
+
+
+
+**创建**
+
+- **`new Date()`**
+
+  通过 `new Date()` 来创建一个新的 `Date` 对象。
+
+  ```js
+  const now = new Date();
+  alert(now); // 显示当前的日期/时间
+  ```
+  
+  
+
+- **`new Date(milliseconds)`**
+
+  创建一个 `Date` 对象，其时间等于 1970 年 1 月 1 日 UTC+0 之后经过的毫秒数（1/1000 秒）
+
+  ```js
+  const Jan01_1970 = new Date(0); // 0 表示 01.01.1970 UTC+0
+  alert(Jan01_1970);
+  
+  // 现在增加 24 小时，得到 02.01.1970 UTC+0
+  const Jan02_1970 = new Date(24 * 3600 * 1000);
+  alert(Jan02_1970);
+  ```
+
+  `milliseconds` 表示自 1970-01-01 00:00:00 以来经过的毫秒数，该整数被称为**时间戳**。
+
+  在 1970-01-01 00:00:00 之前的日期需要使用**带有负的时间戳**：
+
+  ```js
+  // 现在减少 24 小时，得到 12.31.1969 UTC+0
+  const Dec31_1969 = new Date(-24 * 3600 * 1000);
+  alert(Dec31_1969);
+  ```
+
+  
+
+- **`new Date(datestring)`**
+
+  **如果只有一个参数，并且是字符串，那么它会被自动解析**，解析算法和 `Date.parse` 所使用的算法相同。
+
+  ```js
+  const date = new Date('2025-06-29');
+  alert(date);
+  ```
+
+  **⚠️ 注意：** 如果未指定具体时间，假定时间为格林尼治标准时间（GMT）的午夜零点，**运行代码时会根据用户的时区自动进行调整**，例如:
+
+  ```js
+  let date = new Date('2017-01-26');
+  alert(date);
+  // 结果可能是
+  // Thu Jan 26 2017 11:00:00 GMT+1100 (Australian Eastern Daylight Time)
+  // 或
+  // Wed Jan 25 2017 16:00:00 GMT-0800 (Pacific Standard Time)
+  ```
+
+  
+
+- **`new Date(year, month, date, hours, minutes, seconds, ms)`**
+
+  使用当前时区中给定的组件来创建日期，**只有前两个参数是必须的**。
+
+  - `year` 应该是四位数，为了兼容性也接受 2 位数，并将其视为 `19xx`，例如 `98` 与 `1998` 相同，**建议始终使用 4 位数**
+  - `month` 计数从 `0`（一月）开始，到 `11`（十二月）结束
+  - `date` 是当月的具体某一天，如果缺失，则为默认值 `1`
+  - 如果 `hours/minutes/seconds/ms` 缺失，则均为默认值 `0`
+
+  例如：
+
+  ```js
+  new Date(2011, 0, 1, 0, 0, 0, 0); // 1 Jan 2011, 00:00:00
+  new Date(2011, 0, 1); // 同样，时分秒等均为默认值 0
+  ```
+
+  
+
+  时间度量最大精确到 1 毫秒（1/1000 秒）：
+
+  ```js
+  let date = new Date(2011, 0, 1, 2, 3, 4, 567);
+  alert( date ); // 1.01.2011, 02:03:04.567
+  ```
+
+  上述代码中 567 表示 567 毫秒，等于 0.567 秒。
+
+
+
+**访问日期组件**
+
+- **`getFullYear()`** —— 获取年份（4 位数）
+
+  **⚠️ 注意：不是 `getYear()`，而是 `getFullYear()`**，很多 JavaScript 引擎都实现了一个非标准化的方法 `getYear()`，不推荐使用这个方法。它有时候可能会返回 2 位的年份信息，**永远不要使用它**。
+
+- **`getMonth()`** —— 获取月份，**从 0 到 11**
+
+- **`getDate()`** —— 获取当月的具体日期，从 1 到 31
+
+- **`getHours()`** —— 获取小时，从 0 到 23
+
+- **`getMinutes()`** —— 获取分钟，从 0 到 59
+
+- **`getSeconds()`** —— 获取秒，从 0 到 59
+
+- **`getMilliseconds`** —— 获取毫秒，从 0 到 999
+
+- **`getDay()`** —— 获取一周中的第几天(星期)，**从 `0`（星期日）到 `6`（星期六），第一天始终是星期日，某些国家可能不是这样的习惯，但这不能被改变**
+
+**⚠️ 注意：** 以上的所有方法返回的组件都是基于当地时区（根据当地时区自动调整返回结果）。
+
+
+
+如果需要基于 UTC（协调世界时），可以使用对应的 `getUTC*()` 方法，它们会返回基于 UTC+0 时区的日、月、年等：
+
+- **`getUTCFullYear()`**
+- **`getUTCMonth()`**
+- **`getUTCDay()`**
+
+只需要在 `'get'` 之后插入 `UTC` 即可，例如：
+
+```js
+//  当前日期
+let date = new Date();
+
+// 当地时区的小时数
+alert( date.getHours() );
+
+// 在 UTC+0 时区的小时数（非夏令时的伦敦时间）
+alert( date.getUTCHours() );
+```
+
+**⚠️ 注意：** 除了上述给定的方法，还有两个没有 UTC 变体的特殊方法：
+
+- **`getTime()`** —— 返回日期的时间戳
+
+- **`getTimezoneOffset()`** —— 返回 UTC 与本地时区之间的时差，**以分钟为单位**
+
+  ```js
+  // 如果你在时区 UTC-1，输出 60
+  // 如果你在时区 UTC+3，输出 -180
+  alert( new Date().getTimezoneOffset() );
+  ```
+
+
+
+**设置日期组件**
+
+有下列方法可以设置日期/时间组件：
+
+- `setFullYear(year, [month], [date])`
+- `setMonth(month, [date])`
+- `setDate(date)`
+- `setHours(hour, [min], [sec], [ms])`
+- `setMinutes(min, [sec], [ms])`
+- `setSeconds(sec, [ms])`
+- `setMilliseconds(ms)`
+- `setTime(milliseconds)`
+
+以上方法除了 `setTime()` 都有 UTC 变体，例如：`setUTCHours()`。
+
+有些方法可以一次性设置多个组件，比如 `setHours`，未提及的组件不会被修改：
+
+```js
+let today = new Date();
+
+today.setHours(0);
+alert(today); // 日期依然是今天，但是小时数被改为了 0
+
+today.setHours(0, 0, 0, 0);
+alert(today); // 日期依然是今天，时间为 00:00:00。
+```
+
+
+
+**自动校准**
+
+**自动校准**是 `Date` 对象的一个非常方便的特性，可以设置超范围的数值，它会自动校准，例如：
+
+```js
+let date = new Date(2013, 0, 32); // 32 Jan 2013 ?!?
+alert(date); // 是 1st Feb 2013
+```
+
+超出范围的日期组件将会被自动分配。
+
+例如要在日期 “28 Feb 2016” 上加 2 天，结果可能是 “2 Mar” 或 “1 Mar”，因为存在闰年，但不需要考虑这些，只需要直接加 2 天，剩下的 `Date` 对象会帮我们处理：
+
+```js
+let date = new Date(2016, 1, 28);
+date.setDate(date.getDate() + 2);
+
+alert( date ); // 1 Mar 2016
+```
+
+
+
+还可以设置 `0` 甚至是负值，例如：
+
+```js
+let date = new Date(2016, 0, 2); // 2016 年 1 月 2 日
+
+date.setDate(1); // 设置为当月的第一天
+alert(date);
+
+date.setDate(0); // 天数最小可以设置为 1，所以这里设置的是上一月的最后一天
+alert(date); // 31 Dec 2015
+```
+
+**⚠️ 注意：** `date.setDate(0)` 可以获取上个月的最后一天。
+
+
+
+**日期转换为数字，日期差值**
+
+当 `Date` 对象被转化为数字时，得到的是对应的时间戳，与使用 `date.getTime()` 的结果相同：
+
+```js
+let date = new Date();
+alert(+date); // 以毫秒为单位的数值，与使用 date.getTime() 的结果相同
+```
+
+**⚠️ 注意：** 日期可以相减，相减的结果是以毫秒为单位时间差，这个作用可以用于时间测量：
+
+```js
+let start = new Date(); // 开始测量时间
+
+// 执行一些耗时的任务
+for (let i = 0; i < 100000; i++) {
+  let doSomething = i * i * i;
+}
+
+let end = new Date();
+
+alert(`循环耗时 ${end - start} ms`);
+```
+
+
+
+**Date.now()**
+
+如果仅仅想要测量时间间隔而不需要 `Date` 对象，可以使用 `Date.now()` 返回当前的时间戳。
+
+它相当于 `new Date().getTime()`，但**它不会创建中间的 `Date` 对象**，所以它更快，而且**不会对垃圾回收造成额外的压力**。
+
+这种方法很多时候因为方便，又或是因性能方面的考虑而被采用。
+
+```js
+let start = Date.now(); // 从 1 Jan 1970 至今的时间戳
+
+// 执行一些耗时的任务
+for (let i = 0; i < 100000; i++) {
+  let doSomething = i * i * i;
+}
+
+let end = Date.now(); // 完成
+
+alert(`循环耗时 ${end - start} ms`); // 相减的是时间戳，而不是日期
+```
+
+
+
+**基准测试（Benchmarking）**
+
+对一个很耗 CPU 性能的函数进行可靠的基准测试（Benchmarking）时，需要谨慎一点。
+
+例如计算以下两个计算日期差值的函数：哪个更快？
+
+这种性能测量通常称为 **“基准测试（benchmark）”**。
+
+```js
+// 我们有 date1 和 date2，哪个函数会更快地返回两者的时间差？
+function diffSubtract(date1, date2) {
+  return date2 - date1;
+}
+
+function diffGetTime(date1, date2) {
+  return date2.getTime() - date1.getTime();
+}
+```
+
+首先想到的方法可能是连续运行两者很多次，并计算所消耗的时间差，因为两个函数过于简单，所以必须执行至少 100000 次。
+
+```js
+function diffSubtract(date1, date2) {
+  return date2 - date1;
+}
+
+function diffGetTime(date1, date2) {
+  return date2.getTime() - date1.getTime();
+}
+
+function bench(f) {
+  const date1 = new Date(0);
+  const date2 = new Date();
+  
+  let start = Date.now();
+  
+  for (let i = 0; i < 100000; i++) f(date1, date2);
+  
+  return Date.now() - start;
+}
+
+alert( 'Time of diffSubtract: ' + bench(diffSubtract) + 'ms' );
+alert( 'Time of diffGetTime: ' + bench(diffGetTime) + 'ms' );
+```
+
+上述代码运行才结果来看 `getTime()` 这种方式快得多，因为它没有进行类型转换，对引擎优化来说更加简单。
+
+但是这样的基准测试存在一个问题：如果当运行 `bench(diffSubtract)` 的同时，CPU 还在并行处理其他事务，并且这也会占用资源，然而运行 `bench(diffGetTime)` 的时候，并行处理的事务完成了，从而**可能会导致错误的结论**。
+
+**为了得到更加可靠的度量，整个度量测试包应该重新运行多次。**
+
+```js
+function diffSubtract(date1, date2) {
+  return date2 - date1;
+}
+
+function diffGetTime(date1, date2) {
+  return date2.getTime() - date1.getTime();
+}
+
+function bench(f) {
+  let date1 = new Date(0);
+  let date2 = new Date();
+
+  let start = Date.now();
+  for (let i = 0; i < 100000; i++) f(date1, date2);
+  return Date.now() - start;
+}
+
+let time1 = 0;
+let time2 = 0;
+
+// 交替运行 bench(diffSubtract) 和 bench(diffGetTime) 各 10 次
+for (let i = 0; i < 10; i++) {
+  time1 += bench(diffSubtract);
+  time2 += bench(diffGetTime);
+}
+
+alert('Total time for diffSubtract: ' + time1 + 'ms');
+alert('Total time for diffGetTime: ' + time2 + 'ms');
+```
+
+现代的 JavaScript 引擎的先进优化策略只对执行很多次的 “hot code” 有效（对于执行很少次数的代码没有必要优化），所以上述代码中**第一次执行的优化程度不高，可能需要增加一个预热步骤**。
+
+```js
+// 在主循环中增加预热环节
+bench(diffSubtract);
+bench(diffGetTime);
+
+// 开始度量
+for (let i = 0; i < 10; i++) {
+  time1 += bench(diffSubtract);
+  time2 += bench(diffGetTime);
+}
+```
+
+**⚠️ 注意：** 进行微型基准测试时要小心，现代的 JavaScript 引擎执行了很多优化，与正常编写的代码相比，它们**可能会改变 “人为编写的专用于测试的代码” 的执行流程**，特别是在我们对很小的代码片段进行基准测试时，如果需要深入理解性能问题，需要学习 JavaScript 引擎的工作原理，之后可能就再也不需要进行微型基准测试了。
+
+
+
+**对字符串调用 Date.parse**
+
+`Date.parse(str)` 方法可以从一个字符串中读取日期。
+
+**字符串的格式应该为：`YYYY-MM-DDTHH:mm:ss.sssZ`**，其中：
+
+- `YYYY-MM-DD` —— 日期：年-月-日
+- 字符 `T` 是一个分隔符
+- `HH:mm:ss.sss` —— 时间：小时，分钟，秒，毫秒
+- 可选字符 `'Z'` 为 `+-hh:mm` 格式的时区，单个字符 `Z` 代表 UTC+0 时区
+
+简短形式也是可以的，比如 `YYYY-MM-DD` 或 `YYYY-MM`，甚至可以是 `YYYY`。
+
+`Date.parse(str)` 调用会解析给定格式的字符串，并**返回时间戳**，如果**给定字符串的格式不正确，则返回 `NaN`**。
+
+例如：
+
+```js
+let ms = Date.parse('2012-01-26T13:51:50.417-07:00');
+alert(ms); // 1327611110417
+```
+
+可以通过时间戳来立即创建一个 `new Date` 对象：
+
+```js
+let date = new Date( Date.parse('2012-01-26T13:51:50.417-07:00') );
+alert(date);
+```
