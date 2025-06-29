@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      let salaries = {
+        John: 100,
+        Pete: 300,
+        Mary: 250,
+      };
+
+      function topSalary(salaries) {
+        const [[name = null] = []] = Object.entries(salaries).sort(
+          (a, b) => b[1] - a[1]
+        );
+
+        return name;
+      }
+    </script>
+  </body>
+</html>

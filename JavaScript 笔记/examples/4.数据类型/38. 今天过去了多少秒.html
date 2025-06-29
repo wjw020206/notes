@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      alert(getSecondsToday());
+
+      function getSecondsToday() {
+        const now = new Date();
+
+        const today = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate()
+        );
+
+        const diff = now - today;
+        return Math.round(diff / 1000);
+      }
+
+      // function getSecondsToday() {
+      //   const now = new Date();
+      //   const hours = now.getHours();
+      //   const minute = now.getMinutes();
+      //   const seconds = now.getSeconds();
+
+      //   return hours * 3600 + minute * 60 + seconds;
+      // }
+    </script>
+  </body>
+</html>

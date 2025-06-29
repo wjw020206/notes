@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      alert(getSecondsToTomorrow());
+
+      // function getSecondsToTomorrow() {
+      //   D
+      //   const tomorrow = new Date(
+      //     now.getFullYear(),
+      //     now.getMonth(),
+      //     now.getDate() + 1
+      //   );
+
+      //   const diff = tomorrow - now;
+
+      //   return Math.round(diff / 1000);
+      // }
+
+      function getSecondsToTomorrow() {
+        const now = new Date();
+        const hours = now.getHours();
+        const minutes = now.getMinutes();
+        const seconds = now.getSeconds();
+
+        const diff = 24 * 3600 - (hours * 3600 + minutes * 60 + seconds);
+
+        return diff;
+      }
+    </script>
+  </body>
+</html>

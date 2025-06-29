@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      let date = new Date(2012, 0, 3); // 3 Jan 2012
+      alert(getWeekDay(date)); // 应该输出 "TU"
+
+      function getWeekDay(date) {
+        const days = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
+
+        return days[date.getDay()];
+      }
+    </script>
+  </body>
+</html>

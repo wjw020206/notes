@@ -7850,3 +7850,423 @@ let doublePrices = Object.fromEntries(
 alert(doublePrices.meat); // 8
 ```
 
+
+
+## 解构赋值
+
+JavaScript 中最常用的两种数据结构是 `Object` 和 `Array`。
+
+当把它们传递给函数时，**函数可能不需要整个对象/数组，只需要其中的一部分**，这时可以使用**解构赋值**。
+
+
+
+**数组解构**
+
+```js
+// 我们有一个存放了名字和姓氏的数组
+let arr = ['John', 'Smith']
+
+// 解构赋值
+// 设置 firstName = arr[0]
+// 以及 surname = arr[1]
+let [firstName, surname] = arr;
+
+alert(firstName); // John
+alert(surname);  // Smith
+```
+
+**⚠️ 注意：** 
+
+- 解构并不意味着破坏，它只是 “拆开” 了数组或对象，将其中的各元素复制给一些变量，**原来的数组或对象自身没有被修改**
+
+- 可以通过添加额外的逗号来丢弃数组中不想要的元素
+
+  ```js
+  // 不需要第二个元素
+  let [firstName, , title] = ['Julius', 'Caesar', 'Consul', 'of the Roman Republic'];
+  
+  alert(title); // Consul
+  ```
+
+  上述代码中，数组的第二个元素被跳过了，从而第三个元素赋值给了 `title` 变量，数组剩下的元素也都被跳过了。
+  
+- **等号的右侧可以是任何可迭代对象**，例如：
+
+  ```js
+  let [a, b, c] = 'abc'; // ['a', 'b', 'c']
+  let [one, two, three] = new Set([1, 2, 3]);
+  ```
+
+  上述情况中，解构赋值是**通过迭代右侧的值来完成工作的**，这是一种用于对在 `=` 右侧的值上调用 `for..of` 并进行赋值的操作的**语法糖**。
+
+  
+
+- **等号的左侧可以赋值任何内容**
+
+  例如可以直接赋值给对象的属性：
+
+  ```js
+  let user = {};
+  [user.name, user.surname] = 'John Smith'.split(' ');
+  
+  alert(user.name); // John
+  alert(user.surname); // Smith
+  ```
+
+- **与 .entries() 方法进行循环操作**
+
+  ```js
+  let user = {
+    name: 'CodePecnil',
+    age: 23
+  };
+  
+  // 使用循环遍历键—值对
+  for (let [key, value] of Object.entries(user)) {
+    alert(`${key}:${value}`); // name:CodePencil, then age:23
+  }
+  ```
+
+  使用 `Map` 代码更加简单：
+
+  ```js
+  let user = new Map();
+  user.set('name', 'CodePencil');
+  user.set('age', 23);
+  
+  // Map 是以 [key, value] 对的形式进行迭代的，非常便于解构
+  for (let [key, value] of user) {
+    alert(`${key}:${value}`); // name:John, then age:30
+  }
+  ```
+
+  
+
+- **可以利用解构赋值来实现交换变量值的技巧**
+
+  ```js
+  let guest = 'Jane';
+  let admin = 'Pete';
+  
+  // 使得 guest = 'Pete'，admin = 'Jane'
+  [guest, admin] = [admin, guest];
+  
+  alert(`${guest} ${admin}`); // Pete Jane（成功交换！）
+  ```
+
+  上述代码创建了一个由两个变量组成的临时数组，并且立即以颠倒的顺序对其进行了解构赋值。
+
+
+
+**其余的 ...**
+
+如果数组比左侧的列表长，那么其余的数组项会被忽略，**如果还想收集其余数组项，可以使用 `...` 再加一个参数来获取其余数组项**：
+
+```js
+let [name1, name2, ...rest] = ['Julius', 'Caesar', 'Consul', 'of the Roman Republic'];
+
+// rest 是包含从第三项开始的其余数组项的数组
+alert(rest[0]); // Consul
+alert(rest[1]); // of the Roman Republic
+alert(rest.length); // 2
+```
+
+上述代码中 `rest` 就是数组中剩余元素组成的数组，变量名不一定要使用 `rest`，也可以使用其它的变量名，**只要确保它前面有三个点，并且在解构赋值的最后一个参数位置上**。
+
+
+
+**默认值**
+如果数组比左侧的变量列表短，**缺少的对应变量会被赋值 `undefined`**：
+
+```js
+let [firstName, surname] = [];
+
+alert(firstName); // undefined
+alert(surname); // undefined
+```
+
+如果要给未赋值的变量一个默认值，可以使用 `=` 来提供：
+
+```js
+// 默认值
+let [name = 'Guest', surname = 'Anonymous'] = ['Julius'];
+
+alert(name);    // Julius（来自数组的值）
+alert(surname); // Anonymous（默认值被使用了）
+```
+
+默认值可以是更加复杂的表达式，也可以是函数调用，这些表达式或函数只会在这个**变量未被赋值的时候才会被计算**，例如：
+
+```js
+// 只会提示输入姓氏
+let [name = prompt('name?'), surname = prompt('surname?')] = ['Julius'];
+
+alert(name);    // Julius（来自数组）
+alert(surname); // 输入的值
+```
+
+
+
+**对象解构**
+
+解构赋值同样适用于对象，基本语法如下：
+
+```js
+let {var1, var2} = {var1:…, var2:…};
+```
+
+在等号的右侧是一个已经存在的对象，可以把它拆分到变量中，等号的左侧包含了对象相应属性的一个**类对象 “模式（pattern）”**。
+
+例如：
+
+```js
+let options = {
+  title: 'Menu',
+  width: 100,
+  height: 200,
+};
+
+let {title, width, height} = options;
+
+alert(title);  // Menu
+alert(width);  // 100
+alert(height); // 200
+```
+
+上述代码中，属性 `options.title`、`options.width` 和 `options.height` 值被赋给了对应的变量。
+
+**⚠️ 注意：** 
+
+- 左侧变量的顺序并不重要
+
+- 可以使用已有的变量，而不用 `let`，但这存在一个陷阱
+
+  ```js
+  let title, width, height;
+  
+  {title, width, height} = {title: 'Menu', width: 200, height: 100}; // SyntaxError: Unexpected token '='
+  ```
+
+  上述代码无法正常运行，问题在于 JavaScript 把主代码流（即不在其他表达式中）的 `{...}` 当做一个代码块。
+
+  可以**将整个赋值表达式用括号 `(...)` 包起来**：
+
+  ```js
+  let title, width, height;
+  
+  // 现在就可以了
+  ({title, width, height} = {title: "Menu", width: 200, height: 100});
+  
+  alert( title ); // Menu
+  ```
+
+
+
+等号左侧的模式（pattern）可以更加复杂，**可以指定属性和变量之间的映射关系，用来将一个属性赋值给另一个名字的变量**。
+
+```js
+let options = {
+  title: 'Menu',
+  width: 100,
+  height: 200,
+};
+
+let {width: w, height: h, title} = options;
+
+// width -> w
+// height -> h
+// title -> title
+
+alert(title);  // Menu
+alert(w);      // 100
+alert(h);      // 200
+```
+
+上述代码中冒号的语法是 “从对象中什么属性的值：赋值给哪个变量”，在上述代码中属性 `width` 被赋值给了 `w`，属性 `height` 被赋值给了 `h`，属性 `title` 被赋值给了同名变量。
+
+
+
+对于可能缺失的属性，也可以使用 `=` 设置默认值，例如：
+
+```js
+let options = {
+  title: 'Menu',
+};
+
+let {width = 100, height = 200, title} = options;
+
+alert(title);  // Menu
+alert(width);  // 100
+alert(height); // 200
+```
+
+默认值可以是更加复杂的表达式，也可以是函数调用，这些表达式或函数只会在这个**变量未被赋值的时候才会被计算**，例如：
+
+```js
+let options = {
+  title: 'Menu',
+};
+
+let {width = prompt('width?'), title = prompt('title?')} = options;
+
+alert(title);  // Menu
+alert(width);  // (prompt 的返回值)
+```
+
+**还可以将冒号和等号结合起来**：
+
+```js
+let options = {
+  title: 'Menu',
+};
+
+let {width: w = 100, height: h = 200, title} = options;
+
+alert(title);  // Menu
+alert(w);      // 100
+alert(h);      // 200
+```
+
+
+
+**剩余模式 ...**
+
+如果对象拥有的属性数量比左侧的提供的变量数据多，那么其余的属性会被忽略，**如果还想收集其余数组项，可以使用 `...` 再加一个参数来获取其余属性**：
+
+```js
+let options = {
+  title: 'Menu',
+  height: 200,
+  width: 100
+};
+
+// title = 名为 title 的属性
+// rest = 存有剩余属性的对象
+let {title, ...rest} = options;
+
+// 现在 title = 'Menu', rest = { height: 200, width: 100 }
+alert(rest.height);  // 200
+alert(rest.width);   // 100
+```
+
+**⚠️ 注意：** 一些较旧的浏览器不支持此功能（例如 IE，需要使用 Babel 对其进行 polyfill）
+
+
+
+**嵌套解构**
+
+如果一个对象或数组嵌套了其他的对象和数组，可以通过在等号左侧使用更复杂的模式（pattern）来提取更深层的数据。
+
+```js
+let options = {
+  size: {
+    width: 100,
+    height: 200,
+  },
+  items: ['Cake', 'Donut'],
+  extra: true,
+};
+
+let {
+  size: { // 把 size 赋值到这里
+    width,
+    height
+  },
+  items: [item1, item2], // 把 items 赋值到这里
+  title = 'Menu' // 在对象中不存在（使用默认值）
+} = options;
+
+alert(title);  // Menu
+alert(width);  // 100
+alert(height); // 200
+alert(item1);  // Cake
+alert(item2);  // Donut
+```
+
+上述代码中，对象 `options` 的所有属性，除了 `extra` 属性在等号左侧不存在，都被赋值给了对应的变量：
+
+![image-20250628152239996](images/image-20250628152239996.png)
+
+
+
+**智能函数参数**
+
+如果一个函数有很多参数，其中大部分的参数都是可选的，例如：
+
+```js
+function showMenu(title = "Untitled", width = 200, height = 100, items = []) {
+  // ...
+}
+```
+
+这样的函数存在如下问题：
+
+- **记忆如此多的参数的顺序是一个很大的负担**
+
+- **大部分的参数只需采用默认值的情况下，调用这个函数时会需要写大量的 `undefined`**
+
+  ```js
+  // 在采用默认值就可以的位置设置 undefined
+  showMenu("My Menu", undefined, undefined, ['Item1', 'Item2']);
+
+为了解决上述两个问题，**可以用一个对象来传递所有参数，而函数负责把这个对象解构成各个参数**。
+
+```js
+// 我们传递一个对象给函数
+let options = {
+  title: 'My menu',
+  items: ['Item1', 'Item2'],
+};
+
+showMenu(options);
+
+// 函数把对象解构成变量
+function showMenu({title = 'Untitled', width = 200, height = 100, items = []}) {
+  // title, items – 提取于 options，
+  // width, height – 使用默认值
+  alert( `${title} ${width} ${height}` ); // My Menu 200 100
+  alert( items ); // Item1, Item2
+}
+```
+
+也可以使用带有嵌套对象和冒号映射的更加复杂的解构：
+
+```js
+let options = {
+  title: 'My menu',
+  items: ['Item1', 'Item2'],
+};
+
+showMenu(options);
+
+function showMenu({
+  title = 'Untitled',
+  width: w = 100,  // 宽度赋值给变量 w
+  height: h = 200, // 高度赋值给变量 h
+  items: [item1, item2] // items 中的元素按顺序分别赋值给变量 item1 和 item2
+}) {
+  alert( `${title} ${w} ${h}` ); // My Menu 100 200
+  alert( item1 ); // Item1
+  alert( item2 ); // Item2
+}
+```
+
+**⚠️ 注意：想让所有的参数都使用默认值，应该传递一个空对象：**
+
+```js
+showMenu({}); // 正确，所有值都取默认值
+
+showMenu(); // 这样会导致错误，不传参数等价于对 undefined 进行解构，所以报错
+```
+
+也可以通过定空对象 `{}` 为整个参数对象的默认值来解决这个问题：
+
+```js
+function showMenu({ title = "Menu", width = 100, height = 200 } = {}) {
+  alert( `${title} ${width} ${height}` );
+}
+
+showMenu(); // Menu 100 200
+```
+
+上述代码中，**整个参数对象的默认是 `{}`，因此总会有内容可以用来解构**。

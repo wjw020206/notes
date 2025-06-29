@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      let user = {
+        name: 'John',
+        years: 30,
+      };
+
+      // 等号左侧是你的代码
+      const { name, years: age, isAdmin = false } = user;
+
+      alert(name); // John
+      alert(age); // 30
+      alert(isAdmin); // false
+    </script>
+  </body>
+</html>
