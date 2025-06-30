@@ -9896,6 +9896,18 @@ alert( counter() ); // 2
 
    - **词法环境是一个规范对象**，只存在于[语言规范](https://tc39.es/ecma262/#sec-lexical-environments)的 “理论” 层面，用于描述事物是如何工作的，**无法在代码中获取该对象并直接对其进行操作**
    - 但 JavaScript 引擎同样可以优化它，比如清除未被使用的变量以节省内存和执行其他内部技巧等
+   - 变量暂时无法使用的区域（从代码块的开始到 `let`）有时被称为 **“死区”**
+
+     ```js
+     function func() {
+       // 引擎从函数开始就知道局部变量 x，
+       // 但是变量 x 一直处于“未初始化”（无法使用）的状态，直到遇到 let，此时“死区”结束
+       // 因此报错
+       console.log(x); // ReferenceError: Cannot access 'x' before initialization
+     
+       let x = 2;
+     }
+     ```
 
    
 
