@@ -9729,3 +9729,184 @@ alert(JSON.stringify(objCopy)); // {"a":1,"b":2,"c":3}
 
 - 若 `...` 出现在**函数参数列表的最后**，它是 Rest 语法，它会把参数列表中剩余的参数收集到一个数组
 - 若 `...` 出现在**函数调用或类似的表达式**中，那它就是 Spread 语法，它会把一个数组展开为列表
+
+
+
+## 变量作用域，闭包
+
+JavaScript 中函数被创建之后，外部变量发生了变化会怎样？函数会获得新值还是旧值？
+
+函数作为参数（argument）传递并在代码中的另一个位置调用它，该函数将访问的是新位置的外部变量吗？
+
+
+
+**代码块**
+
+如果在代码块 `{...}` 内声明了一个变量，那这个变量只能会在该代码块内可见，例如：
+
+```js
+{
+  let message = 'Hello'; // 只在此代码块内可见
+
+  alert(message); // Hello
+}
+
+alert(message); // Uncaught ReferenceError: message is not defined
+```
+
+可以用它来隔离一段代码，该代码执行自己的任务，并使用仅属于自己的变量：
+
+```js
+{
+  // 显示 message
+  let message = 'Hello';
+  alert(message);
+}
+
+{
+  // 显示另一个 message
+  let message = 'Goodbye';
+  alert(message);
+}
+```
+
+**⚠️ 注意：** 如果没有代码块隔离，上述代码将会报错。
+
+```js
+// 显示 message
+let message = 'Hello';
+alert(message);
+
+// 显示另一个 message
+let message = 'Goodbye'; // Uncaught SyntaxError: Identifier 'message' has already been declared
+alert(message);
+```
+
+因为 `let` 声明的变量无法重复声明，`const` 也是同理。
+
+
+
+**对于 `if`，`for` 和 `while` 等，在 `{...}` 中声明的变量也仅在内部可见**：
+
+```js
+if (true) {
+  let phrase = 'Hello!';
+
+  alert(phrase); // Hello!
+}
+
+alert(phrase); // Uncaught ReferenceError: phrase is not defined
+```
+
+对于 `for` 和 `while` 循环也是这样：
+
+```js
+for (let i = 0; i < 3; i++) {
+  // 变量 i 仅在这个 for 循环的内部可见
+  alert(i); // 0，然后是 1，然后是 2
+}
+
+alert(i); // Uncaught ReferenceError: i is not defined
+```
+
+**⚠️ 注意：** 从视觉上看，`let i` 位于 `{...}` 之外，但 **`for` 构造很特殊：在其中声明的变量被视为块的一部分**。
+
+
+
+**嵌套函数**
+
+如果一个函数是在另一个函数中创建的，该函数就被称为 **“嵌套” 函数**。
+
+例如：
+
+```js
+function sayHiBye(firstName, lastName) {
+
+  // 辅助嵌套函数使用如下
+  function getFullName() {
+    return firstName + ' ' + lastName;
+  }
+
+  alert( 'Hello, ' + getFullName() );
+  alert( 'Bye, ' + getFullName() );
+
+}
+```
+
+上述代码中创建**嵌套函数** `getFullName()` 是为了更加方便，它可以访问外部变量，因此可以返回全名。
+
+**也可以返回一个嵌套函数，作为一个新对象的属性或作为结果返回，之后可以在其他地方使用，不论在哪里调用，它仍然可以访问相同的外部变量**，例如：
+
+```js
+function makeCounter() {
+  let count = 0;
+
+  return function() {
+    return count++;
+  };
+}
+
+let counter = makeCounter();
+
+alert( counter() ); // 0
+alert( counter() ); // 1
+alert( counter() ); // 2
+```
+
+
+
+**词法环境**
+
+1. **变量**
+
+   在 JavaScript 中，每个**运行的函数，代码块 `{...}` 以及整个脚本**，都有一个被称为**词法环境（Lexical Environment）**的内部（隐藏）的关联对象。
+
+   词法环境对象由两部分组成：
+
+   1. **环境记录（Environment Record）：** 存储所有局部变量作为其属性（包括一些其他信息，例如 `this` 的值）的对象
+   2. 对**外部词法环境**的引用：与外部代码相关联
+
+   一个变量只是**环境记录**这个特殊的内部对象的一个属性，**获取或修改变量意味着获取或修改词法环境中的一个属性**
+
+   例如下面这段**没有函数的简单代码**只有一个词法环境：
+
+   ![image-20250630080518003](images/image-20250630080518003.png)
+
+   这个词法环境与整个脚本相关联，也就是所谓的**全局词法环境**。
+
+   上图中矩形表示环境记录（变量存储），箭头表示外部引用，**全局词法环境的没有外部引用**，所以箭头指向了 `null`。
+
+   随着代码开始并继续运行，词法环境发生了变化。
+
+   ![image-20250630080911167](images/image-20250630080911167.png)
+
+   右侧展示了执行过程中全局词法环境的变化：
+
+   1. 当脚本开始运行，词法环境**预先填充了所有声明的变量**
+
+      这些声明的变量处于 **“未初始化（Uninitialized）”** 状态，这是一种特殊的内部状态，这意味着**引擎知道变量，但是在用 `let` 声明前，不能引用它**
+
+   2. 然后 `let phrase` 定义出现了，但它尚未被赋值，因此它的值为 `undefined`，**从这一刻起，就可以使用变量了**
+
+   3. `phrase` 被赋予了一个值
+
+   4. `phrase` 的值被修改
+
+   **⚠️ 注意：**
+   
+   - **词法环境是一个规范对象**，只存在于[语言规范](https://tc39.es/ecma262/#sec-lexical-environments)的 “理论” 层面，用于描述事物是如何工作的，**无法在代码中获取该对象并直接对其进行操作**
+   - 但 JavaScript 引擎同样可以优化它，比如清除未被使用的变量以节省内存和执行其他内部技巧等
+   
+   
+   
+2. **函数声明**
+
+一个函数就是一个值，就像变量一样，**不同之处在于函数声明的初始化会被立即完成**。
+
+当创建了一个词法环境时，**函数声明会立即变为即用型函数**（不像 `let` 那样到了声明处才可以使用），这也就是为什么可以在函数声明之前调用函数原因。
+
+例如添加一个函数时全局词法环境的初始状态：
+
+![image-20250630082908805](images/image-20250630082908805.png)
+
+**⚠️ 注意：这种行为仅适用于函数声明**，不适用于将函数分配给变量的函数表达式，例如 `let say = function(name)...`。
