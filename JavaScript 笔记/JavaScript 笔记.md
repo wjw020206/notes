@@ -10425,3 +10425,74 @@ if (!window.Promise) {
 }
 ```
 
+
+
+## 函数对象，NFE
+
+在 JavaScript 中，函数的类型是对象，可以把函数想象为可被调用的 **“行为对象（action object）”**，不仅可以调用它们，还能把它们当作对象来处理：增/删属性，按引用传递等。
+
+
+
+**属性 name**
+
+函数对象包含一些常用的属性。
+
+例如函数的名字可以通过属性 `name` 来访问：
+
+```js
+function sayHi() {
+  alert('Hi');
+}
+
+alert(sayHi.name); // sayHi
+```
+
+函数的名称赋值逻辑很智能，**即使函数被创建时没有名字，名称赋值的逻辑也能给它赋予一个正确的名字**，然后进行赋值：
+
+```js
+const sayHi = function () {
+  alert('Hi');
+};
+
+alert(sayHi.name); // sayHi
+```
+
+当以默认值方式完成赋值时也有效：
+
+```js
+function f(sayHi = function() {}) {
+  alert(sayHi.name); // sayHi
+}
+
+f();
+```
+
+在规范中把这种特性叫做**上下文命名**，如果函数自己没有提供，那么在赋值中，会根据上下文来推测一个。
+
+在对象的中的方法也有名字：
+
+```js
+const user = {
+  sayHi() {
+    // ...
+  },
+  
+  sayBye: function() {
+    // ...
+  },
+};
+
+alert(user.sayHi.name); // sayHi
+alert(user.sayBye.name); // sayBye
+```
+
+**⚠️ 注意：也存在无法推测名字的情况**，属性 `name` 是空的，例如：
+
+```js
+// 函数是在数组中创建的
+let arr = [function() {}];
+
+alert(arr[0].name); // <空字符串>
+```
+
+不过大多数函数都是有名字的。
