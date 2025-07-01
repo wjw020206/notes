@@ -10089,3 +10089,257 @@ g();
 上述代码理论上应该是可以访问的，但是**引擎把它优化掉了**。
 
 **⚠️ 注意：** 这个不是调试器的 bug，而是 V8 的一个特别的特性。
+
+
+
+## var
+
+在 JavaScript 中声明变量有以下三种方式：
+
+- `let`
+- `const`
+- `var`
+
+**⚠️ 注意：** `var` 是早期 JavaScript 声明变量的一种方式，**现代脚本中一般不再使用它**。
+
+
+
+**var 没有块级作用域**
+
+用 `var` 声明的变量，**只有函数作用域和全局作用域，没有块级作用域**。
+
+例如：
+
+```js
+if (true) {
+  var test = true; // 使用 var 而不是 let
+}
+
+alert(test); // true
+```
+
+上述代码中 `var` 会**忽略**代码块，所有了一个全局变量 `test`，而 `let` 不会这样：
+
+```js
+if (true) {
+  let test = true; // 使用 let
+}
+
+alert(test); // Uncaught ReferenceError: test is not defined
+```
+
+
+
+对于循环也是这样的，`var` 声明的变量**没有块级作用域也没有循环局部作用域**：
+
+```js
+for (var i = 0; i < 10; i++) {
+  var one = 1;
+  // ...
+}
+
+alert(i);   // 10，i 在循环结束后仍可见，它是一个全局变量
+alert(one); // 1，one 在循环结束后仍可见，它是一个全局变量
+```
+
+
+
+如果一个代码块位于函数的内部，**`var` 声明的变量的作用域将为函数作用域**：
+
+```js
+function sayHi() {
+  if (true) {
+    var phrase = 'Hello';
+  }
+
+  alert(phrase); // Hello，能正常工作
+}
+
+sayHi();
+alert(phrase); // Uncaught ReferenceError: phrase is not defined
+```
+
+ **`var` 可以穿透了 `if`，`for` 和其它代码块**，是因为早期 JavaScript 中没有词法环境。
+
+
+
+**var 允许重新声明**
+
+`let` 声明变量在同一个作用域下将同一个变量重复声明两次，则会出现错误：
+
+```js
+let user;
+let user; // SyntaxError: Identifier 'user' has already been declared
+```
+
+但是使用 `var` 可以重复声明一个变量，如果对一个已经声明的变量使用 `var`，这条新的声明语句的 `var` 会被忽略。
+
+```js
+var user = 'Pete';
+var user = 'John'; // 这个 var 无效（因为变量已经声明过了）
+
+alert(user); // John
+```
+
+
+
+**var 声明的变量，可以在其声明语句前被使用**
+
+在函数开始的时候，就会处理 `var` 声明（脚本启动对应全局变量），简单来说就是 **`var` 声明的变量会在函数开头被定义，与它在代码中定义的位置无关**。
+
+例如：
+
+```js
+function sayHi() {
+  phrase = 'Hello';
+
+  alert(phrase); // Hello
+
+  var phrase;
+}
+sayHi();
+```
+
+在技术上等价于下面的代码：
+
+```js
+function sayHi() {
+  var phrase;
+  
+  phrase = 'Hello';
+
+  alert(phrase); // Hello
+}
+sayHi();
+```
+
+
+
+在代码块中的也是一样：
+
+```js
+function sayHi() {
+  phrase = 'Hello';
+
+  if (false) {
+    var phrase;
+  }
+
+  alert(phrase); // Hello
+}
+sayHi();
+```
+
+等价于
+
+```js
+function sayHi() {
+  var phrase;
+  
+  phrase = 'Hello';
+
+  if (false) {
+  }
+
+  alert(phrase); // Hello
+}
+sayHi();
+```
+
+`var` 的这种行为被称为 **“提升”**（英文为 “hoisting” 或 “raising”），所有的 `var` 都被提升到函数的顶部。
+
+**⚠️ 注意：** 声明会被提升，但是赋值不会。
+
+例如：
+
+```js
+function sayHi() {
+  alert(phrase);  // undefined
+
+  var phrase = 'Hello';
+}
+
+sayHi();
+```
+
+等价于
+
+```js
+function sayHi() {
+  var phrase;
+  
+  alert(phrase); // undefined
+
+  phrase = 'Hello';
+}
+
+sayHi();
+```
+
+上述代码中声明在函数刚开始执行的时候（“提升”）就被处理了，所以 `phrase` 变量存在不会报错，但是它还没赋值，所以显示 ` undefined`。
+
+
+
+**IIFE**
+
+**因为过去 `var` 声明的变量没有块级作用域**，所以程序员们就发明了一种**模仿块级作用域的方法**，这种方法被称为 **“立即调用函数表达式”**（immediately-invoked function expressions，简称 **IIFE**）。
+
+看起来像这样：
+
+```js
+(function() {
+  var message = 'Hello';
+  alert(message); // Hello
+})();
+```
+
+上述代码创建了一个函数表达式并立即调用，所以代码立即执行并拥有了自己的私有变量。
+
+
+
+这里函数表达式被括号 `(function {...})` 包裹起来，是因为当 JavaScript 引擎在主代码中遇到 `function` 时，会把它当成一个函数声明的开始，但是函数必须要有函数名，所以就会导致错误：
+
+```js
+// 尝试声明并立即调用一个函数
+function() { // SyntaxError: Function statements require a function name
+  var message = 'Hello';
+alert(message);
+}();
+```
+
+即使给它加上了函数名，它仍然不工作：
+
+```js
+function go() { // SyntaxError: Unexpected token ')'
+  var message = 'Hello';
+  alert(message);
+}(); // 不能立即调用函数声明
+```
+
+所以需要使用圆括号把该函数表达式包起来，来告诉 JavaScript，这个函数是在另一个表达式的上下文中创建的，因此它是一个函数表达式，它不需要函数名，可以立即调用。
+
+除了使用括号，还可以使用其它方式来告诉 JavaScript，这里用的是函数表达式：
+
+```js
+// 创建 IIFE 的方法
+
+(function() {
+  alert('Parentheses around the function');
+})();
+
+(function() {
+  alert('Parentheses around the function');
+}());
+
+!function() {
+  alert('Parentheses around the function');
+}();
+
++function() {
+  alert('Parentheses around the function');
+}();
+```
+
+上面的所有情况中，都声明了一个函数表达式并立即运行它。
+
+**⚠️ 注意：** 如今没有理由编写这样的代码。
