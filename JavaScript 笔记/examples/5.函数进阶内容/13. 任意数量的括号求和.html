@@ -7,11 +7,25 @@
   </head>
   <body>
     <script>
+      // function sum(a) {
+      //   let currentSum = a;
+
+      //   function f(b) {
+      //     currentSum += b;
+      //     return f;
+      //   }
+
+      //   f.toString = function () {
+      //     return currentSum;
+      //   };
+
+      //   return f;
+      // }
+
       function sum(a) {
-        sum[Symbol.toPrimitive] = function () {
-          sum 
-          return sum;
-        };
+        const next = (b) => sum(a + b);
+        next.toString = () => a;
+        return next;
       }
     </script>
   </body>
