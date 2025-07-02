@@ -10496,3 +10496,135 @@ alert(arr[0].name); // <空字符串>
 ```
 
 不过大多数函数都是有名字的。
+
+
+
+**属性 length**
+
+函数还有另一个内建属性 `length`，它返回函数参数（**这里的参数特指函数声明时的参数（形参 parameter）**）的个数。
+
+```js
+function f1(a) {}
+function f2(a, b) {}
+function many(a, b, ...more) {}
+
+alert(f1.length); // 1
+alert(f2.length); // 2
+alert(many.length); // 2
+```
+
+**⚠️ 注意：Rest 参数不参与计数**。
+
+通常在开发中属性 `length` 在操作其它函数中用作**内省/运行时检查**，例如：
+
+当用户提供了自己的答案后，函数会调用那些 `handlers`，可以传入两种 `handlers`：
+
+- 一种是无参函数，它仅在用户给出肯定回答时被调用
+- 一种是有参函数，它在两种情况都会被调用，并且返回一个答案
+
+```js
+function ask(question, ...handlers) {
+  let isYes = confirm(question);
+
+  for(let handler of handlers) {
+    if (handler.length == 0) {
+      if (isYes) handler();
+    } else {
+      handler(isYes);
+    }
+  }
+
+}
+
+// 对于肯定的回答，两个 handler 都会被调用
+// 对于否定的回答，只有第二个 handler 被调用
+ask('Question?', () => alert('You said yes'), result => alert(result));
+```
+
+上述代码就是**多态性**的例子，根据参数的类型，或者在具体情景下的 `length` 来做不同的处理。
+
+
+
+**自定义属性**
+
+函数也是对象，所以可以添加自定义的属性，例如：
+
+```js
+function sayHi() {
+  alert('Hi');
+
+  // 计算调用次数
+  sayHi.counter++;
+}
+
+sayHi.counter = 0; // 初始值
+
+sayHi(); // Hi
+sayHi(); // Hi
+
+alert(`调用了 ${sayHi.counter} 次`); // 调用了 2 次
+```
+
+**⚠️ 注意：`sayHi.counter = 0` 不会在函数内部定义一个局部变量 `counter`**，只是作为函数对象的属性，属性 `counter` 和变量 `let counter` 是毫不相关的两个东西。
+
+
+
+函数属性有时会用来替代闭包，例如下面用闭包实现计数器的例子：
+
+```js
+function makeCounter() {
+  let count = 0;
+  
+  return function() {
+    return count++;
+  }
+}
+
+let counter = makeCounter();
+alert( counter() ); // 0
+alert( counter() ); // 1
+```
+
+可以用函数属性实现相同的功能：
+
+```js
+function makeCounter() {
+  
+  function counter() {
+    return counter.count++;
+  }
+  
+  counter.count = 0;
+  
+  return counter;
+}
+
+let counter = makeCounter();
+alert( counter() ); // 0
+alert( counter() ); // 1
+```
+
+上述代码中 **`count` 被直接存储在函数里，而不是它外部的词法环境**。
+
+**⚠️ 注意：** 两种写法最大的区别是：闭包写法的 `count` 的值位于外层（函数）变量中，外部的代码无法访问到它，只有嵌套的函数可以修改它，而函数属性方式的 `count` 值可以被外部代码修改，像下面这样：
+
+```js
+function makeCounter() {
+  
+  function counter() {
+    return counter.count++;
+  }
+  
+  counter.count = 0;
+  
+  return counter;
+}
+
+let counter = makeCounter();
+
+counter.count = 10; // 外部代码可以直接修改函数的 count 属性
+alert( counter() ); // 10
+```
+
+
+
