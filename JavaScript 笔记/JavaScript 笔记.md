@@ -10727,5 +10727,123 @@ let sayHi = function func(who) {
 
 
 
+## new Function 语法
+
+该语法是创建函数的一种方式，**通常很少被使用，但有时候只能选择它**。
+
+创建函数的语法：
+
+```js
+let func = new Function([arg1, arg2, ...argN], functionBody);
+```
+
+该函数是通过使用参数 `arg1...argN` 和给定的 `functionBody` 创建的。
+
+例如：
+
+```js
+let sum = new Function('a', 'b', 'return a + b');
+alert( sum(1, 2) ); // 3
+```
+
+也没有参数，只有函数体：
+
+```js
+let sayHi = new Function('alert("Hello")');
+
+sayHi(); // Hello
+```
+
+该方法与其它创建函数的方法相比，最大的不同是：**运行时通过参数传递过来的字符串来创建函数，而非程序员提前写好的函数代码**，也就是说 `new Function` 允许将任意字符串变为函数，例如可以从服务器接收一个新的函数并执行它：
+
+```js
+let str = ... 动态地接收来自服务器的代码 ...
+
+let func = new Function(str);
+func();
+```
+
+**⚠️ 注意：** `new Function` 创建函数的使用场景非常特殊，**只有在从服务器获取代码或者动态地从模板编译函数时才会使用**。
+
+
+
+**闭包**
+
+通常 JavaScript 中的闭包是指使用一个特殊的属性 `[[Environment]]` 来记录函数自身的创建时的环境的函数，具体指向了函数创建时的词法环境。
+
+如果使用 `new Function` 创建一个函数，该函数的 `[[Environment]]` 并**不指向函数创建时的词法环境**，而是指向**全局环境**。
+
+所以此类函数**无法访问外部（outer）变量，只能访问全局变量**。
+
+```js
+function getFunc() {
+  let value = 'test';
+
+  let func = new Function('alert(value)');
+
+  return func;
+}
+
+getFunc()(); // Uncaught ReferenceError: value is not defined
+```
+
+与常规函数的比较：
+
+```js
+function getFunc() {
+  let value = 'test';
+
+  let func = function() { alert(value); };
+
+  return func;
+}
+
+getFunc()(); // test，从 getFunc 的词法环境中获取的
+```
+
+`new Function` 之所以这样设计，是因为在编写代码时，`new Function` 中的实际代码是不知道的，可能会从服务器或者其它来源获取，如果这个函数能访问外部（outer）变量，可能会发生以下问题：
+
+通常在将 JavaScript 发布到生产环境的时候，需要先使用**压缩程序（minifier）**对其进行压缩，会删除多余的注释和空格等压缩代码，**其中会将局部变量命名为较短的变量**。
+
+例如，如果一个函数有 `let userName`，压缩程序会把它替换为 `let a`（如果 a 已被占用了，那就使用其他字符），剩余的局部变量也会被进行类似的替换。
+
+一般来说这样的替换是安全的，毕竟这些变量是函数内的局部变量，函数外的任何东西都无法访问它，在函数内部，**压缩程序会替换所有使用了这些变量的代码**，压缩程序很聪明，它会分析代码的结构，而不是呆板地查找然后替换，因此它不会 “破坏” 你的程序。
+
+在这种情况下，如果使 `new Function` 可以访问自身函数以外的变量，它很有可能无法找到重命名（压缩替换后）的 `userName`，因为新函数的创建发生在代码压缩以后，变量名已经被替换了。
+
+**所以即使可以在 `new Function` 中访问外部词法环境，也会受挫于压缩程序。**
+
+**⚠️ 注意：** 在需要向 `new Function` 创建出的新函数传递数据时，**必须显式地通过参数进行传递**，例如：
+
+- 不好的做法
+
+  ```js
+  const globalVar = 10; // globalVar 可能会被压缩程序替换被别的名称
+  const func = new Function('globalVar', 'return globalVar');
+  
+  console.log( func() ); // 不安全
+  ```
+
+- 好的做法
+
+  ```js
+  const globalVar = 10; // globalVar 可能会被压缩程序替换被别的名称，但是最后一行调用中的参数名也会同步被替换
+  const func = new Function('globalVar', 'return globalVar');
+  
+  console.log( func(globalVar) ); // 安全
+  ```
+
+
+
+**其它创建方式**
+
+由于历史原因，参数也可以按逗号分隔符的形式给出，例如下面三种声明的含义相同：
+
+```js
+new Function('a', 'b', 'return a + b'); // 基础语法
+new Function('a,b', 'return a + b'); // 逗号分隔
+new Function('a , b', 'return a + b'); // 逗号和空格分隔
+```
+
 
 
