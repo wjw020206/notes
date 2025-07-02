@@ -8593,8 +8593,8 @@ function bench(f) {
   return Date.now() - start;
 }
 
-alert( 'Time of diffSubtract: ' + bench(diffSubtract) + 'ms' );
-alert( 'Time of diffGetTime: ' + bench(diffGetTime) + 'ms' );
+alert('Time of diffSubtract: ' + bench(diffSubtract) + 'ms');
+alert('Time of diffGetTime: ' + bench(diffGetTime) + 'ms');
 ```
 
 上述代码运行才结果来看 `getTime()` 这种方式快得多，因为它没有进行类型转换，对引擎优化来说更加简单。
