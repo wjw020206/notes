@@ -10628,3 +10628,104 @@ alert( counter() ); // 10
 
 
 
+**命名函数表达式**
+
+命名函数表达式（NFE，Named Function Expression），**指带有名字的函数表达式的术语**。
+
+例如：
+
+```js
+let sayHi = function(who) {
+  alert(`Hello, ${who}`);
+};
+```
+
+可以给这个函数表达式添加一个名字：
+
+```js
+let sayHi = function func(who) {
+  alert(`Hello, ${who}`);
+};
+```
+
+**⚠️ 注意：** 
+
+- 上述代码**仍然是一个函数表达式**，在 `function` 后面加一个名字 `func` **没有使它成为一个函数声明**
+
+- 上述代码添加的 `func` 有两个特殊的地方：
+
+  1. **它允许函数在内部引用自己**
+  2. **它在函数外是不可见的**
+
+  例如：
+
+  ```js
+  let sayHi = function func(who) {
+    if (who) {
+      alert(`Hello, ${who}`);
+    } else {
+      func('Guest'); // 使用 func 再次调用函数自身
+    }
+  };
+  
+  sayHi(); // Hello, Guest
+  
+  // 但这不工作：
+  func(); // ReferenceError: func is not defined
+  ```
+
+  虽然大多数情况也可以这样做：
+
+  ```js
+  let sayHi = function(who) {
+    if (who) {
+      alert(`Hello, ${who}`);
+    } else {
+      sayHi('Guest');
+    }
+  };
+  ```
+
+  但是这段代码存在一个问题：**`sayHi` 的值可能会被函数外部的代码改变（原变量被修改），导致内部调用报错：**
+
+  ```js
+  let sayHi = function(who) {
+    if (who) {
+      alert(`Hello, ${who}`);
+    } else {
+      sayHi('Guest'); // Uncaught TypeError: sayHi is not a function
+    }
+  };
+  
+  // 原变量 sayHi 被函数外部代码修改
+  let welcome = sayHi; 
+  sayHi = null;
+  
+  welcome();
+  ```
+
+  所以**给函数表达式添加名字就是为了解决这类问题的**，修复后代码如下：
+
+  ```js
+  let sayHi = function func(who) {
+    if (who) {
+      alert(`Hello, ${who}`);
+    } else {
+      func('Guest'); // 现在一切正常
+    }
+  };
+  
+  let welcome = sayHi;
+  sayHi = null;
+  
+  welcome(); // Hello, Guest
+  ```
+
+  `func` 是一个 “内部函数名”，**是函数可以可靠地调用自身的方式**。
+
+  **⚠️ 注意：** 函数声明方式创建的函数没有添加内部名称的语法。
+
+
+
+
+
