@@ -10847,3 +10847,125 @@ new Function('a , b', 'return a + b'); // 逗号和空格分隔
 
 
 
+## setTimeout 和 setInterval
+
+有时候不想立即执行函数，而是等待特定一段时间之后再执行，这就是所谓的 **“计划调用（scheduling a call）”**。
+
+有以下两种方式可以实现：
+
+- `setTimeout` 允许将函数**推迟到一段时间间隔之后再执行**
+- `setInterval` 允许将函数**每隔一段时间间隔连续重复执行**
+
+**⚠️ 注意：** 上述两个方法**不在 JavaScript 的规范中**，但大多数运行环境都有内建的调度程序，并且提供了这些方法，**所有浏览器以及 Node.js 都支持这两个方法**。
+
+
+
+**setTimeout**
+
+语法：
+
+```js
+let timerId = setTimeout(func|code, [delay], [arg1], [arg2], ...);
+```
+
+- **`func|code`：** 要执行的函数或代码字符串， 一般传入的都是函数
+
+  **⚠️ 注意：** 由于历史原因，**支持传入代码字符串，但不推荐使用**。
+
+- **`delay`：** 执行前的延时，以毫秒为单位（1000 毫秒 = 1 秒），**默认值是 0**
+
+- **`arg1, arg2...`：** 要传入被执行函数（或代码字符串）的参数列表（**IE9 以下不支持**）
+
+例如：
+
+```js
+function sayHi() {
+  alert('Hello');
+}
+
+setTimeout(sayHi, 1000); // 会在 1 秒后执行
+```
+
+带参数的情况：
+
+```js
+function sayHi(phrase, who) {
+  alert( phrase + ', ' + who );
+}
+
+setTimeout(sayHi, 1000, 'Hello', 'John'); // Hello, John
+```
+
+**如果第一个参数传入的是字符串，JavaScript 会自动为其创建一个函数**。
+
+```js
+setTimeout('alert("Hello")', 1000); // 1 秒后显示 Hello
+```
+
+但不推荐使用字符串，上述代码可以使用箭头函数替代：
+
+```js
+setTimeout(() => alert('Hello'), 1000); // 1 秒后显示 Hello
+```
+
+**⚠️ 注意：** 第一个参数传入一个函数，但不要执行它，例如下面的写法是错误的：
+
+```js
+function sayHi() {
+  alert('Hello');
+}
+
+// 错误
+setTimeout(sayHi(), 1000); // 会立即显示 Hello，而不是等待 1 秒后显示
+```
+
+**`setTimeout` 期望得到的是一个对函数的引用**，上述代码中的 `sayHi()` 是在执行函数，实际上传入的是 `setTimeout` 的是**函数的执行结果**，在上述代码中也就是 `undefined`，实际上没有任何调度。
+
+
+
+**用 clearTimeout 来取消调度**
+
+`setTimeout` 在调用时会返回一个 **“定时器标识符（timer identifier）”**，可以通过使用它来取消执行。
+
+取消调度语法：
+
+```js
+let timerId = setTimeout(...);
+clearTimeout(timerId);
+```
+
+例如：
+
+```js
+let timerId = setTimeout(() => alert('永远不会执行'), 1000);
+alert(timerId); // 定时器标识符
+
+clearTimeout(timerId);
+alert(timerId); // 还是这个标识符（并没有因为调度被取消了而变成 null）
+```
+
+**⚠️ 注意：** 定时器标识符在浏览器中是一个数字，但在其它环境中，可能是其它的东西，例如 Node.js 返回的是一个定时器对象，这个对象包含一系列方法，这些方法没有统一的规范定义，所以这没什么问题，针对浏览器环境，定时器在 HTML5 的标准中有详细描述，可以参考[timers section](https://www.w3.org/TR/html5/webappapis.html#timers)。
+
+
+
+**setInterval**
+
+`setInterval` 和 `setTimeout` 的语法相同：
+
+```js
+let timerId = setInterval(func|code, [delay], [arg1], [arg2], ...)
+```
+
+虽然参数的意义相同，但是 **`setInterval` 不像 `setTimeout` 只能执行一次，而是根据给定的间隔时间周期性执行**。
+
+如果要组织后续的调用，可以使用 **`clearInterval(timerId)`**，例如：
+
+```js
+// 每 2 秒重复一次
+let timerId = setInterval(() => alert('tick'), 2000);
+
+// 5 秒之后停止
+setTimeout(() => { clearInterval(timerId); alert('stop'); }, 5000);
+```
+
+**⚠️ 注意：** **alert 弹窗显示的时候计时器依然在进行计时**，在大多数浏览器中，包括 Chrome 和 Firefox，在显示 `alert/confirm/prompt` 弹窗时，内部的定时器仍旧会继续执行，所以在运行上面的代码时，**如果一定时间内没有关掉 `alert` 弹窗，那么在关闭弹窗后，下一个 `alert` 会立即显示，两次 `alert` 之间的时间间隔将小于 2 秒**。
