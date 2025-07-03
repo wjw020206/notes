@@ -9,9 +9,9 @@
     <script>
       function debounce(f, ms) {
         let timer = null;
-        clearTimeout(timer);
 
         return function () {
+          clearTimeout(timer);
           timer = setTimeout(() => {
             return f.apply(this, arguments);
           }, ms);
