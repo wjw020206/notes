@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      function f(x) {
+        alert(x);
+      }
+
+      // create wrappers
+      let f1000 = delay(f, 1000);
+      let f1500 = delay(f, 1500);
+
+      f1000('test'); // 在 1000ms 后显示 "test"
+      f1500('test'); // 在 1500ms 后显示 "test"
+
+      function delay(func, delay) {
+        return function () {
+          setTimeout(() => func.apply(this, arguments), delay);
+        };
+      }
+    </script>
+  </body>
+</html>

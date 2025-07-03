@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      function slow(x) {
+        // 这里可能会有重负载的 CPU 密集型工作
+        alert(`Called with ${x}`);
+        return x;
+      }
+
+      function cachingDecorator(func) {
+        const cache = new Map();
+
+        return function (x) {
+          // 判断是否已有缓存
+          if (cache.has(x)) {
+            return cache.get(x); // 有缓存则返回缓存中的结果
+          }
+
+          const result = func(x); // 计算结果
+          cache.set(x, result); // 将结果存如缓存
+
+          return result;
+        };
+      }
+
+      slow = cachingDecorator(slow);
+
+      alert(slow(1)); // slow(1) 被缓存下来了，并返回结果
+      alert('Again: ' + slow(1)); // 返回缓存中的 slow(1) 的结果
+
+      alert(slow(2)); // slow(2) 被缓存下来了，并返回结果
+      alert('Again: ' + slow(2)); // 返回缓存中的 slow(2) 的结果
+    </script>
+  </body>
+</html>

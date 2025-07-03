@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      function work(a, b) {
+        alert(a + b); // work 是一个任意的函数或方法
+      }
+
+      work = spy(work);
+
+      work(1, 2); // 3
+      work(4, 5); // 9
+
+      for (let args of work.calls) {
+        alert('call:' + args.join()); // "call:1,2", "call:4,5"
+      }
+
+      function spy(func) {
+        function wrapper() {
+          wrapper.calls.push(Array.from(arguments));
+          return func.apply(this, arguments);
+        }
+
+        wrapper.calls = [];
+
+        return wrapper;
+      }
+    </script>
+  </body>
+</html>

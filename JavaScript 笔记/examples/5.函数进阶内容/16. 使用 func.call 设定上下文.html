@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      // 我们将对 worker.slow 的结果进行缓存
+      let worker = {
+        someMethod() {
+          return 1;
+        },
+
+        slow(x) {
+          // 可怕的 CPU 过载任务
+          alert('Called with ' + x);
+          return x * this.someMethod();
+        },
+      };
+
+      function cachingDecorator(func) {
+        const cache = new Map();
+
+        return function (x) {
+          if (cache.has(x)) {
+            return cache.get(x);
+          }
+
+          const result = func.call(this, x); // this 被正确地传递了
+          cache.set(x, result);
+
+          return result;
+        };
+      }
+
+      worker.slow = cachingDecorator(worker.slow);
+
+      alert(worker.slow(1)); // slow(1) 被缓存下来了，并返回结果
+      alert('Again: ' + worker.slow(1)); // 返回缓存中的 slow(1) 的结果
+
+      alert(worker.slow(2)); // slow(2) 被缓存下来了，并返回结果
+      alert('Again: ' + worker.slow(2)); // 返回缓存中的 slow(2) 的结果
+    </script>
+  </body>
+</html>

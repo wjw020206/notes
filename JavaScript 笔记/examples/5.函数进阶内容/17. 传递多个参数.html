@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      const worker = {
+        slow(min, max) {
+          alert(`Called with ${min},${max}`);
+          return min + max;
+        },
+      };
+
+      function cachingDecorator(func, hash) {
+        const cache = new Map();
+
+        return function () {
+          const key = hash(arguments);
+
+          if (cache.has(key)) {
+            return cache.get(key);
+          }
+
+          const result = func.call(this, ...arguments);
+          cache.set(key, result);
+
+          return result;
+        };
+      }
+
+      function hash(args) {
+        return args[0] + ',' + args[1];
+      }
+
+      worker.slow = cachingDecorator(worker.slow, hash);
+
+      alert(worker.slow(3, 5)); // 8
+      alert('Again ' + worker.slow(3, 5)); // 8 (cached)
+    </script>
+  </body>
+</html>
