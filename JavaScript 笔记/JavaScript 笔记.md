@@ -10969,3 +10969,163 @@ setTimeout(() => { clearInterval(timerId); alert('stop'); }, 5000);
 ```
 
 **⚠️ 注意：** **alert 弹窗显示的时候计时器依然在进行计时**，在大多数浏览器中，包括 Chrome 和 Firefox，在显示 `alert/confirm/prompt` 弹窗时，内部的定时器仍旧会继续执行，所以在运行上面的代码时，**如果一定时间内没有关掉 `alert` 弹窗，那么在关闭弹窗后，下一个 `alert` 会立即显示，两次 `alert` 之间的时间间隔将小于 2 秒**。
+
+
+
+**嵌套的 setTimeout**
+
+周期性调度有两种方式。
+
+一种是使用 `setInterval`，另外一种就是嵌套的 `setTimeout`，例如：
+
+```js
+/** instead of:
+let timerId = setInterval(() => alert('tick'), 2000);
+*/
+
+let timerId = setTimeout(function tick() {
+  alert('tick');
+  timerId = setTimeout(tick, 2000);
+}, 2000);
+```
+
+上述代码中，`setTimeout` 在当前这一次函数执行完时立即调度下一次调用。
+
+**嵌套的 `setTimeout` 要比 `setInterval` 更加灵活**，这种方式可以根据当前执行结果来调度下一次调用，使下一次调用可以与当前这一次不同。
+
+例如：实现一个服务（server），每间隔 5 秒向服务器发送一个数据请求，但如果服务器过载了，那么就要降低请求频率，比如将间隔增加到 10、20、40 秒等。
+
+```js
+let delay = 5000;
+
+setTimeout(function request() {
+  // ...发送请求...
+  
+  if(request failed due to server overload) { // 由于服务器过载，请求失败
+    // 下一次执行的间隔是当前的 2 倍
+    delay *= 2;
+  }
+  
+  setTimeout(request, delay);
+}, delay);
+```
+
+如果调度的函数占用大量 CPU，**可以测量执行所需要花费的时间，并安排下次调用是应该提前还是推迟**。
+
+
+
+**嵌套的 `setTimeout` 相较于 `setInterval` 能够更精确地设置两次执行之间的延时**
+
+对比以下两个代码：
+
+- 使用 `setInterval`
+
+  ```js
+  let i = 1;
+  
+  setInterval(function() {
+    func(i++);
+  }, 100);
+  ```
+
+- 使用嵌套的 `setTimeout`：
+
+  ```js
+  let i = 1;
+  
+  setTimeout(function run() {
+    func(i++);
+    setTimeout(run, 100);
+  }, 100);
+  ```
+
+对于 `setInterval` 来说，内部的调度程序会每间隔 100 毫秒执行一次 `func(i++)`：
+
+![image-20250703091122257](images/image-20250703091122257.png)
+
+从上图中可以看出，**使用 `setInterval` 时，`func` 函数的实际调用间隔要比代码中设定的时间间隔要短**，因为 `func` 的执行所花费的时间 “消耗” 了一部分间隔时间。
+
+如果 `func` 的执行所花费的时间比我们预期的时间更长，并且超出了 100 毫秒，这种情况下，JavaScript 引擎会等待 `func` 执行完成，然后检查调度程序，如果时间到了，则**立即再次执行它**。
+
+所以在极端情况下，如果函数每次执行时间都超过 `delay` 设置的时间，那么**每次调用之间将完全没有停顿**。
+
+
+
+而对于嵌套的 `setTimeout` **就能确保延时的固定**，以下是嵌套的 `setTimeout` 的示意图：
+
+![image-20250703091643166](images/image-20250703091643166.png)
+
+因为**下一次调用是在前一次调用完成时再调度的**。
+
+
+
+**垃圾回收和 setInterval/setTimeout 回调（callback）**
+
+当一个函数传入 `setInterval/setTimeout` 时，将**为其创建一个内部引用，并保存在调度程序中**，这样即使这个函数没有其他引用，也能**防止垃圾回收器（GC）将其回收**。
+
+```js
+// 在调度程序调用这个函数之前，这个函数将一直存在于内存中
+setTimeout(function() {...}, 100);
+```
+
+对于 `setInterval`，传入的函数也是一直存在于内存中，**直到 `clearInterval` 被调用**。
+
+**⚠️ 注意：** 函数引用了外部变量（闭包），那么只要这个函数还存在，外部变量也会随之存在，它们可能比函数本身占用更多的内存，因此，当不再需要调度函数时，最好取消它，即使这是个（占用内存）很小的函数。
+
+
+
+**零延时的 setTimeout**
+
+有一种特殊的用法：`setTimeout(func, 0)` 或者是 `setTimeout(func)`。
+
+这样调度可以让 `func` 尽快执行，但只有在当前正在执行的脚本执行完成后，调度程序才会调用它，也就是**该函数被调度在当前脚本执行完成“之后” 立即执行**。
+
+```js
+setTimeout(() => alert('World'));
+
+alert('Hello');
+```
+
+上述代码会显示 `Hello`，然后才是 `World`，之所以会这样，是因为第一行代码 “将调用安排到日程（calendar）0 毫秒处”，但是调度程序只有在当前脚本执行完毕时才会去 “检查日程”，所以先输出 `Hello`，然后才输出 `World`。
+
+**⚠️ 注意：** 零延时实际上不为零，**在浏览器环境下，嵌套定时器的运行频率是受限制的**，根据 [HTML5 标准](https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#timers) 所讲：**“经过 5 重嵌套定时器之后，时间间隔被强制设定为至少 4 毫秒”**，可以通过 `timers` 数组记录上一次调用的实际时间：
+
+```js
+let start = Date.now();
+let times = [];
+
+setTimeout(function run() {
+  times.push(Date.now() - start); // 保存前一个调用的延时
+  
+  if(start + 100 < Date.now()) { // 100 毫秒之后，显示延时信息
+    alert(times);
+  } else {
+    setTimeout(run); // 否则重新调度
+  }
+});
+// 输出示例
+// 0,0,0,0,0,0,5,10,14,19,23,28,32,37,41,46,50,55,60,64,69,73,78,83,87,92,96,101
+```
+
+上述代码中 `timer` 数组里存放的是每次定时器运行的时刻与 `start` 的差值，所以数字只会越来越大，实际上前后调用的延时是数组值的差值。示例中前几次都是 0，所以 `0 - 0 = 0` 延时为 `0`。
+
+可以看到前面几次定时器是立即执行的，之后可以看到 `0, 5,10,14,19...`，两次调用之间**必须经过 4 毫秒以上的强制延时**。
+
+**使用 `setInterval` 也会发生类似的情况**，`setInterval(f)` 会以零延时运行几次 `f`，然后以 4 毫秒以上的强制延时运行。
+
+这个限制来源于过去，许多脚本都依赖于此，所以这个机制也就存在至今。
+
+但对于服务端的 JavaScript，就没有这个限制，并且还有其它调度即时异步任务的方式，例如 Node.js 的 `setImmediate`，所以**这个限制只针对浏览器**。
+
+
+
+**所有的调度方法都不能保证确切的延时**
+
+例如，浏览器内的计时器可能由于许多原因而变慢：
+
+- CPU 过载
+- 浏览器页签处于后台模式
+- 笔记本电脑用的是省电模式
+
+这些因素，可能会将定时器的最小计时器分辨率（最小延迟）增加到 300ms 甚至 1000ms，具体以浏览器及其设置为准。
+
