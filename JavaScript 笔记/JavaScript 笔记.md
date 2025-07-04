@@ -11109,7 +11109,7 @@ setTimeout(function run() {
 // 0,0,0,0,0,0,5,10,14,19,23,28,32,37,41,46,50,55,60,64,69,73,78,83,87,92,96,101
 ```
 
-上述代码中 `timer` 数组里存放的是每次定时器运行的时刻与 `start` 的差值，所以数字只会越来越大，实际上前后调用的延时是数组值的差值。示例中前几次都是 0，所以 `0 - 0 = 0` 延时为 `0`。
+上述代码中 `timer` 数组里存放的是每次定时器运行的时刻与 `start` 的差值，所以数字只会越来越大，实际上前后调用的延时是数组值的差值。示例中前几次都是 `0`，所以 `0 - 0 = 0` 延时为 `0`。
 
 可以看到前面几次定时器是立即执行的，之后可以看到 `0, 5,10,14,19...`，两次调用之间**必须经过 4 毫秒以上的强制延时**。
 
@@ -11130,4 +11130,179 @@ setTimeout(function run() {
 - 笔记本电脑用的是省电模式
 
 这些因素，可能会将定时器的最小计时器分辨率（最小延迟）增加到 300ms 甚至 1000ms，具体以浏览器及其设置为准。
+
+
+
+## 装饰器和转发，call/apply
+
+JavaScript 在处理函数时提供了非法的灵活性，它们可以被传递，用作对象，也可以**转发（forward）**调用或者**装饰（decorate）**它们。
+
+
+
+**透明缓存**
+
+例如有一个 CPU 重负载的函数 `slow(x)`，但它的结果是稳定的，对于相同的 `x`，它总是返回相同的结果。
+
+这时可能希望将结果缓存（记住）下来，以避免在重新计算上花费额外的时间，可以**创建一个包装器（wrapper）函数来为 `slow(x)` 函数增加缓存功能，而不是直接将这个功能添加到 `slow(x)` 中**。
+
+```js
+function slow(x) {
+  // 这里可能会有重负载的 CPU 密集型工作
+  alert(`Called with ${x}`);
+  return x;
+}
+
+function cachingDecorator(func) {
+  const cache = new Map();
+  
+  return function(x) {
+    if(cache.has(x)) {
+      return cache.get(x);
+    }
+    
+    const result = func(x);
+    cache.set(x, result);
+    
+    return result;
+  }
+}
+
+slow = cachingDecorator(slow);
+
+alert( slow(1) ); // slow(1) 被缓存下来了，并返回结果
+alert( 'Again: ' + slow(1) ); // 返回缓存中的 slow(1) 的结果
+
+alert( slow(2) ); // slow(2) 被缓存下来了，并返回结果
+alert( 'Again: ' + slow(2) ); // 返回缓存中的 slow(2) 的结果
+```
+
+上述代码中 `cachingDecorator` 是一个**装饰器（decorator）**：一个特殊的函数，它接受另一个函数并改变它的行为。
+
+可以为任何函数调用 `cachingDecorator`，它将返回缓存包装器，将缓存代码和函数主代码分开，可以使主函数代码变得更简单。
+
+简单来说使用装饰器有以下几点好处：
+
+- `cachingDecorator` 是可复用的，可以将它应用于其它函数
+- 缓存逻辑是独立的，它没有增加 `slow` 本身的复杂性
+- 可以组合多个装饰器（其它装饰器将遵循同样的逻辑）
+
+
+
+**使用 func.call 设定上下文**
+
+前面的装饰器代码不适用于对象方法，例如：
+
+```js
+// 将对 worker.slow 的结果进行缓存
+let worker = {
+  someMethod() {
+    return 1;
+  },
+
+  slow(x) {
+    // 可怕的 CPU 过载任务
+    alert('Called with ' + x);
+    return x * this.someMethod();
+  }
+};
+
+function cachingDecorator(func) {
+  const cache = new Map();
+  
+  return function(x) {
+    if (cache.has(x)) {
+      return cache.get(x);
+    }
+    
+    const result = func(x);
+    cache.set(x, result);
+    
+    return result;
+  }
+}
+
+alert( worker.slow(1) ); // 原始方法有效
+
+worker.slow = cachingDecorator(worker.slow); // 现在对其使用装饰器
+
+alert( worker.slow(2) ); // Uncaught TypeError: this.someMethod is not a function
+```
+
+上述代码再尝试访问 `this.someMethod` 的时候失败了，因为**在调用 `func(x)` 的时候，这样调用函数将得到 `this = undefined`**，跟像下面这样调用相同：
+
+```js
+let func = worker.slow;
+func(2);
+```
+
+本质原因是：**包装器将调用传递给原始方法，但没有上下文 `this`，所以发生了错误**。
+
+要解决这个问题，可以使用一个特殊的内建函数方法 **`func.call(context, …args)`**，它**可以调用函数并显式设置 `this`**。
+
+语法：
+
+```js
+func.call(context, arg1, arg2, ...);
+```
+
+它运行 `func`，将第一个参数作为 `this`，后面的作为参数（arguments）。
+
+例如下面两个调用几乎相同：
+
+```js
+func(1, 2, 3);
+func.call(obj, 1, 2, 3)
+```
+
+唯一的区别是 `func.call` 还会将 `this` 设置为 `obj`。
+
+例如可以在不同对象的上下文中调用 `sayHi`：
+
+```js
+function sayHi() {
+  alert(this.name);
+}
+
+let user = { name: 'John' };
+let admin = { name: 'Admin' };
+
+// 使用 call 将不同的对象传递为 this
+sayHi.call(user); // John
+sayHi.call(admin); // Admin
+```
+
+所以前面的问题只需要像下面这样修改就可以了：
+
+```js
+let worker = {
+  someMethod() {
+    return 1;
+  },
+
+  slow(x) {
+    alert('Called with ' + x);
+    return x * this.someMethod();
+  }
+};
+
+function cachingDecorator(func) {
+  const cache = new Map();
+  
+  return function(x) {
+    if (cache.has(x)) {
+      return cache.get(x);
+    }
+    
+    const result = func.call(this, x); // 现在 this 被正确传递了
+    cache.set(x, result);
+    
+    return result;
+  }
+}
+
+worker.slow = cachingDecorator(worker.slow); // 现在对其使用装饰器
+
+alert( worker.slow(2) ); // 工作正常
+alert( worker.slow(2) ); // 工作正常，没有调用原始函数（使用的缓存）
+```
 
