@@ -7,13 +7,28 @@
   </head>
   <body>
     <script>
+      // 第一次不会执行
+      // function debounce(f, ms) {
+      //   let timer = null;
+
+      //   return function () {
+      //     clearTimeout(timer);
+      //     timer = setTimeout(() => f.apply(this, arguments), ms);
+      //   };
+      // }
+
+      // 第一次会执行
       function debounce(f, ms) {
-        let timer = null;
+        let isCooldown = false; // 判断是否处于冷却时间
 
         return function () {
-          clearTimeout(timer);
-          timer = setTimeout(() => {
-            return f.apply(this, arguments);
+          if (isCooldown) return;
+
+          isCooldown = true;
+          f.apply(this, arguments);
+
+          setTimeout(() => {
+            isCooldown = false;
           }, ms);
         };
       }

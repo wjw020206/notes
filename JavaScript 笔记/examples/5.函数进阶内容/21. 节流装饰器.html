@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      function throttle(f, ms) {
+        let isThrottled = false; // 节流阀
+        let saveThis = null; // 保存this
+        let savedArgs = null; // 保存参数
+
+        function wrapper() {
+          // 判断是否处于节流状态
+          if (isThrottled) {
+            saveThis = this;
+            savedArgs = arguments;
+            return;
+          }
+
+          isThrottled = true; // 打开节流阀
+          f.apply(this, arguments);
+
+          setTimeout(() => {
+            isThrottled = false; // 关闭节流阀
+
+            if (savedArgs) {
+              wrapper.apply(saveThis, savedArgs); // 调用自身，传入之前保存的this和参数，为了执行func和再次进入节流状态
+              saveThis = savedArgs = null;
+            }
+          }, ms);
+        }
+
+        return wrapper;
+      }
+    </script>
+  </body>
+</html>
