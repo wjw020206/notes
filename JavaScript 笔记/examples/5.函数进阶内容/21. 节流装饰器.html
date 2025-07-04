@@ -7,6 +7,18 @@
   </head>
   <body>
     <script>
+      let user = {
+        name: 'John',
+        age: 30,
+        f(a) {
+          console.log(this.age + a);
+        },
+      };
+
+      user.f = throttle(user.f, 500);
+
+      user.f(1);
+
       function throttle(f, ms) {
         let isThrottled = false; // 节流阀
         let saveThis = null; // 保存this
