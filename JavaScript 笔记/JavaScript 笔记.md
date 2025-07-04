@@ -10955,7 +10955,7 @@ alert(timerId); // 还是这个标识符（并没有因为调度被取消了而�
 `setInterval` 和 `setTimeout` 的语法相同：
 
 ```js
-let timerId = setInterval(func|code, [delay], [arg1], [arg2], ...)
+let timerId = setInterval(func|code, [delay], [arg1], [arg2], ...);
 ```
 
 虽然参数的意义相同，但是 **`setInterval` 不像 `setTimeout` 只能执行一次，而是根据给定的间隔时间周期性执行**。
@@ -11306,3 +11306,51 @@ alert( worker.slow(2) ); // 工作正常
 alert( worker.slow(2) ); // 工作正常，没有调用原始函数（使用的缓存）
 ```
 
+
+
+**传递多个参数**
+
+前面的写法只适用于单参数函数，如果要传入多个参数，可以使用如下方式：
+
+```js
+let worker = {
+  slow(min, max) {
+    alert(`Called with ${min},${max}`);
+    return min + max;
+  }
+};
+
+function cachingDecorator(func, hash) {
+  let cache = new Map();
+  return function() {
+    let key = hash(arguments); // 通过多个参数生成 key
+    if (cache.has(key)) {
+      return cache.get(key);
+    }
+
+    let result = func.call(this, ...arguments); // 通过 Spread 将可迭代对象 arguments 拆分为多个参数
+
+    cache.set(key, result);
+    return result;
+  };
+}
+
+function hash(args) {
+  return args[0] + ',' + args[1];
+}
+
+worker.slow = cachingDecorator(worker.slow, hash);
+
+alert( worker.slow(3, 5) ); // 8
+alert( 'Again ' + worker.slow(3, 5) ); // 8 (从缓存中获取)
+```
+
+除了上面的方法，也可以**使用 `func.apply(this, arguments)` 代替 `func.call(this, ...arguments)`**。
+
+内建方法 `func.apply` 的语法是：
+
+```js
+func.apply(context, args);
+```
+
+它运行 `func` 设置 `this=context`，并使用类数组对象 `args` 作为参数列表
