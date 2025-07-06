@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      function askPassword(ok, fail) {
+        let password = prompt('Password?', '');
+        if (password == 'rockstar') ok();
+        else fail();
+      }
+
+      let user = {
+        name: 'John',
+
+        login(result) {
+          alert(this.name + (result ? ' logged in' : ' failed to log in'));
+        },
+      };
+
+      // 第一种方法
+      // askPassword(user.login.bind(user, true), user.login.bind(user, false));
+
+      // 第二种方法
+      askPassword(
+        () => user.login(true),
+        () => user.login(false)
+      );
+    </script>
+  </body>
+</html>

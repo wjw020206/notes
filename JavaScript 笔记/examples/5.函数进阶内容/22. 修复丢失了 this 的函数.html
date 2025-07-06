@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      function askPassword(ok, fail) {
+        let password = prompt('Password?', '');
+        if (password == 'rockstar') ok();
+        else fail();
+      }
+
+      let user = {
+        name: 'John',
+
+        loginOk() {
+          alert(`${this.name} logged in`);
+        },
+
+        loginFail() {
+          alert(`${this.name} failed to log in`);
+        },
+      };
+
+      // 解决方案1：
+      // askPassword(
+      //   () => user.loginOk(),
+      //   () => user.loginFail()
+      // );
+
+      // 解决方案2：
+      askPassword(user.loginOk.bind(user), user.loginFail.bind(user));
+    </script>
+  </body>
+</html>
