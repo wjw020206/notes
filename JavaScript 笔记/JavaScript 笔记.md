@@ -11353,4 +11353,58 @@ alert( 'Again ' + worker.slow(3, 5) ); // 8 (从缓存中获取)
 func.apply(context, args);
 ```
 
-它运行 `func` 设置 `this=context`，并使用类数组对象 `args` 作为参数列表
+它运行 `func` 设置 `this=context`，并使用**类数组对象 `args` 作为参数列表**。
+
+`call` 和 `apply` 之间唯一的语法区别：**`call` 期望一个参数列表，而 `apply` 期望一个包含这些参数的类数组对象**。
+
+所以以下两个调用是相同的：
+
+```js
+func.call(context, ...args);
+func.apply(context, args);
+```
+
+两者细微的差别：
+
+- Spread 语法 `...` 允许将**可迭代对象** `args` 作为列表传递给 `call`
+- `apply` 只接受**类数组** `args`
+
+**⚠️ 注意：** 对于即可迭代又是类数组的对象（例如：数组），`call` 或 `apply` 都可以，**但是 `apply` 可能会更快些，因为大多数 JavaScript 引擎在内部对其进行了优化**。
+
+
+
+**呼叫转移（调用转发）**
+
+将所有参数连同上下文一起传递给另一个函数被称为 “呼叫转移（call forwarding）”。
+
+它的最简形式：
+
+```js
+let wrapper = function() {
+  return func.apply(this, arguments);
+};
+```
+
+当在外部代码中调用包装器 `wrapper` 时，它与原始函数 `func` 的调用是无法区分的（几乎一样）。
+
+
+
+**借用方法**
+
+前面代码中哈希函数目前只适用于两个参数，例如：
+
+```js
+function hash(args) {
+  return args[0] + ',' + args[1];
+}
+```
+
+如果想让它适用于任何数量的 `args`，使用 `arr.join` 方法是不行的：
+
+```js
+function hash(args) {
+  return args.join(','); // TypeError: arguments.join is not a function
+}
+```
+
+因为前面中代码中，调用 `hash(arguments)`，`arguments` 对象虽然既是可迭代对象也是类数组对象，但**它不是真正的数组，没有数组方法 `join`**。
