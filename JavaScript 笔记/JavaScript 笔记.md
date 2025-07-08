@@ -11533,3 +11533,54 @@ function throttle(f, ms) {
 
 **使用场景：** 页面滚动（scroll）事件、窗口大小调整（resize）、拖拽（drag）事件、鼠标移动事件。
 
+
+
+## 函数绑定
+
+当对象的方法作为回调进行传递时，经常会出现丢失 `this` 的问题。
+
+
+
+**丢失 this**
+
+例如使用 `setTimeout` 时会出现 `this` 丢失的情况：
+
+```js
+let user = {
+  firstName: 'CodePencil',
+  sayHi() {
+    alert(`Hello, ${this.firstName}!`);
+  },
+};
+
+setTimeout(user.sayHi, 1000); // Hello, undefined!
+```
+
+上述代码中虽然 `setTimeout` 获取到的函数 `user.sayHi`，但是它与对象分离开了，所以最后一行等价于：
+
+```js
+let f = user.sayHi;
+setTimeout(f, 1000); // 丢失了 user 上下文
+```
+
+**⚠️ 注意：浏览器中 `setTimeout` 有些特殊，它在调用函数时，会设置 `this = window`**（对于 Node.js，`this` 则会变为计时器（timer）对象），所以**上述代码中 `this.firstName` 试图获取的是 `window.firstName`，但这个变量并不存在**，在其它类似的情况下，通常 `this` 会变为 `undefined`。
+
+
+
+**包装器**
+
+要解决前面的问题，最简单的方案是可以**使用一个包装函数**：
+
+```js
+let user = {
+  firstName: 'CodePencil',
+  sayHi() {
+    alert(`Hello, ${this.firstName}!`);
+  }
+};
+
+setTimeout(() => user.sayHi(), 1000); //  Hello, CodePencil!
+```
+
+
+
