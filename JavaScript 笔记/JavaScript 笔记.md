@@ -11449,7 +11449,7 @@ hash(1, 2);
 
 **防抖装饰器**
 
-防抖（Debounce）是**在 `ms` 毫秒（如 300ms）后没有再触发动作后才真正执行一次函数**。
+防抖（Debounce）是**在 ms 毫秒（如 300ms）后没有再触发动作后才真正执行一次函数**。
 
 - **延迟执行**
 
@@ -11492,3 +11492,44 @@ hash(1, 2);
   第一次触发立即执行，之后冷却时间内触发无无效。
 
   **使用场景：** 防止按钮连点，提交重复请求。
+
+
+
+**节流装饰器**
+
+节流（Throttle）是**指每 ms 毫秒（如 300ms）执行执行一次**。
+
+```js
+function throttle(f, ms) {
+  let savedThis = null;
+  let savedArgs = null;
+  let isThrottle = false;
+
+  function wrapper() {
+    if (isThrottle) {
+      savedThis = this;
+      savedArgs = arguments;
+      return;
+    }
+
+    isThrottle = true;
+    f.apply(this, arguments);
+
+    setTimeout(() => {
+      isThrottle = false;
+
+      if (savedArgs) {
+        wrapper.apply(savedThis, savedArgs);
+        savedThis = savedArgs = null;
+      }
+    }, ms);
+  }
+
+  return wrapper;
+}
+```
+
+上述代码**每隔给定间隔时间最多调用一次，并且最后一次调用不能忽略**。
+
+**使用场景：** 页面滚动（scroll）事件、窗口大小调整（resize）、拖拽（drag）事件、鼠标移动事件。
+
