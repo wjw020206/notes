@@ -11387,6 +11387,8 @@ let wrapper = function() {
 
 当在外部代码中调用包装器 `wrapper` 时，它与原始函数 `func` 的调用是无法区分的（几乎一样）。
 
+**⚠️ 注意：** 呼叫转移通常是使用 `apply` 完成的。
+
 
 
 **借用方法**
@@ -11408,3 +11410,85 @@ function hash(args) {
 ```
 
 因为前面中代码中，调用 `hash(arguments)`，`arguments` 对象虽然既是可迭代对象也是类数组对象，但**它不是真正的数组，没有数组方法 `join`**。
+
+这时可以使用一种简单的方法使用数组的 `join` 方法：
+
+```js
+function hash() {
+  alert( [].join.call(arguments) ); // 1,2
+}
+
+hash(1, 2);
+```
+
+上述代码中所使用的技巧被称为**方法借用（method borrowing）**，从常规数组 `[].join` 借用方法 `join`，并使用 `[].join.call` 在 `arguments` 的上下文中运行它。
+
+为什么它有效，原生方法 `arr.join(glue)` 的内部算法非常简单，具体内部算法如下：
+
+1. 让 `glue` 成为第一个参数，如果没有参数，则使用逗号 `','`
+2. 让 `result` 为空字符串
+3. 将 `this[0]` 添加到 `result` 中
+4. 添加 `glue` 和 `this[1]` 到 `result` 中
+5. 添加 `glue` 和 `this[2]` 到 `result` 中
+6. ...以此类推，直到 `this.length` 项目被粘在一起
+7. 返回 `result`
+
+从技术上讲，**这种编写方式允许是故意允许任何类数组的 `this`**，这不是巧合，很多方法都遵循这种做法。
+
+
+
+**装饰器和函数属性**
+
+通常来说使用装饰器替换一个函数或者一个方法是安全的，**如果原始函数有属性，则装饰后的函数将不再提供这些属性**，所以使用时需要小心。
+
+一些装饰器会提供自己的属性，例如装饰器会计算一个函数被调用了多少次以及花费了多少时间，并通过包装器属性公开（expose）这些信息。
+
+**也存在一种创建装饰器的方法，可以保留函数属性的访问权限，但需要使用特殊的 `Proxy` 对象来包装函数**。
+
+
+
+**防抖装饰器**
+
+防抖（Debounce）是**在 `ms` 毫秒（如 300ms）后没有再触发动作后才真正执行一次函数**。
+
+- **延迟执行**
+
+  ```js
+  function debounce(f, ms) {
+    let timer = null;
+  
+    return function () {
+      clearTimeout(timer);
+      timer = setTimeout(() => f.apply(this, arguments), ms);
+    };
+  }
+  ```
+
+  每次触发都会清除 timer，只有最后一次生效。
+
+  **使用场景：** 输入框搜索，用户停止输入才触发。
+
+  
+
+- **立即执行**
+
+  ```js
+  function debounce(f, ms) {
+    let isCooldown = false; // 判断是否处于冷却时间
+  
+    return function () {
+      if (isCooldown) return;
+  
+      isCooldown = true;
+      f.apply(this, arguments);
+  
+      setTimeout(() => {
+        isCooldown = false;
+      }, ms);
+    };
+  }
+  ```
+
+  第一次触发立即执行，之后冷却时间内触发无无效。
+
+  **使用场景：** 防止按钮连点，提交重复请求。
