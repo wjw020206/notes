@@ -11787,4 +11787,4 @@ user.sayNow = partial(user.sayNow, new Date().getHours() + ':' + new Date().getM
 user.sayNow('Hello'); // [8:36] CodePencil: Hello!
 ```
 
-也可以使用来自 lodash 库的 [_.partial](https://lodash.com/docs#partial) 实现。
+也可以使用来自 lodash 库的[_.partial](https://lodash.com/docs#partial)实现。
