@@ -11788,3 +11788,115 @@ user.sayNow('Hello'); // [8:36] CodePencil: Hello!
 ```
 
 也可以使用来自 lodash 库的[_.partial](https://lodash.com/docs#partial)实现。
+
+
+
+## 深入理解箭头函数
+
+箭头函数不仅可以编写简洁的代码，还具有一些非常特殊且有用的特性。
+
+
+
+**箭头函数没有 this**
+
+**箭头函数没有自己的 `this`，如果访问 `this` 会从外部获取**，例如：
+
+```js
+let group = {
+  title: 'Our Group',
+  students: ['John', 'Pete', 'Alice'],
+  
+  showList() {
+    this.students.forEach(student => alert(this.title + ': ' + student));
+  },
+};
+
+group.showList();
+
+// Our Group: John
+// Our Group: Pete
+// Our Group: Alice
+```
+
+上述代码中 `forEach` 中使用的是箭头函数，所以 `this.title` 和外部方法 `showList` 的完全一样，都是 `group.title`，如果使用正常函数，会出现以下错误：
+
+```js
+'use strict';
+
+let group = {
+  title: 'Our Group',
+  students: ['John', 'Pete', 'Alice'],
+  
+  showList() {
+    this.students.forEach(function(student) {
+      alert(this.title + ': ' + student);
+    });
+  },
+};
+
+group.showList(); // Uncaught TypeError: Cannot read properties of undefined (reading 'title')
+```
+
+因为 `forEach` 中运行的函数的 `this` 为默认值 `this=undefined`，所以出现 `undefined.title` 的情况导致报错。
+
+
+
+**不能对箭头函数进行 `new` 操作**
+
+因为箭头函数不具有 `this`，所以也就意味着箭头函数不能用作构造器，无法通过 `new` 调用。
+
+
+
+**箭头函数 VS `bind`**
+
+箭头函数 `=>` 与使用 `.bind(this)` 调用的常规函数有以下区别：
+
+- `.bind(this)` 创建了一个该函数的 “绑定版本”
+- 箭头函数 `=>` 没有任何绑定，箭头函数没有自身的 `this`，**`this` 的查找与常规变量的搜索完全相同：在外部词法环境中查找**
+
+
+
+**箭头函数没有 arguments**
+
+箭头函数没有 `arugments` 变量。
+
+当需要使用当前的 `this` 和 `arguments` 转发一个调用时，对装饰器（decorators）来说非常有用。
+
+例如：
+
+```js
+function defer(f, ms) {
+  return function() {
+    setTimeout(() => f.apply(this, arguments), ms);
+  }
+}
+
+function sayHi(who) {
+  alert('Hello, ' + who);
+}
+
+let sayHiDeferred	= defer(sayHi, 2000);
+sayHiDeferred('CodePencil'); // 2 秒后显示：Hello, CodePencil
+```
+
+如果不使用箭头函数，可以像下面这样写：
+
+```js
+function defer(f, ms) {
+  return function(...args) {
+    let ctx = this;
+    setTimeout(function() {
+      return f.apply(ctx, args);
+    }, ms);
+  }
+}
+
+function sayHi(who) {
+  alert('Hello, ' + who);
+}
+
+let sayHiDeferred	= defer(sayHi, 2000);
+sayHiDeferred('CodePencil'); // 2 秒后显示：Hello, CodePencil
+```
+
+在上述代码中，必须创建额外的变量 `args` 和 `ctx`，以便 `setTimeout` 内部的函数可以获取它们。
