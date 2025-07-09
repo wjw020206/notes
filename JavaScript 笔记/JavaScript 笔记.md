@@ -11582,5 +11582,143 @@ let user = {
 setTimeout(() => user.sayHi(), 1000); //  Hello, CodePencil!
 ```
 
+上述代码存在一个小漏洞，如果在 `setTimeout` 触发之前，`user` 的值发生了改变，将会调用错误的对象：
+
+```js
+let user = {
+  firstName: 'CodePencil',
+  sayHi() {
+    alert(`Hello, ${this.firstName}!`);
+  }
+};
+
+setTimeout(() => user.sayHi(), 1000); // Another user in setTimeout!
+
+// user 的值在不到 1 秒的时间内发生了改变
+user = {
+  sayHi() { alert('Another user in setTimeout!'); }
+};
+```
+
+使用 `bind` 解决方案就不存在这个问题。
 
 
+
+**bind**
+
+函数提供一个内建方法 `bind`，可以绑定 `this`。
+
+语法：
+
+```js
+let boundFunc = func.bind(context);
+```
+
+**`func.bind(context)` 的返回结果是一个类似于函数的 “外来对象”，可以像函数一样被调用，并且透明地（transparently）将调用传递给 `func` 并设定 `this=context`**。
+
+简单来说 `boundFunc` 调用就像绑定了 `this` 的 `func`。
+
+例如：
+
+```js
+let user = {
+  firstName: 'CodePencil',
+};
+
+function func() {
+  alert(this.firstName);
+}
+
+let funcUser = func.bind(user);
+funcUser(); // CodePencil
+```
+
+上述代码中 `func.bind(user)` 作为 `func` 的 “绑定的（bound）变体”，绑定了 `this=user`。
+
+**所有的参数（arguments）都被 “原样” 传递给了初始的 `func`**，例如：
+
+```js
+let user = {
+  firstName: 'CodePencil',
+};
+
+function func(phrase) {
+  alert(phrase + ', ' + this.firstName);
+}
+
+// 将 this 绑定到 user
+let funcUser = func.bind(user);
+
+funcUser('Hello'); // Hello, CodePencil
+```
+
+在 `setTimeout` 触发之前，`user` 的值发生了改变，**函数上下文依旧是正确**的：
+
+```js
+let user = {
+  firstName: 'CodePencil',
+  sayHi() {
+    alert(`Hello, ${this.firstName}!`);
+  }
+};
+
+let sayHi = user.sayHi.bind(user);
+
+// 可以在与对象分离的情况下运行它
+sayHi(); // Hello, CodePencil!
+
+setTimeout(sayHi, 1000); // Hello, CodePencil!
+
+// user 的值在不到 1 秒的时间内发生了改变
+user = {
+  sayHi() { alert('Another user in setTimeout!'); }
+};
+```
+
+上述代码中将 `sayHi` 方法绑定到了 `user`，即使 `user` 对象不到 1 秒内发生了改变，**但 `sayHi` 还是会使用预先绑定（pre-bound）的值，该值是对旧的 user 对象的引用**，所以函数上下文还是正确的。
+
+
+
+**bindAll**
+
+如果一个对象有很多方法，并且打算将它们都传递出去，可以在一个循环中完成所有方法的绑定：
+
+```js
+for (let key in user) {
+  if (typeof user[key] === 'function') {
+    user[key] = user[key].bind(user);
+  }
+}
+```
+
+也可以使用 lodash 中的[_.bindAll(object, methodNames)](http://lodash.com/docs#bindAll)。
+
+
+
+**部分（应用）函数（Partial functions）**
+
+不仅可以绑定 `this`，还可以绑定参数（arguments）。
+
+`bind` 完整的语法如下：
+
+```js
+let bound = func.bind(context, [arg1], [arg2], ...);
+```
+
+它允许将上下文绑定为 `this`，以及绑定函数的部分参数。
+
+例如：
+
+```js
+function mul(a, b) {
+  return a * b;
+}
+
+let double = mul.bind(null, 2);
+
+alert( double(3) ); // 等同于 mul(2, 3) = 6
+alert( double(4) ); // 等同于 mul(2, 4) = 8
+alert( double(5) ); // 等同于 mul(2, 5) = 10
+```
+
+上述代码中对 `mul.bind(null, 2)` 的调用创建了一个新函数 `double`，它将调用传递到 `mul`，将 `null` 绑定为上下文，**并将 `2` 绑定为第一个参数**，并参数均被 “原样” 传值。
