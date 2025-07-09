@@ -11677,6 +11677,18 @@ user = {
 
 上述代码中将 `sayHi` 方法绑定到了 `user`，即使 `user` 对象不到 1 秒内发生了改变，**但 `sayHi` 还是会使用预先绑定（pre-bound）的值，该值是对旧的 user 对象的引用**，所以函数上下文还是正确的。
 
+**⚠️ 注意：** 一个函数**不能被重绑定（re-bound）**，例如：
+
+```js
+function f() {
+  alert(this.name);
+}
+
+f = f.bind( {name: 'John'} ).bind( {name: 'Pete'} );
+
+f(); // John
+```
+
 
 
 **bindAll**
@@ -11722,3 +11734,57 @@ alert( double(5) ); // 等同于 mul(2, 5) = 10
 ```
 
 上述代码中对 `mul.bind(null, 2)` 的调用创建了一个新函数 `double`，它将调用传递到 `mul`，将 `null` 绑定为上下文，**并将 `2` 绑定为第一个参数**，并参数均被 “原样” 传值。
+
+这种方式被称为[函数的部分应用（partial function application）](https://en.wikipedia.org/wiki/Partial_application)，**通过绑定现有的函数的一些参数来创建一个新函数**。
+
+为什么需要创建一个部分应用函数？
+
+- 可以创建一个具有可读性高的名字（`double`，`triple`）的独立函数，**不必每次都提供一个固定的参数，因为参数已经绑定了**
+- 当有一个非常灵活的函数，并希望有一个不那么灵活的变型时，可以使用部分应用函数
+
+**⚠️ 注意：** 这里实际上没有用到 `this`，但是 `bind` 需要它，所以**必须要传入 `null` 之类的东西**。
+
+
+
+**没有上下文情况下的 partial**
+
+有时候就想绑定一些参数（arguments），不想绑定上下文 `this`，**但原生的 `bind` 不允许这种情况，不可以省略上下文直接跳到参数（arguments）**，导致只能使用如下方式绑定：
+
+```js
+let user = {
+  firstName: 'CodePencil',
+  say(time, phrase) {
+    alert(`[${time}] ${this.firstName}: ${phrase}!`);
+  }
+};
+
+// 必须要绑定 user 上下文，无法省略上下文直接绑定参数
+user.sayNow = user.say.bind(user, new Date().getHours() + ':' + new Date().getMinutes());
+user.sayNow('Hello'); // [8:36] CodePencil: Hello!
+```
+
+可以使用如下方式实现一个仅绑定参数（arguments）的函数 `partial`：
+
+```js
+function partial(func, ...argsBound) {
+  return function(...args) {
+    return func.call(this, ...argsBound, ...args);
+  }
+}
+```
+
+具体使用：
+
+```js
+let user = {
+  firstName: 'CodePencil',
+  say(time, phrase) {
+    alert(`[${time}] ${this.firstName}: ${phrase}!`);
+  }
+};
+
+user.sayNow = partial(user.sayNow, new Date().getHours() + ':' + new Date().getMinutes());
+user.sayNow('Hello'); // [8:36] CodePencil: Hello!
+```
+
+也可以使用来自 lodash 库的 [_.partial](https://lodash.com/docs#partial) 实现。
