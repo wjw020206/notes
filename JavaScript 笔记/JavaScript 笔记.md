@@ -11899,4 +11899,4 @@ let sayHiDeferred	= defer(sayHi, 2000);
 sayHiDeferred('CodePencil'); // 2 秒后显示：Hello, CodePencil
 ```
 
-在上述代码中，必须创建额外的变量 `args` 和 `ctx`，以便 `setTimeout` 内部的函数可以获取它们。
+**⚠️ 注意：** 在上述代码中，**必须创建额外的变量 `args` 和 `ctx`**，以便 `setTimeout` 内部的函数可以获取它们。
