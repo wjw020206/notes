@@ -12129,3 +12129,71 @@ Object.defineProperty(Math, 'PI', { writable: true }); // Uncaught TypeError: Ca
   ```
 
   **⚠️ 注意：对于不可配置的属性，唯一可行的标志更改就是将 `writable: true` 改成 `writable: false`**，这是一个小例外，可以防止其值被修改，但无法反向行之（`writable: false` 改成 `writable: true`）。
+
+
+
+**Object.defineProperties**
+
+`Object.defineProperties` 允许一次定义多个属性。
+
+语法：
+
+```js
+Object.defineProperties(obj, {
+  prop1: descriptor1,
+  prop2: descriptor2
+  // ...
+});
+```
+
+例如：
+
+```js
+Object.defineProperties(user, {
+  name: { value: 'John', writable: false },
+  surname: { value: 'Smith', writable: false },
+  // ...
+});
+```
+
+可以一次性设置多个属性。
+
+
+
+**Object.getOwnPropertyDescriptors**
+
+要一次获取所有属性描述符，可以使用 `Object.getOwnPropertyDescriptors(obj)` 方法。
+
+它与 `Object.defineProperties` 一起可以用作克隆对象的 “标志感知” 方式：
+
+```js
+let clone = Object.defineProperties({}, Object.getOwnPropertyDescriptors(obj));
+```
+
+通常我们使用如下方式克隆对象：
+
+```js
+for (let key in obj) {
+  clone[key] = obj[key];
+}
+```
+
+但是这不能复制属性的标志，**如果需要一个 “更好” 的克隆，`Object.defineProperties` 是首选**。
+
+另外一个区别是 `for..in` 会忽略 symbol 类型和不可枚举属性，但是 **`Object.getOwnPropertyDescriptors(obj)` 返回包含 symbol 类型的和不可枚举的属性在内的所有属性描述符**。
+
+
+
+**设定一个全局的密封对象**
+
+属性描述符在单个属性上工作，也有一些限制访问整个对象的方法：
+
+- [**Object.preventExtensions(obj)**](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/preventExtensions) — 禁止向对象**添加属性**
+- [**Object.seal(obj)**](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/seal) — 禁止向对象**添加/删除属性**，为现有的所有属性设置 `configurable: false`
+- [**Object.freeze(obj)**](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze) — 禁止向对象**添加/删除/更改属性**，为现有的所有属性设置 `configurable: false, writable: false`
+
+还有针对它们的测试：
+
+- [**Object.isExtensible(obj)**](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/isExtensible) — 如果对象**添加属性**被禁止，则返回 `false`，否则返回 `true`
+- [**Object.isSealed(obj)**](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/isSealed) — 如果对象**添加/删除属性**被禁止，**并且所有的属性都具有 `configurable: false` 时返回 `true`**
+- [**Object.isFrozen(obj)**](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/isExtensible) — 如果对象**添加/删除/更改**属性被禁止，**并且所有的属性都具有 `configurable: false, writable: false`，则返回 `true`**
