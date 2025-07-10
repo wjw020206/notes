@@ -12013,3 +12013,119 @@ user.name = 'Pete'; // Uncaught TypeError: Cannot assign to read only property '
 上述代码中 `user.name` 属性被设置为只读，没有人可以改变该属性的值，除非使用 `Object.defineProperty` 来修改 `user.name` 的标志。
 
 **⚠️ 注意：** 只有严格模式下才会出现错误，**在非严格模式下，对只读属性赋值不会出现错误，但操作仍不会成功，违法标志行为的操作会被默默忽略**。
+
+
+
+**不可枚举**
+
+通常对象中内建的 `toString` 是不可枚举的，不会在 `for..in` 中显示，但是如果是自己添加的 `toString`，默认情况下会显示在 `for..in` 中，例如：
+
+``` js
+let user = {
+  name: 'CodePencil',
+  toString() {
+    return this.name;
+  },
+};
+
+for (let key in user) alert(key); // name, toString
+```
+
+如果不想然它出现，可以设置 `enumerable: false`，之后就不会出现在 `for..in` 循环中了，跟内建的 `toString` 一样：
+
+```js
+let user = {
+  name: 'CodePencil',
+  toString() {
+    return this.name;
+  },
+};
+
+Object.defineProperty(user, 'toString', {
+  enumerable: false,
+});
+
+for (let key in user) alert(key); // name
+```
+
+**不可枚举的属性同样也会被 `Object.keys(obj)` 排除**，例如：
+
+```js
+alert(Object.keys(user)); // name
+```
+
+
+
+**不可配置**
+
+不可配置标志（`configurable: false`）有时也会预设在内建的对象和属性中。
+
+**不可配置的属性不能被删除，它的特性（attribute）不能被修改**。
+
+例如：`Math.PI` 是只读的，不可枚举和不可配置：
+
+```js
+let descriptor = Object.getOwnPropertyDescriptor(Math, 'PI');
+
+alert( JSON.stringify(descriptor, null, 2) );
+/* 属性描述符：
+{
+  "value": 3.141592653589793,
+  "writable": false,
+  "enumerable": false,
+  "configurable": false
+}
+*/
+```
+
+所以开发人员无法修改 `Math.PI` 的值或者覆盖它。
+
+```js
+Math.PI = 3; // TypeError: Cannot assign to read only property 'PI' of object '#<Object>'
+```
+
+也无法将 `Math.PI` 的 `writable` 标志改为 `true`。
+
+```js
+Object.defineProperty(Math, 'PI', { writable: true }); // Uncaught TypeError: Cannot redefine property: PI
+```
+
+**⚠️ 注意：** 
+
+- **使属性变为不可配置是一条单行道，无法通过 `defineProperty` 再把它改回来**
+
+- **`configurable: false` 防止更改和删除属性标志，但是允许更改对象的值**
+
+  ```js
+  let user = {
+    name: 'CodePencil',
+  };
+  
+  Object.defineProperty(user, 'name', {
+    configurable: false,
+  });
+  
+  user.name = 'Pete'; // 正常工作
+  delete user.name; // Uncaught TypeError: Cannot delete property 'name' of #<Object>
+  ```
+
+  也可以将 `user.name` 设置为一个 “永不可改” 的常量，就像内建的 `Math.PI`：
+
+  ```js
+  let user = {
+    name: 'CodePencil',
+  };
+  
+  Object.defineProperty(user, 'name', {
+    writable: false,
+    configurable: false
+  });
+  
+  // 不能修改 user.name 或它的标志
+  // 下面的所有操作都不起作用：
+  user.name = 'Pete';
+  delete user.name;
+  Object.defineProperty(user, 'name', { value: 'Pete' });
+  ```
+
+  **⚠️ 注意：对于不可配置的属性，唯一可行的标志更改就是将 `writable: true` 改成 `writable: false`**，这是一个小例外，可以防止其值被修改，但无法反向行之（`writable: false` 改成 `writable: true`）。
