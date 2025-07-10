@@ -11900,3 +11900,116 @@ sayHiDeferred('CodePencil'); // 2 秒后显示：Hello, CodePencil
 ```
 
 **⚠️ 注意：** 在上述代码中，**必须创建额外的变量 `args` 和 `ctx`**，以便 `setTimeout` 内部的函数可以获取它们。
+
+
+
+## 属性标志和属性描述符
+
+
+
+**属性标志**
+
+对象属性（properties），除了 `value` 外，还有三个特殊的特性（attributes），也就是所谓的 **“标志”**：
+
+- **`writable`** — 如果为 `true`，表示属性的值可以被修改，否则它是只可读的
+- **`enumerable`** — 如果为 `true`，表示属性会在循环中列出，否则不会被列出
+- **`configurable`** — 如果为 `true`，表示属性可以被删除，**其它特性**也可以被修改，否则不可以
+
+**⚠️ 注意：** 平常很少使用它们，当使用 “常用的方式” 创建一个属性时，它们都为 `true`，可以随时更改它们。
+
+
+
+可以通过 `Object.getOwnPropertyDescriptor` 方法查询有关属性的**完整**信息。
+
+语法：
+
+```js
+let descriptor = Object.getOwnPropertyDescriptor(obj, propertyName);
+```
+
+- **`obj`** — 需要从中获取信息的对象
+- **`propertyName`** — 属性的名称
+
+返回值是一个 “属性描述符” 对象：它包含值和所有的标志。
+
+例如：
+
+```js
+let user = {
+  name: 'CodePencil',
+};
+
+let descriptor = Object.getOwnPropertyDescriptor(user, 'name');
+
+alert( JSON.stringify(descriptor, null, 2) );
+/* 属性描述符：
+{
+  "value": "CodePencil",
+  "writable": true,
+  "enumerable": true,
+  "configurable": true
+}
+*/
+```
+
+
+
+要修改标志，可以使用 `Object.defineProperty`。
+
+语法：
+
+```js
+Object.defineProperty(obj, propertyName, descriptor);
+```
+
+- **`obj`** — 要应用描述符的对象
+- **`propertyName`** — 要应用描述符的属性名称
+- **`descriptor`** — 要应用的 “属性描述符” 对象
+
+如果该属性存在，`defineProperty` 会更新其标志，否则它会使用给定的值和标志创建属性，在这种情况下，如果没有提供标志，会默认所有标志全都为 `false`。
+
+例如：
+
+```js
+let user = {};
+
+Object.defineProperty(user, 'name', {
+  value: 'CodePencil',
+})
+
+let descriptor = Object.getOwnPropertyDescriptor(user, 'name');
+
+alert( JSON.stringify(descriptor, null, 2) );
+/* 属性描述符：
+{
+  "value": "CodePencil",
+  "writable": false,
+  "enumerable": false,
+  "configurable": false
+}
+*/
+```
+
+上述代码中创建了一个 `name` 属性，该属性的所有标志都为 `false`，**如果这不是想要的，最好在 `descriptor` 中将它们设置为 `true`**。
+
+
+
+**只读属性**
+
+通过修改 `writable` 标志来把 `user.name` 设置为只读（`user.name` 不能被重新赋值）：
+
+```js
+let user = {
+  name: 'CodePencil',
+};
+
+Object.defineProperty(user, 'name', {
+  writable: false,
+})
+
+user.name = 'Pete'; // Uncaught TypeError: Cannot assign to read only property 'name' of object '#<Object>'
+```
+
+上述代码中 `user.name` 属性被设置为只读，没有人可以改变该属性的值，除非使用 `Object.defineProperty` 来修改 `user.name` 的标志。
+
+**⚠️ 注意：** 只有严格模式下才会出现错误，**在非严格模式下，对只读属性赋值不会出现错误，但操作仍不会成功，违法标志行为的操作会被默默忽略**。
