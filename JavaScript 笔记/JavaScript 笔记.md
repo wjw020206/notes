@@ -4086,7 +4086,7 @@ family = null;
 
 
 
-## 对象方法，"this"
+## 对象方法，this
 
 
 
@@ -4239,7 +4239,7 @@ user.sayHi(); // CodePencil
 
 
 
-## 构造器和操作符 "new"
+## 构造器和操作符 new
 
 常规的 `{...}` 对象字面量允许创建一个对象，但有时候需要创建很多类似的对象，这时可以使用构造函数和 `new` 操作符来实现。
 
@@ -11905,6 +11905,8 @@ sayHiDeferred('CodePencil'); // 2 秒后显示：Hello, CodePencil
 
 ## 属性标志和属性描述符
 
+属性描述符是一个完整的对象，可以通过 `Object.getOwnPropertyDescriptor` 获取，而属性标志则是属性描述符对象中的属性，例如：`writable`、`enumerable`、`configurable` 等都是属性标志。
+
 
 
 **属性标志**
@@ -12197,3 +12199,177 @@ for (let key in obj) {
 - [**Object.isExtensible(obj)**](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/isExtensible) — 如果对象**添加属性**被禁止，则返回 `false`，否则返回 `true`
 - [**Object.isSealed(obj)**](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/isSealed) — 如果对象**添加/删除属性**被禁止，**并且所有的属性都具有 `configurable: false` 时返回 `true`**
 - [**Object.isFrozen(obj)**](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/isExtensible) — 如果对象**添加/删除/更改属性**被禁止，**并且所有的属性都具有 `configurable: false, writable: false` 时返回 `true`**
+
+
+
+## 属性的 getter 和 setter
+
+有两种类型的对象属性：
+
+- **数据属性** — 就是对象的常规属性和方法
+- **访问器属性（accessor property）** — 用于获取和设置值的函数，从外部代码看就像是常规属性
+
+
+
+**getter 和 setter**
+
+访问器属性由 getter 和 setter 方法表示，在对象字面量中，分别使用 `get` 和 `set` 表示：
+
+```js
+const obj = {
+  get propName() {
+    // 当读取 obj.propName 时，getter 起作用
+  },
+  
+  set propName() {
+    // 当执行 obj.propName = value 操作时，setter 起作用
+  }
+};
+```
+
+上述代码中，**当读取 `obj.propName` 时，getter 起作用，当 `obj.propName` 被赋值时，setter 起作用**。
+
+
+
+例如给一个对象添加一个 `fullName` 属性，但不想复制粘贴已有的信息，可以使用访问器来实现：
+
+```js
+const user = {
+  name: 'John',
+  surname: 'Smith',
+  
+  get fullName() {
+    return `${this.name} ${this.surname}`;
+  }
+};
+
+alert(user.fullName); // John Smith
+```
+
+从外表来看，访问器属性看起来像一个普通属性，这就是访问器属性的设计思想，不以函数的方式**调用** `user.fullName`，正常**读取**它 getter 在幕后运行。
+
+目前 `fullName` 只有一个 getter，如果尝试赋值操作 `user.fullName = ` 将会出现错误：
+
+```js
+const user = {
+  name: 'John',
+  surname: 'Smith',
+  
+  get fullName() {
+    return `${this.name} ${this.surname}`;
+  }
+};
+
+user.fullName = 'Test'; // Uncaught TypeError: Cannot set property fullName of #<Object> which has only a getter
+```
+
+上述代码**在严格模式下会出现错误，在非严格模式下错误会被静默忽略，但赋值操作不会生效**。
+
+通过给 `fullName` 添加一个 setter 来修复它：
+
+```js
+const user = {
+  name: 'John',
+  surname: 'Smith',
+  
+  get fullName() {
+    return `${this.name} ${this.surname}`;
+  },
+  
+  set fullName(value) {
+    [this.name, this.surname] = value.split(' ')
+  }
+};
+
+// set fullName 将以给定值运行
+user.fullName = 'Alice Cooper';
+
+alert(user.name); // Alice
+alert(user.surname); // Cooper
+```
+
+
+
+**访问器描述符**
+
+访问器属性的描述符与数据属性不同。
+
+**对于访问器属性，没有 `value` 和 `writable`，但是有 `get` 和 `set` 函数**。
+
+所以访问器描述符可能有：
+
+- **`get`** — 一个没有参数的函数，在读取属性时工作
+- **`set`** — 带有一个参数的函数，当属性被设置时调用
+- **`enumerable`** — 与数据属性的相同
+- **`configurable`** — 与数据属性的相同
+
+例如：
+
+```js
+const user = {
+  name: 'John',
+  surname: 'Smith',
+};
+
+Object.defineProperty(user, 'fullName', {
+  get() {
+    return `${this.name} ${this.surname}`;
+  },
+  
+  set(value) {
+    [this.name, this.surname] = value.split(' ');
+  }
+});
+
+alert(user.fullName); // John Smith
+
+for(let key in user) alert(key); // name, surname
+```
+
+**⚠️ 注意：** 一个属性要么是访问器属性（具有 `get/set` 方法），要么是数据属性（具有 `value`），但**不能两者都是**。
+
+例如尝试在同一个描述符中同时提供 `get` 和 `value`，会出现以下错误：
+
+```js
+// Uncaught TypeError: Invalid property descriptor. Cannot both specify accessors and a value or writable attribute, #<Object>
+Object.defineProperty({}, 'prop', {
+  get() {
+    return 1;
+  },
+  value: 2,
+});
+```
+
+
+
+**更聪明的 getter 和 setter**
+
+gettet/setter 可以用作 “真实” 属性值的包装器，便于对它们进行更多的控制。
+
+例如想要禁止太短的 `user` 的 `name`，可以创建一个 setter `name`，并将值存储在一个单独的属性 `_name` 中：
+
+```js
+const user = {
+  get name() {
+    return this._name;
+  },
+  
+  set name(value) {
+    if(value.length < 4) {
+      alert('名称太短，至少需要 4 个字符');
+      return;
+    }
+    
+    this._name = value;
+  }
+};
+
+user.name = 'CodePencil';
+alert(user.name); // CodePencil
+
+user.name = ''; // 名称太短，至少需要 4 个字符
+```
+
+上述代码中 `name` 被存储在 `_name` 属性中，通过 setter 和 getter 进行访问。
+
+**⚠️ 注意：** 从技术上讲，外部代码是可以通过 `user._name` 直接访问 `name`，但是**有一个众所周知的约定，下划线开头的属性通常是内部属性，不应该从对象外部进行访问**。
