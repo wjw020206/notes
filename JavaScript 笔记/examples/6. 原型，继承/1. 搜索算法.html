@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      let head = {
+        glasses: 1,
+      };
+
+      let table = {
+        pen: 3,
+      };
+
+      let bed = {
+        sheet: 1,
+        pillow: 2,
+      };
+
+      let pockets = {
+        money: 2000,
+      };
+
+      pockets.__proto__ = bed;
+      bed.__proto__ = table;
+      table.__proto__ = head;
+
+      pockets.glasses;
+      head.glasses;
+
+      function pocketsGlasses() {
+        return pockets.glasses;
+      }
+
+      function headGlasses() {
+        return head.glasses;
+      }
+
+      function bench(f) {
+        const start = Date.now();
+
+        for (let i = 0; i < 100000; i++) f();
+
+        return Date.now() - start;
+      }
+
+      bench(pocketsGlasses);
+      bench(headGlasses);
+
+      let time1 = 0;
+      let time2 = 0;
+
+      for (let i = 0; i < 10; i++) {
+        time1 += bench(pocketsGlasses);
+        time2 += bench(headGlasses);
+      }
+
+      alert('Total time for pocketsGlasses: ' + time1 + 'ms');
+      alert('Total time for headGlasses: ' + time2 + 'ms');
+    </script>
+  </body>
+</html>
