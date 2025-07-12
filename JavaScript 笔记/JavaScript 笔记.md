@@ -12392,7 +12392,7 @@ user.name = ''; // 名称太短，至少需要 4 个字符
 
 虽然属性 `[[Prototype]]` 是内部且隐藏的，但是有很多设置它的方法。
 
-其中之一就是使用特殊的名字 `__proto__`，像下面这样：
+其中之一就是**使用特殊的名字 `__proto__`**，像下面这样：
 
 ```js
 let animal = {
@@ -12507,9 +12507,9 @@ alert(longEar.jumps); // true
 
 - **一个对象只能有一个 `[[Prototype]]`**，一个对象不能从其它两个对象获得继承
 
-- **`__proto__` 是 `[[Prototype]]` 的历史原因留下来的 getter/setter**，`__proto__` 与 `[[Prototype]]` 的**内部不一样**，`__proto__` 是 `[[Prototype]]` 的 getter/setter
+- **`__proto__` 是 `[[Prototype]]` 的历史原因留下来的 getter/setter**，`__proto__` 与 `[[Prototype]]` 的**内部不一样，`__proto__` 是 `[[Prototype]]` 的 getter/setter**
 
-  **`__proto__` 属性有点过时了**，它的存在是出于历史原因，现代 JavaScript 中**应该使用函数 `Object.getPrototypeOf/Object.setPrototypeOf` 来取代 `__proto__` 去 get/set 原型**
+  **`__proto__` 属性有点过时了**，它的存在是出于历史原因，现代 JavaScript 中**应该使用函数  `Object.getPrototypeOf/Object.setPrototypeOf` 来取代 `__proto__` 去 get/set 原型**
 
   根据规范，**`__proto__` 必须仅受浏览器环境的支持，但实际上包括服务端在内的所有环境都支持它，所以使用它是非常安全的**
 
@@ -12706,3 +12706,147 @@ let pockets = {
 **问题：** 上述代码中通过 `pockets.glasses` 或 `head.glasses` 获取 `glasses`，哪个更快？
 
 **答案：** 在现代 JavaScript 引擎中，从性能的角度来看**从对象还是从原型链获取属性都是没区别的**，因为**引擎会记住在哪里找到的该属性，并在下一次请求中重用它**，引擎足够聪明，一旦有内容更改，它们就会自动更新内部缓存，因此，该优化是安全的。
+
+
+
+## F.prototype
+
+在 JavaScript 中可以使用 `new F()` 这样的构造函数创建一个新对象。
+
+**如果 `F.prototype` 是一个对象，那么 `new` 操作符会使用它为新对象设置 `[[Prototype]]`**。
+
+**⚠️ 注意：**
+
+- JavaScript 从一开始就有了原型继承，但在**过去没有直接对其进行访问的方式，唯一可靠的方式是使用通过构造函数的 `prototype` 属性，目前仍有很多脚本仍在使用它**
+- `F.prototype` 指的是 `F` 的一个名为 `prototype` 的常规属性，看起来跟 “原型” 很类似，但实际上这里指的是具有该名字的常规属性
+- **`F.prototype` 的值要么是一个对象，要么就是 `null`：其它值都不起作用**
+- **`prototype` 属性只有当设置在一个构造函数上时，并通过 `new` 调用才有这种特殊的影响**，在常规对象上只是普通属性
+
+例如： 
+
+```js
+let animal = {
+  eats: true,
+};
+
+function Rabbit(name) {
+  this.name = name;
+}
+
+Rabbit.prototype = animal;
+
+const rabbit = new Rabbit('White Rabbit'); // rabbit.__proto__ == animal
+
+alert(rabbit.eats); // true
+```
+
+上述代码中，设置 `Rabbit.prototype = animal` 的字面意思是：当创建了一个 `new Rabbit` 时，把它的 `[[Prototype]]` 赋值为 `animal`。
+
+结果示意图：
+
+![image-20250712135549221](images/image-20250712135549221.png)
+
+上图中 `prototype` 是一个水平箭头，表示一个普通属性，`[[Prototype]]` 是一个垂直箭头，表示 `rabbit` 继承 `animal`。
+
+**⚠️ 注意：`F.prototype` 属性仅在 `new F` 被调用时使用**，它为新对象的 `[[Prototype]]` 赋值，在创建之后，**如果 `F.prototype` 属性发生了变化（`F.prototype = <another object>`），那么通过 `new F` 创建的新对象也将随之拥有新对象作为 `[[Prototype]]`，但已经存在的对象将保持旧的值**，例如：
+
+```js
+function Rabbit() {}
+Rabbit.prototype = {
+  eats: true,
+};
+
+let rabbit1 = new Rabbit(); // 引用了上面的 prototype
+
+Rabbit.prototype = {
+  eats: false,
+};
+
+let rabbit2 = new Rabbit(); // 引用了新定义的的 prototype
+delete Rabbit.prototype.eats; // 删除新定义的 prototype 的 eats
+
+alert(rabbit1.eats); // 从之前引用的 prototype 取值 true
+alert(rabbit2.eats); // 从新的 prototype 取值 undefined
+```
+
+
+
+**默认的 F.prototype，构造器属性**
+
+每个函数都有 `prototype` 属性，即使我们没有提供它。
+
+默认的 `prototype` 属性**是一个只有属性 `constructor` 的对象**，属性 `constructor` 指向函数自身。
+
+例如：
+
+```js
+function Rabbit() {}
+
+// 默认的 prototype
+// Rabbit.prototype = { constructor: Rabbit };
+
+alert(Rabbit.prototype.constructor === Rabbit); // true
+```
+
+![image-20250712141151455](images/image-20250712141151455.png)
+
+通常如果什么都不做，`constructor` 属性可以通过 `[[Prototype]]` 给所有 `rabbits` 使用：
+
+```js
+function Rabbit() {}
+// 默认：
+// Rabbit.prototype = { constructor: Rabbit }
+
+let rabbit = new Rabbit(); // 继承自 { constructor: Rabbit }
+alert(rabbit.constructor === Rabbit); // true
+```
+
+![image-20250712143712376](images/image-20250712143712376.png)
+
+可以使用 `constructor` 属性来创建一个新的对象，该对象使用与现有对象相同的构造器。
+
+例如：
+
+```js
+function Rabbit(name) {
+  this.name = name;
+  alert(name);
+}
+
+let rabbit = new Rabbit('White Rabbit');
+let rabbit2 = new rabbit.constructor('Black Rabbit');
+```
+
+当我们有一个对象（例如它来自第三方库），我们需要创建另一个类似的对象时，用这种方法创建就很方便。
+
+**⚠️ 注意：** JavaScript 自身并**不能确保正确的 `constructor` 函数值**，`constructor` 只是存在于函数默认的 `prototype` 中，但也仅此而已，之后会发生什么完全取决于我们，例如将整个默认的 `prototype` 替换掉，那么其中就不会有 `constructor` 了，例如：
+
+```js
+function Rabbit() {}
+Rabbit.prototype = {
+  jumps: true,
+};
+
+let rabbit = new Rabbit();
+alert(rabbit.constructor === Rabbit); // false
+```
+
+因此，为了确保正确的 `constructor`，应该选择添加/删除属性到默认的 `prototype` 中，而不是将整个覆盖：
+
+```js
+function Rabbit() {}
+
+// 不要将 Rabbit.prototype 整个覆盖
+Rabbit.prototype.jumps = true; // 可以向其中添加内容
+// 默认的 Rabbit.prototype.constructor 被保留下来了
+```
+
+或者也可以手动重新添加 `constructor` 属性：
+
+```js
+Rabbit.prototype = {
+  jumps: true,
+  constructor: Rabbit, // 这样的 constructor 也是正确的，因为手动添加了它
+};
+```
+
