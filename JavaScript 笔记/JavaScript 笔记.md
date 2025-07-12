@@ -12616,3 +12616,93 @@ alert(animal.isSleeping); // undefined（原型中没有此属性）
 ![image-20250712103704541](images/image-20250712103704541.png)
 
 每个方法调用中的 `this` 都是在调用（点符号前）的对象，所以当数据写入 `this` 时，会将其存储到这些对象中，所以**方法是共享的，但对象状态不是**。
+
+
+
+**for..in 循环**
+
+`for..in` 循环也会迭代继承的属性。
+
+例如：
+
+```js
+let animal = {
+  eats: true,
+};
+
+let rabbit = {
+  jumps: true,
+  __proto__: animal,
+};
+
+// Object.keys 只返回自己的 key
+alert(Object.keys(rabbit)); // jumps
+
+// for..in 会遍历自己及继承的 key
+for(let prop in rabbit) alert(prop); // jumps, 然后是 eats
+```
+
+如果想要 `for..in` 排除继承的属性，可以使用内建方法 `obj.hasOwnProperty(key)`：如果 `obj` 具有自己的（非继承）名为 `key` 的属性，则返回 `true`，反之返回 `false`。
+
+例如：
+
+```js
+let animal = {
+  eats: true,
+};
+
+let rabbit = {
+  jumps: true,
+  __proto__: animal,
+};
+
+for(let prop in rabbit) {
+  let isOwn = rabbit.getOwnProperty(prop);
+  
+  if(isOwn) {
+    alert(`Our: ${prop}`); // Our: jumps
+  } else {
+    alert(`Inherited: ${prop}`); // Inherited: eats
+  }
+}
+```
+
+上述代码有以下继承链：
+
+![image-20250712104828193](images/image-20250712104828193.png)
+
+从上图中可以知道，`rabbit.getOwnProperty` 方法是由 `Object.prototype.hasOwnProperty` 提供的，也就是说它是继承的，但为什么它没有被 `for..in` 循环列举出来？
+
+因为**它是不可枚举的，`Object.prototype` 的 `hasOwnProperty` 以及包括其它属性都有 `enumerable: false` 标志**。
+
+**⚠️ 注意：** 几乎所有的其它键/值获取方法，例如 `Object.keys` 和 `Object.values` 等都会忽略继承的属性，它们只会对对象自身进行操作。**不考虑继承自原型的属性**。
+
+
+
+**性能对比**
+
+```js
+let head = {
+  glasses: 1,
+};
+
+let table = {
+  pen: 3,
+  __proto__: head,
+};
+
+let bed = {
+  sheet: 1,
+  pillow: 2,
+  __proto__: table,
+};
+
+let pockets = {
+  money: 2000,
+  __proto__: bed,
+};
+```
+
+**问题：** 上述代码中通过 `pockets.glasses` 或 `head.glasses` 获取 `glasses`，哪个更快？
+
+**答案：** 在现代 JavaScript 引擎中，从性能的角度来看**从对象还是从原型链获取属性都是没区别的**，因为**引擎会记住在哪里找到的该属性，并在下一次请求中重用它**，引擎足够聪明，一旦有内容更改，它们就会自动更新内部缓存，因此，该优化是安全的。

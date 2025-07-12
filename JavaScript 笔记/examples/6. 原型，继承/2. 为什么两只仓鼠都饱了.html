@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      // 修复方法 1
+      // let hamster = {
+      //   stomach: [],
+
+      //   eat(food) {
+      //     this.stomach = [food];
+      //   },
+      // };
+
+      // 修复方法 2
+      let hamster = {
+        stomach: [],
+
+        eat(food) {
+          if (!this.hasOwnProperty('stomach')) {
+            this.stomach = [];
+          }
+          this.stomach.push(food);
+        },
+      };
+
+      let speedy = {
+        __proto__: hamster,
+      };
+
+      let lazy = {
+        __proto__: hamster,
+      };
+
+      speedy.eat('apple');
+      alert(speedy.stomach);
+
+      alert(lazy.stomach);
+    </script>
+  </body>
+</html>
