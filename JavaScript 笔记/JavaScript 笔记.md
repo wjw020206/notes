@@ -12373,3 +12373,246 @@ user.name = ''; // 名称太短，至少需要 4 个字符
 上述代码中 `name` 被存储在 `_name` 属性中，通过 setter 和 getter 进行访问。
 
 **⚠️ 注意：** 从技术上讲，外部代码是可以通过 `user._name` 直接访问 `name`，但是**有一个众所周知的约定，下划线开头的属性通常是内部属性，不应该从对象外部进行访问**。
+
+
+
+## 原型继承
+
+有时候想基于一个对象，构建一个新的对象，而不是复制/重新实现原对象的方法，这时可以使用**原型继承（Prototypal inheritance）**。
+
+
+
+**[[Prototype]]**
+
+在 JavaScript 中，**对象有一个特殊的隐藏属性 `[[Prototype]]`，它要么为 `null`，要么就是对另一个对象的引用，该对象被称为 “原型”**。
+
+![image-20250712075050791](images/image-20250712075050791.png)
+
+**当从 `object` 中读取一个缺失的属性时，JavaScript 会自动从原型中获取该属性，这被称为 “原型继承”**。
+
+虽然属性 `[[Prototype]]` 是内部且隐藏的，但是有很多设置它的方法。
+
+其中之一就是使用特殊的名字 `__proto__`，像下面这样：
+
+```js
+let animal = {
+  eats: true,
+};
+
+let rabbit = {
+  jumps: true,
+};
+
+rabbit.__proto__ = animal; // 设置了 rabbit.[[Prototype]] = animal
+```
+
+这时如果从 `rabbit` 中读取它没有属性，JavaScript 会自动从 `animal` 中获取，例如：
+
+```js
+let animal = {
+  eats: true,
+};
+
+let rabbit = {
+  jumps: true,
+};
+
+rabbit.__proto__ = animal;
+
+alert(rabbit.eats); // true，从原型 animal 中获取的
+alert(rabbit.jumps); // true, 从自身 rabbit 中获取的
+```
+
+上述代码中试图读取 `rabbit.eats`，因为它不存在于 `rabbit` 中，所以 JavaScript 会顺着 `[[Prototype]]` 引用，在 `animal` 中查找（自下而上）。
+
+![image-20250712080033968](images/image-20250712080033968.png)
+
+所以这里可以说 **“`animal` 是 `rabbit` 的原型”**，或者说 **“`rabbit` 的原型是从 `animal` 继承而来的”**。
+
+因此，`animal` 有许多有用的属性和方法将自动变为在 `rabbit` 中可用，这种特征被称为 **“继承”**。
+
+如果 `animal` 中有一个方法，也可以在 `rabbit` 中被调用：
+
+```js
+let animal = {
+  eats: true,
+  walk() {
+    alert('Animal walk');
+  },
+};
+
+let rabbit = {
+  jumps: true,
+  __proto__: animal,
+};
+
+// walk 方法是从原型 animal 中获得的
+rabbit.walk(); // Animal walk
+```
+
+该方法是自动从原型中获得的，像这样：
+
+![image-20250712081048450](images/image-20250712081048450.png)
+
+原型链可以很长：
+
+```js
+let animal = {
+  eats: true,
+  walk() {
+    alert('Animal walk');
+  }
+};
+
+let rabbit = {
+  jumps: true,
+  __proto__: animal,
+};
+
+let longEar = {
+  earLength: 10,
+  __proto__: rabbit,
+};
+
+longEar.walk(); // Animal walk
+alert(longEar.jumps); // true
+```
+
+![image-20250712081350006](images/image-20250712081350006.png)
+
+当在 `longEar` 读取一些不存在的内容时，JavaScript 会先在 `rabbit` 中查找，然后在 `animal` 中查找。
+
+**⚠️ 注意：**
+
+- **引用不能形成循环**，当试图给 `__proto__` 赋值但会导致引用形成闭环时，JavaScript 会抛出错误，例如：
+
+  ```js
+  let animal = {
+    eats: true,
+    walk() {
+      alert('Animal walk');
+    },
+  };
+  
+  let rabbit = {
+    jumps: true,
+    __proto__: animal,
+  };
+  
+  // 试图循环引用原型
+  animal.__proto__ = rabbit; // Uncaught TypeError: Cyclic __proto__ value
+  ```
+
+- **`__proto__` 的值可以是对象，也可以是 `null`，其它类型都会被忽略**
+
+- **一个对象只能有一个 `[[Prototype]]`**，一个对象不能从其它两个对象获得继承
+
+- **`__proto__` 是 `[[Prototype]]` 的历史原因留下来的 getter/setter**，`__proto__` 与 `[[Prototype]]` 的**内部不一样**，`__proto__` 是 `[[Prototype]]` 的 getter/setter
+
+  **`__proto__` 属性有点过时了**，它的存在是出于历史原因，现代 JavaScript 中**应该使用函数 `Object.getPrototypeOf/Object.setPrototypeOf` 来取代 `__proto__` 去 get/set 原型**
+
+  根据规范，**`__proto__` 必须仅受浏览器环境的支持，但实际上包括服务端在内的所有环境都支持它，所以使用它是非常安全的**
+
+
+
+**写入不使用原型**
+
+原型仅用于读取属性。
+
+对于写入/删除操作直接在对象上进行，而不通过原型去查找。
+
+例如：
+
+```js
+let animal = {
+  eats: true,
+  walk() {
+     alert('Animal walk');
+  },
+};
+
+let rabbit = {
+  __proto__: animal,
+};
+
+rabbit.walk = function() {
+  alert('Rabbit! Bounce-bounce!');
+};
+
+rabbit.walk(); // Rabbit! Bounce-bounce!
+```
+
+`rabbit.walk()` 立即在该对象上找到方法并执行，而无需使用原型：
+
+![image-20250712084847077](images/image-20250712084847077.png)
+
+**⚠️ 注意：访问器（accessor）属性是个例外，因为赋值（assignment）操作是由 setter 函数处理的**，所以写入此类属性实际上与调用函数相同，例如：
+
+```js
+let user = {
+  name: 'John',
+  surname: 'Smith',
+  
+  set fullName(value) {
+    [this.name, this.surname] = value.split(' ');
+  },
+  get fullName() {
+    return `${this.name} ${this.surname}`;
+  }
+};
+
+let admin = {
+  __proto__: user,
+  isAdmin: true,
+};
+
+alert(admin.fullName); // John Smith
+
+admin.fullName = 'Alice Cooper';
+
+alert(admin.fullName); // Alice Cooper，admin 的内容被修改了
+alert(user.fullName); // John Smith，user 的内容被保护了
+```
+
+
+
+**this 的值**
+
+`this` 的值不受原型的影响。
+
+**无论在哪找到方法：在一个对象还是原型中，方法调用时，`this` 始终是点符号 `.` 前面的对象**。
+
+所以前面的例子中 setter 调用 `admin.fullName = 'Alice Cooper'` 使用 `admin` 作为 `this`，而不是 `user`。
+
+在开发中可能有一个带有很多方法的大对象，并且还有从其继承的对象，当继承的对象运行继承的方法时，它们**仅会修改自己的状态，不会修改大对象的状态**。
+
+例如：
+
+```js
+const animal = {
+  walk() {
+    if (!this.isSleeping) {
+      alert('I walk');
+    }
+  },
+  sleep() {
+    this.isSleeping = true;
+  },
+};
+
+const rabbit = {
+  name: 'White Rabbit',
+  __proto__: animal,
+};
+
+rabbit.sleep(); // 修改 rabbit.isSleeping
+
+alert(rabbit.isSleeping); // true
+alert(animal.isSleeping); // undefined（原型中没有此属性）
+```
+
+结果示意图：
+
+![image-20250712103704541](images/image-20250712103704541.png)
+
+每个方法调用中的 `this` 都是在调用（点符号前）的对象，所以当数据写入 `this` 时，会将其存储到这些对象中，所以**方法是共享的，但对象状态不是**。
