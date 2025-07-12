@@ -12850,3 +12850,47 @@ Rabbit.prototype = {
 };
 ```
 
+
+
+## 原生的原型
+
+`prototype` 属性在 JavaScript 自身的核心部分中被广泛使用，所有的内建函数都用到了它。
+
+
+
+**Object.prototype**
+
+例如输出一个空对象：
+
+```js
+let obj = {};
+alert(obj); // [object Object]
+```
+
+生成字符串 `[object Object]` 的代码来自于内建的 `toString` 方法，**`obj = {}` 与 `obj = new Object()` 是一个意思**，其中 `Object` 就是一个内建的构造函数，其自身的 `prototype` 指向一个带有 `toString` 和其它方法的一个巨大的对象。
+
+就像这样：
+
+![image-20250712195258491](images/image-20250712195258491.png)
+
+所以当 `new Object()` 被调用（或一个字面量对象 `{...}` 被创建），那么这个对象的 `[[Prototype]]` 属性被设置为 `Object.prototype`：
+
+![image-20250712195556600](images/image-20250712195556600.png)
+
+所以之后当 `obj.toString()` 被调用时，这个方法是从 `Object.prototype` 中获取的。
+
+可以像下面这样验证它：
+
+```js
+let obj = {};
+
+alert(obj.__proto__ === Object.prototype); // true
+alert(obj.toString === obj.__proto__.toString); // true
+alert(obj.toString === Object.prototype.toString); // true
+```
+
+**⚠️ 注意：`Object.prototype` 没有更多的 `[[Prototype]]`**，例如：
+
+```js
+alert(Object.prototype.__proto__); // null
+```
