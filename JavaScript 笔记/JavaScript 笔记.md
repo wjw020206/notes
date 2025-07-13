@@ -12932,9 +12932,25 @@ alert(arr); // 1,2,3 <-- Array.prototype.toString 的结果
 
 ![image-20250713090024308](images/image-20250713090024308.png)
 
+在浏览器的开发者控制台中也会显示继承性（可能需要对内建对象使用 `console.dir`）：
+
+![image-20250713094656166](images/image-20250713094656166.png)
+
+其它内建对象也以同样的方式运行，即使是函数 —— 它们是内建构造器 `Function` 的对象，并且它们的方法（`call` / `apply` 及其它方法）都是取自 `Function.prototype`，函数也有自己的 `toString` 方法。
+
+```js
+function f() {}
+
+alert(f.__proto__ === Function.prototype); // true
+alert(f.__proto__.__proto__ === Object.prototype); // true
+```
 
 
 
+**基本数据类型**
 
+字符串、数字和布尔值它们并不是对象，**当试图访问它们的属性时，临时包装器对象将会通过内建的构造器 `String`、`Number` 和 `Boolean` 被创建，它们提供操作字符串、数字和布尔值的方法然后消失**。
 
+这些对象都是无形的创建出来的，大多数引擎都会对其进行优化。
 
+**⚠️ 注意：`null` 和 `undefined` 没有对象包装器**，所以它们没有方法和属性，也没有对应的原型。
