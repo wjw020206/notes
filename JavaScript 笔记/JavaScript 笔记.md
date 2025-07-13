@@ -12894,3 +12894,47 @@ alert(obj.toString === Object.prototype.toString); // true
 ```js
 alert(Object.prototype.__proto__); // null
 ```
+
+
+
+**其它内建原型**
+
+其它内建对象，如 `Array`、`Date`、`Function` 及其它，都在 `prototype` 上挂载了方法。
+
+例如：当创建了一个数组 `[1, 2, 3]`，在内部默认使用 `new Array()` 构造器，因此 `Array.prototype` 变成了这个数组的 `prototype`，并为这个数组提供了操作方法，**这样做内存存储效率是很高的**。
+
+**按照规范，所有内建原型顶端都是 `Object.prototype`**，这也就是为什么有人说 “**一切都从对象继承而来**”。
+
+下面是完整的示意图（3 个内建对象）：
+
+![image-20250713085334077](images/image-20250713085334077.png)
+
+可以手动验证一下原型：
+
+```js
+let arr = [1, 2, 3];
+
+alert(arr.__proto__ === Array.prototype); // true
+
+alert(arr.__proto__.__proto__ === Object.prototype); // true
+
+alert(arr.__proto__.__proto__.__proto__); // null
+```
+
+**⚠️ 注意：一些方法在原型上可能会发生重叠**，例如：`Array.prototype` 有自己的 `toString` 方法来列举出数组的所有元素并使用逗号分隔每一个元素。
+
+```js
+let arr = [1, 2, 3];
+alert(arr); // 1,2,3 <-- Array.prototype.toString 的结果
+```
+
+虽然 `Object.prototype` 也有 `toString` 方法，但是 `Array.prototype` 在原型链中更近，所以数组对象原型上的方法会被使用。
+
+![image-20250713090024308](images/image-20250713090024308.png)
+
+
+
+
+
+
+
