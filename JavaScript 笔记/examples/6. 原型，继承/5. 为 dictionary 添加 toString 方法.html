@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      let dictionary = Object.create(null, {
+        toString: {
+          value() {
+            return Object.keys(this).join();
+          },
+        },
+      });
+
+      // 添加一些数据
+      dictionary.apple = 'Apple';
+      dictionary.__proto__ = 'test'; // 这里 __proto__ 是一个常规的属性键
+
+      // 在循环中只有 apple 和 __proto__
+      for (let key in dictionary) {
+        alert(key); // "apple", then "__proto__"
+      }
+
+      // 你的 toString 方法在发挥作用
+      alert(dictionary); // "apple,__proto__"
+    </script>
+  </body>
+</html>
