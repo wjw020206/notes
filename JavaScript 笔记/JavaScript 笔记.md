@@ -12954,3 +12954,73 @@ alert(f.__proto__.__proto__ === Object.prototype); // true
 这些对象都是无形的创建出来的，大多数引擎都会对其进行优化。
 
 **⚠️ 注意：`null` 和 `undefined` 没有对象包装器**，所以它们没有方法和属性，也没有对应的原型。
+
+
+
+**更改原生原型**
+
+**原生的原型是可以被修改的**，例如向 `String.prototype` 中添加一个方法，这个方法将对所有的字符串都是可用的：
+
+```js
+String.prototype.show = function() {
+  alert(this);
+};
+
+'CodePencil'.show(); // CodePencil
+```
+
+**⚠️ 注意：** 
+
+- 在开发过程中，**将一些方法添加到原生原型中通常不是一个好的想法，因为原型是全局的，很容易会造成冲突**，如果两个库都添加了 `String.prototype.show` 方法，那么其中一个方法将被另一个方法覆盖
+
+- 在现代编程中，只有一种情况允许修改原生原型，就是 **polyfilling**，表示某个方法在 JavaScript 规范中已经存在，但**在特定的 JavaScript 引擎不支持该方法，那么可以手动实现它并添加到原生原型中**
+
+  ```js
+  // 判断原生原型中该方法是否存在
+  if(!String.prototype.repeat) {
+    
+    // 如果不存在就在 prototype 中添加它
+    String.prototype.repeat = function(n) {
+      // 重复传入的字符串 n 次
+      // 实际上，实现代码比这个要复杂一些（完整的方法可以在规范中找到）
+      // 即使是不够完美的 polyfill 也常常被认为是足够好的
+      return new Array(n + 1).join(this);
+    };
+  }
+  
+  alert('La'.repeat(3)); // LaLaLa
+  ```
+
+  
+
+**从原型中借用**
+
+一些原生的原型方法也通常会被借用。
+
+例如：要创建类数组对象，则可能需要向其中复制一些 `Array` 方法。
+
+```js
+let obj = {
+  0: 'Hello',
+  1: 'world!',
+  length: 2,
+};
+
+obj.join = Array.prototype.join;
+alert(obj.join(',')); // Hello,world!
+```
+
+另一种方式就是通过 `obj.__proto__` 设置为 `Array.prototype`，这样 `Array` 中所有的方法都自动可以在 `obj` 中使用了，例如：
+
+```js
+let obj = {
+  0: 'Hello',
+  1: 'world!',
+  length: 2,
+};
+
+obj.__proto__ = Array.prototype;
+alert(obj.join(',')); // Hello,world!
+```
+
+**⚠️ 注意：** 如果 `obj` 已经从另一个对象进行了继承，那么这种方法就不行了，**因为会覆盖掉已有的继承**，但这里 `obj` 其实已经从 `Object` 进行了继承，因为 `Array` 也继承了 `Object`，所以 `obj` 通过原型链依旧继承了 `Object`，此处的方法借用不会影响 `obj` 对原有继承的继承。
