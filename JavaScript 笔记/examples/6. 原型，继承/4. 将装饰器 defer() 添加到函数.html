@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      'use strict';
+
+      Function.prototype.defer = function (ms) {
+        let f = this;
+
+        return function (...args) {
+          setTimeout(() => f.apply(this, args), ms);
+        };
+      };
+
+      let user = {
+        name: 'John',
+        sayHi() {
+          alert(this.name);
+        },
+      };
+
+      user.sayHi = user.sayHi.defer(1000);
+
+      user.sayHi();
+    </script>
+  </body>
+</html>
