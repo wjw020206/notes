@@ -13024,3 +13024,15 @@ alert(obj.join(',')); // Hello,world!
 ```
 
 **⚠️ 注意：** 如果 `obj` 已经从另一个对象进行了继承，那么这种方法就不行了，**因为会覆盖掉已有的继承**，但这里 `obj` 其实已经从 `Object` 进行了继承，因为 `Array` 也继承了 `Object`，所以 `obj` 通过原型链依旧继承了 `Object`，此处的方法借用不会影响 `obj` 对原有继承的继承。
+
+
+
+## 原型方法
+
+**使用 `obj.__proto__` 设置原型的方法已经过时且不推荐使用了**（已经被移至 JavaScript 规范的附录 B，意味着仅适用于浏览器）。
+
+现代获取/设置原型的方法有：
+
+- **`Object.getPrototypeOf(obj)`** —— 返回对象 `obj` 的 `[[Prototype]]`
+- **`Object.setPrototypeOf(obj, proto)`** —— 将对象 `obj` 的 `[[Prototype]]` 设置为 `proto`
+
