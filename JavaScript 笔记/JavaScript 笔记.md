@@ -13036,3 +13036,90 @@ alert(obj.join(',')); // Hello,world!
 - **`Object.getPrototypeOf(obj)`** —— 返回对象 `obj` 的 `[[Prototype]]`
 - **`Object.setPrototypeOf(obj, proto)`** —— 将对象 `obj` 的 `[[Prototype]]` 设置为 `proto`
 
+**⚠️ 注意：** `__proto__` 不被反对的唯一用法是在创建对象时，将其用作属性 `{ __proto__: ... }`。
+
+还有一种特殊的方法：
+
+- **`Object.create(proto, [descriptors])`** —— 利用给定的 `proto` 作为 `[[Prototype]]` 和可选属性描述符来创建一个空对象。
+
+例如：
+
+```js
+const animal = {
+  eats: true,
+};
+
+const rabbit = Object.create(animal); // 与 { __proto__: animal } 相同
+alert(rabbit.eats); // true
+alert(Object.getPrototypeOf(rabbit) === animal); // true
+Object.setPrototypeOf(rabbit, {}); // 将 rabbit 的原型修改为 {}
+```
+
+`Object.create` 方法更加强大，因为它有一个可选的第二参数：**属性描述符**。
+
+属性描述符可以用来为新对象提供额外的属性，像下面这样：
+
+```js
+const animal = {
+  eats: true,
+};
+
+const rabbit = Object.create(animal, {
+  jumps: {
+    value: true,
+  }
+});
+
+alert(rabbit.jumps); // true
+```
+
+可以使用 `Object.create` 来实现比复制 `for..in` 循环中属性更强大的对象克隆方式：
+
+```js
+const clone = Object.create(
+  Object.getPrototypeOf(obj),
+  Object.getOwnPropertyDescriptors(obj)
+);
+```
+
+上述代码可以对 `obj` 进行真正准确的拷贝（浅拷贝），**包括所有的属性：可枚举和不可枚举的，数据属性和 setters/getters —— 包括所有内容，并带有正确的 `[[Prototype]]`**。
+
+
+
+**原型简史**
+
+因为历史原因，JavaScript 中有很多可以处理 `[[Prototype]]` 的方式。
+
+JavaScript 语言从一开始就支持原型继承，但是管理它的方式随着时间的推移而演变。
+
+- 构造函数的 `prototype` 从语言诞生之初就起作用，这是使用给定原型创建对象的**最古老的方式**
+- 在 2012 年，`Object.create` 出现在标准中，它提供了使用给定原型创建对象的能力，但是**没有提供读取和设置原型的能力**，一些浏览器实现了非标准的 `__proto__` 访问器，为开发者提供更多的灵活性
+- 在 2015 年，`Object.setPrototypeOf` 和 `Object.getPrototypeOf` 被加入到标准中，执行与 `__proto__` 相同的功能，但由于 `__proto__` 实际上在所有地方都得到了实现，但它已经过时，所以被加入到该标准的附件 B 中（即在非浏览器环境下，它的支持是可选的）
+- 在 2022 年，官方允许在对象字面量 `{...}` 中使用 `__proto__`（从附录 B 中移出来了），**但是不推荐使用 getter/setter `obj.__proto__`**（仍在附录 B 中）
+
+**⚠️ 注意：如果速度很重要，就不要修改已存在对象的 `[[Prototype]]`**，虽然从技术上讲可以在任何时候读取和设置 `[[Prototype]]`，但是通常只在创建的对象的时候设置它一次，之后就不再修改了，例如：`rabbit` 继承了 `animal`，之后就不再修改，**JavaScript 引擎会对对象的原型链结构进行高度优化，使得属性无论在对象实例上还是在原型对象上访问都非常的快，而使用 `Object.setPrototypeOf` 或 `obj.__proto__ =` “即时” 更改原型是一个非常缓慢的操作，因为它会破坏对象属性访问操作的内部优化**，所以除非明确知道在做什么或者 JavaScript 的执行速度对你来说完全不重要，否则请避免使用它。
+
+
+
+**'Very plain' objects**
+
+为什么要使用 `getPrototypeOf/setPrototypeOf` 取代 `__proto__` ？
+
+为什么 `__proto__` 被部分认可并允许在 `{...}` 中使用，但仍不能用作 getter/setter？
+
+上述两个问题可以看下面的例子，假如尝试在对象中存储**用户提供的**键（例如：一个用户输入的字典），会发现一个问题：所有键都可以正常工作，**除了 `__proto__`**。
+
+例如：
+
+```js
+const obj = {};
+
+const key = prompt('请输入你的 key', '__proto__');
+obj[key] = 'some value';
+
+alert(obj[key]); // [object Object]，并不是 'some value'
+```
+
+上述代码中，如果用户输入的是 `__proto__`，那么第四行的赋值会被忽略，因为 **`__proto__` 属性很特殊：它必须是一个对象或者 `null`**，因为用户输入的字符串不能成为原型，所以将字符串赋值给 `__proto__` 会被忽略。
+
+但是通常我们不打算实现这种行为，想要存储键值对，而键名为 `__proto__` 的键值对没有被正确存储，所以这是一个 bug，这个问题可能会导致对象的原型被改变，可能会出现意想不到的结果。
