@@ -13120,6 +13120,72 @@ obj[key] = 'some value';
 alert(obj[key]); // [object Object]，并不是 'some value'
 ```
 
-上述代码中，如果用户输入的是 `__proto__`，那么第四行的赋值会被忽略，因为 **`__proto__` 属性很特殊：它必须是一个对象或者 `null`**，因为用户输入的字符串不能成为原型，所以将字符串赋值给 `__proto__` 会被忽略。
+上述代码中，如果用户输入的是 `__proto__`，那么第四行的赋值会被忽略，因为 **`__proto__` 属性很特殊：它必须是一个对象或者 `null`，因为用户输入的字符串不能成为原型，所以将字符串赋值给 `__proto__` 会被忽略**。
 
-但是通常我们不打算实现这种行为，想要存储键值对，而键名为 `__proto__` 的键值对没有被正确存储，所以这是一个 bug，这个问题可能会导致对象的原型被改变，可能会出现意想不到的结果。
+但是通常不打算实现这种行为，想要存储键值对，而键名为 `__proto__` 的键值对没有被正确存储，所以这是一个 BUG，这个问题可能会导致对象的原型被改变，可能会出现意想不到的结果，**通常开发者不会考虑这一点，导致这类 BUG 很难被发现，甚至变成漏洞**。
+
+
+
+可以改用 `Map` 来代替普通对象进行存储：
+
+```js
+const map = new Map();
+
+const key = prompt('请输入你的 key', '__proto__');
+map.set(key, 'some value');
+
+alert(map.get(key)); // some value
+```
+
+也**可以**使用对象， `Object` 语法更加简洁，JavaScript 语言的制造者很久以前就考虑过这个问题。
+
+`__proto__` 不是对象的属性，而是 `Object.prototype` 的**访问器属性**：
+
+![image-20250716071551264](images/image-20250716071551264.png)
+
+当 `object.__proto__` 被读取或者赋值时，对于的 getter/setter 会被从它的原型中调用，它会 set/get `[[Prototype]]`。
+
+所以要摆脱此类问题，可以使用下面的小技巧：
+
+```js
+const obj = Object.create(null); // 创建一个没有原型的空对象
+// 或者像下面这样
+/*
+const obj = {
+  __proto__: null,
+};
+*/
+
+const key = prompt('请输入你的 key', '__proto__');
+obj[key] = 'some value';
+
+alert(obj[key]); // some value
+```
+
+上述代码中 `Object.create(null)` 创建了一个空对象，这个对象没有原型（`[[Prototype]]` 是 `null`）：
+
+![image-20250716072142390](images/image-20250716072142390.png)
+
+因此它没有继承 `__proto__` 的 getter/setter 方法，被作为正常的数据属性进行处理，所以上述代码可以正常工作。
+
+这样的对象被称为 **“very plain” 或 “pure dictionary” 对象**，因为它们比通常的普通对象（plain object）`{...}` 还要简单。
+
+**缺点是这样的对象没有任何内建的对象的方法，例如 `toString`：**
+
+```js
+const obj = Object.create(null);
+alert(obj); // TypeError: Failed to execute 'alert' on 'Window': Cannot convert object to primitive value
+```
+
+但它们通常对关联的数组还是很友好的。
+
+```js
+const chineseDictionary = Object.create(null);
+chineseDictionary.hello = '你好';
+chineseDictionary.bye = '再见';
+
+alert(Object.keys(chineseDictionary)); // hello,bye
+```
+
+**⚠️ 注意：** 大多数与对象相关的方法都是 `Object.something(...)`，例如 `Object.keys(obj)`，它们不在 `prototype ` 中，**所以在 “very plain” 对象中它们还是可以继续使用**。
+
