@@ -13930,3 +13930,38 @@ new Rabbit(); // rabbit
 这种字段与方法之间微妙的区别只特定于 JavaScript。
 
 **⚠️ 注意：** 这种行为只有在一个**被重写的字段被父类构造器使用时**才会显现出来，如果出问题了，可以**通过使用方法或者 getter/setter 替代类字段**，来修复这个问题。
+
+
+
+**深入：内部研究 [[HomeObject]]**
+
+这是关于继承和 `super` 背后的内部机制。
+
+当一个对象方法执行时，它会将当前对象作为 `this`，随后如果调用 `super.method()`，那么引擎需要从当前对象的原型中获取 `method`，但这是怎么做到的？
+
+引擎知道当前对象的 `this`，所以它可以通过 `this.__proto__.method` 获取父 `method`，不幸的是，这个解决方法是行不通的。
+
+例如：
+
+```js
+const animal = {
+  name: 'Animal',
+  eat() {
+    alert(`${this.name} eats.`);
+  }
+};
+
+const rabbit = {
+  __proto__: animal,
+  name: 'Rabbit',
+  eat() {
+    this.__proto__.eat; // 这就是 super.eat() 大概工作的方式
+  }
+};
+
+rabbit.eat(); // Rabbit eats.
+```
+
+上述代码中 `this.__proto__.eat` 从原型（`animal`）中获取 `eat`，并在当前对象的上下文中调用它。
+
+**⚠️ 注意：** `.call(this)` 在这里非常的重要，**因为简单的调用 `this.__proto__.eat()` 将在原型上下文中执行 `eat`，而非当前对象**。
