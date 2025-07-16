@@ -11839,6 +11839,8 @@ group.showList(); // Uncaught TypeError: Cannot read properties of undefined (re
 
 因为 `forEach` 中运行的函数的 `this` 为默认值 `this=undefined`，所以出现 `undefined.title` 的情况导致报错。
 
+**简单来说：箭头函数中 `this` 值取决于定义时的作用域，而非执行时的作用域**。
+
 
 
 **不能对箭头函数进行 `new` 操作**
