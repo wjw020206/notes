@@ -13593,3 +13593,340 @@ class Button {
 const button = new Button('Hello');
 setTimeout(button.click, 1000); // Hello
 ```
+
+
+
+## 类继承
+
+**类继承是一个类扩展另一个类的一种方式**，可以在现有功能上创建新功能。
+
+
+
+**extends 关键字**
+
+例如有 `class Animal`：
+
+```js
+class Animal {
+  constructor() {
+    this.speed = 0;
+    this.name = name;
+  }
+  
+  run(speed) {
+    this.speed = speed;
+    alert(`${this.name} runs with speed ${this.speed}.`);
+  }
+  
+  stop() {
+    this.speed = 0;
+    alert(`${this.name} stands still.`);
+  }
+}
+
+const animal = new Animal('My animal');
+```
+
+对象 `animal` 和 `class Animal` 的图形化表示：
+
+![image-20250716155144999](images/image-20250716155144999.png)
+
+然后创建另一个 `class Rabbit`：
+
+因为 `rabbit` 是 animal，所以 `class Rabbit` 应该是基于 `class Animal` 的，可以访问 animal 的方法，以便 `rabbit` 可以做 “一般” 动物可以做的事。
+
+**扩展另一个类的语法是：`class Child extends Parent`**。
+
+创建一个继承自 `Animal` 的 `class Rabbit`：
+
+```js
+class Rabbit extends Animal {
+  hide() {
+    alert(`${this.name} hides!`);
+  }
+}
+
+const rabbit = new Rabbit('White Rabbit');
+
+rabbit.run(5); // White Rabbit runs with speed 5.
+rabbit.hide(); // White Rabbit hides!
+```
+
+上述代码中 `rabbit.run(5)` 访问的是 `Animal` 的方法，`rabbit.hide()` 访问的是 `Rabbit` 的方法。
+
+在内部，**关键字 `extends` 很好的利用了旧的原型机制进行工作，它将 `Rabbit.prototype` 的 `[[Prototype]]` 设置为了 `Animal.prototype`**。
+
+![image-20250716155953103](images/image-20250716155953103.png)
+
+如果要查找 `rabbit.run` 方法，JavaScript 引擎会进行如下检查：
+
+1. 查找对象 `rabbit`（没有 `run`）
+2. 查找它的原型，即 `Rabbit.prototype`（有 `hide`，但没有 `run`）
+3. 查找它的原型，即（由于 `extends`）`Animal.prototype`，在这儿找到了 `run` 方法
+
+
+
+**在 `extends` 后允许使用任意表达式**
+
+类语法不仅允许指定一个类，在 `extends` 后还可以指定任意表达式。
+
+例如一个生成父类的函数调用：
+
+```js
+function f(phrase) {
+  return class {
+    sayHi() { alert(phrase); }
+  }
+}
+
+class User extends f('Hello') {}
+
+new User().sayHi(); // Hello
+```
+
+上述代码中 `class User` 继承自 `f('Hello')` 的结果。
+
+这对于高级编程模式，例如根据许多条件使用函数生成类并继承它们来说可能很有用。
+
+
+
+**重写方法**
+
+默认情况下，所有未在 `class Rabbit` 中指定的方法均从 `class Animal` 中直接获取。
+
+但如果在 `Rabbit` 中指定了自己的方法，那么将会使用它：
+
+```js
+class Rabbit extends Animal {
+  stop() {
+    // 现在这个将会被用作 rabbit.stop()
+    // 而不是来自于 class Animal 的 stop()
+  }
+}
+```
+
+然后通常可能并不希望完全替换父类的方法，希望在父类的方法的基础上进行调整或者扩展其功能，`class` 为此提供了 `super` 关键字。
+
+- **执行 `super.method(...)` 来调用一个父类方法**
+- **执行 `super(...)` 来调用一个父类 `constructor`（只能在子类的 `constructor` 中使用）**
+
+例如在 `rabbit` 停下来的时候自动 `hide`：
+
+```js
+class Animal {
+  constructor(name) {
+    this.speed = 0;
+    this.name = name;
+  }
+  
+  run() {
+    this.speed = speed;
+    alert(`${this.name} runs with speed ${this.speed}.`);
+  }
+  
+  stop() {
+    this.speed = 0;
+    alert(`${this.name} stands still.`);
+  }
+}
+
+class Rabbit extends Animal {
+  hide() {
+    alert(`${this.name} hides!`);
+  }
+  
+  stop() {
+    super.stop(); // 调用父类的 stop
+    this.hide(); // 然后 hide
+  }
+}
+
+const rabbit = new Rabbit('White Rabbit');
+
+rabbit.run(5); // White Rabbit runs with speed 5.
+rabbit.stop(); // White Rabbit stands still. White Rabbit hides!
+```
+
+
+
+**箭头函数没有 `super`**
+
+如果被访问，它会从外部函数获取，例如：
+
+```js
+class Rabbit extends Animal {
+  stop() {
+    setTimeout(() => super.stop(), 1000); // 1 秒后调用父类的 stop
+  }
+}
+```
+
+**如果指定一个 “普通” 的函数，那么将出现错误**：
+
+```js
+class Rabbit extends Animal {
+  stop() {
+    setTimeout(function() {
+      super.stop();
+    }, 1000); // Uncaught SyntaxError: 'super' keyword unexpected here
+  }
+}
+```
+
+之所以会出现错误，是因为 `setTimeout` 中的是**普通函数表达式**，而**普通函数表达式是不会有 `[[HomeObject]]`，所以 JavaScript 不知道 `super` 应该指向哪一个原型**。
+
+
+
+**重写 constructor**
+
+根据规范，如果**一个类扩展了另一个类并且没有 `constructor`**，那么**将生成下面这样的 “空” `constructor`**：
+
+```js
+class Rabbit extends Animal {
+  // 为没有自己的 constructor 的扩展类生成的
+  constructor(...args) {
+    super(...args);
+  }
+}
+```
+
+上述代码中，它**调用了父类的 `constructor` 并且传递了所有的参数**，如果没有写自己的 `constructor`，就会出现这个情况。
+
+现在给 `Rabbit` 添加一个自定义的 `constructor`，除了 `name` 外，它还会指定 `earLength`。
+
+```js
+class Animal {
+  constructor(name) {
+    this.speed = 0;
+    this.name = name;
+  }
+  // ...
+}
+
+class Rabbit extends Animal {
+  constructor(name, earLength) {
+    this.speed = 0;
+    this.name = name;
+    this.earLength = earLength;
+  }
+  
+  // ...
+}
+
+const rabbit = new Rabbit('White Rabbit', 10); // Uncaught ReferenceError: Must call super constructor in derived class before accessing 'this' or returning from derived constructor
+```
+
+上述代码中出现了一个错误，导致没法新建 `rabbit`。
+
+出现这个问题的原因简单来说就是：**继承类的 constructor 必须调用 `super(...)`，并且一定要在使用 `this` 之前调用**。
+
+在 JavaScript 中，继承类（也称为 “派生构造器”，英文为 “derived constructor”）的构造函数与其它函数之间是有区别的，**派生构造器具有特殊的内部属性 `[[ConstructorKind]]: 'derived'`**，这是一个特殊的内部标签。
+
+该标签会影响它的 `new` 行为：
+
+- **当通过 `new` 执行一个常规函数时，它将创建一个空对象，并将这个空对象赋值给 `this`**
+- **但是当继承的 `constructor`（派生构造器） 执行时，它不会执行此操作，它期望父类的 `constructor` 来完成这项工作**
+
+所以**派生的 `constructor` 必须调用 `super` 才能执行其父类的 `constructor`，否则 `this` 指向的对象将不会被创建，并收到一个报错**。
+
+为了让 `Rabbit` 的 `constructor` 可以工作，它需要在使用 `this` 之前调用 `super()`，像下面这样：
+
+```js
+class Animal {
+
+  constructor(name) {
+    this.speed = 0;
+    this.name = name;
+  }
+
+  // ...
+}
+
+class Rabbit extends Animal {
+
+  constructor(name, earLength) {
+    super(name);
+    this.earLength = earLength;
+  }
+
+  // ...
+}
+
+// 现在可以了
+let rabbit = new Rabbit('White Rabbit', 10);
+alert(rabbit.name); // White Rabbit
+alert(rabbit.earLength); // 10
+```
+
+
+
+**重写类字段**
+
+不仅可以重写方法，还可以重写类字段。
+
+不过在父类构造器中访问一个被重写的字段时，**有一个诡异的行为**，这与绝大多数其它编程语言都很不一样。
+
+例如：
+
+```js
+class Animal {
+  name = 'animal';
+  
+  constructor() {
+    alert(this.name);
+  }
+}
+
+class Rabbit extends Animal {
+  name = 'rabbit';
+}
+
+new Animal(); // animal
+new Rabbit(); // animal
+```
+
+上述代码中 `Rabbit` 继承自 `Animal`，并用它自己的值重写了 `name` 字段。
+
+因为 `Rabbit` 没有自己的构造器，所以 `Animal` 的构造器被调用了。
+
+问题：**在这两种情况下，`new Animal()` 和 `new Rabbit()` 都打印 `animal`**。
+
+这是**因为父类构造器总是会使用它自己字段的值，而不是被重写的那一个**。
+
+但是如果调用的是方法则不会这样：
+
+```js
+class Animal {
+  showName() {
+    alert('animal');
+  }
+  
+  constructor() {
+    this.showName();
+  }
+}
+
+class Rabbit extends Animal {
+ 	showName() {
+    alert('rabbit');
+  }
+}
+
+new Animal(); // animal
+new Rabbit(); // rabbit
+```
+
+上述代码的输出与之前的是不同的，这才是本来所期待的结果，**当父类构造器在派生的类中被调用时，它会使用被重写的方法**。
+
+**但对于类字段并非如此，父类构造器总是使用父类的字段**。
+
+之所以会有这样的区别，是因为字段初始化的顺序，类字段是这样初始化的：
+
+- **对于基类（还未继承任何东西的那种），在构造函数调用前初始化**
+- **对于派生类，在 `super()` 后立刻初始化**
+
+所以前面代码出现的问题，是因为 `new Rabbit()` 调用了 `super()`，**它执行了父类构造器，并且（根据派生类规则）只有在此之后，它的类字段才被初始化，父类构造器被执行的时候，`Rabbit` 还没有自己的类字段**，这就是为什么 `Animal` 类字段被使用了。
+
+这种字段与方法之间微妙的区别只特定于 JavaScript。
+
+**⚠️ 注意：** 这种行为只有在一个**被重写的字段被父类构造器使用时**才会显现出来，如果出问题了，可以**通过使用方法或者 getter/setter 替代类字段**，来修复这个问题。
