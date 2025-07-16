@@ -119,7 +119,7 @@ IDE 编辑器具有强大功能，是一个完整的 “开发环境”，通常
 
 - Mac：`Command + Option + C`
 
-**⚠️ 注意：** Safari 需要**先提前在设置中开启“网页开发者功能”** ，“设置” -> “高级” -> “显示网页开发者功能”。
+**⚠️ 注意：** Safari 需要**先提前在设置中开启 “网页开发者功能”** ，“设置” -> “高级” -> “显示网页开发者功能”。
 
 ![image-20250601091238441](images/image-20250601091238441.png)
 
@@ -3349,7 +3349,7 @@ JavaScript 语言在稳步发展，有很多新的特性在老的浏览器上无
 
 垫片可以用来添加缺少的特性。
 
-例如 `Math.trunc(n)` 是一个“截断” 数字小数部分的函数，在旧的 JavaScript 引擎中不支持，此时谈论的是新函数，而不是语法更改，因此无需在转译任何内容，而是要**补全缺失的函数。**
+例如 `Math.trunc(n)` 是一个 “截断” 数字小数部分的函数，在旧的 JavaScript 引擎中不支持，此时谈论的是新函数，而不是语法更改，因此无需在转译任何内容，而是要**补全缺失的函数。**
 
 ```js
 if (!Math.trunc) { // 如果没有这个函数
@@ -13187,5 +13187,407 @@ chineseDictionary.bye = '再见';
 alert(Object.keys(chineseDictionary)); // hello,bye
 ```
 
-**⚠️ 注意：** 大多数与对象相关的方法都是 `Object.something(...)`，例如 `Object.keys(obj)`，它们不在 `prototype ` 中，**所以在 “very plain” 对象中它们还是可以继续使用**。
+**⚠️ 注意：** 大多数与对象相关的方法都是 `Object.something(...)`，例如 `Object.keys(obj)`，它们不在 `prototype` 中，**所以在 “very plain” 对象中它们还是可以继续使用**。
 
+
+
+## class 基本语法
+
+在日常开发中经常需要创建许多相同类型的对象，使用 `new fucntion` 可以实现这种需求。
+
+在现代 JavaScript 中，还有一个更高级的 “类（class）” 构造的方式，它引入了许多非常棒的新功能，这些功能对面向对象编程很有作用。
+
+
+
+**class 语法**
+
+```js
+class MyClass {
+  constructor() { ... }
+  method1() { ... }
+  method2() { ... }
+  method3() { ... }
+  ...
+}
+```
+
+然后使用 `new MyClass()` 来创建具有上述所有方法的新对象。
+
+**`new` 会自动调用 `constructor` 方法，所以可以在 `constructor` 中初始化对象**。
+
+例如：
+
+```js
+class User {
+  constructor(name) {
+    this.name = name;
+  }
+  
+  sayHi() {
+    alert(this.name);
+  }
+}
+
+// 用法：
+const user = new User('CodePencil');
+user.sayHi();
+```
+
+当 `new User('CodePencil')` 被调用时会执行以下步骤：
+
+1. 一个新的对象被创建
+2. `constructor` 使用给定的参数运行，并将其赋值给 `this.name`
+
+然后就可以调用对象方法了，例如：`user.sayHi`。
+
+**⚠️ 注意：类方法之间没有逗号**。
+
+
+
+**什么是 class**
+
+`class` 不是一个全新的语言级实体，**在 JavaScript 中类是一种函数**。
+
+可以使用下面这段代码进行验证：
+
+```js
+class User {
+  constructor(name) {
+    this.name = name;
+  }
+  
+  sayHi() {
+    alert(this.name);
+  }
+}
+
+alert(typeof User); // function
+```
+
+`class User { ... }` 构造实际做了以下的事情：
+
+1. **创建一个名为 `User` 的构造函数，该函数成为类声明的结果，它的函数体来自于 `constructor` 方法（如果未定义，则自动生成一个空构造函数）**
+2. **将类体中定义的方法（不包括 `constructor`）添加到 `User.prototype` 上**，例如：`User.prototype` 中的 `sayHi`
+
+当 `new User` 对象被创建后，当我们调用其方法，它会从原型中获取对应的方法，所以对象 `new User` 可以访问类中的方法。
+
+可以将 `class User` 声明的结果解释为：
+
+![image-20250716081553267](images/image-20250716081553267.png)
+
+可以通过以下代码进行验证：
+
+```js
+class User {
+  constructor(name) {
+    this.name = name;
+  }
+  
+  sayHi() {
+    alert(this.name);
+  }
+}
+
+// class 是一个函数
+alert(typeof User); // function
+
+alert(User === User.prototype.constructor); // true
+
+alert(User.prototype.sayHi); // sayHi 方法的代码
+
+alert(Object.getOwnPropertyNames(User.prototype)); // constructor,sayHi
+```
+
+
+
+**不仅仅是语法糖**
+
+人们常说 `class` 是一个**语法糖（使内容更容易阅读，但不引入任何新内容的语法）**，因为实际上可以在不使用 `class` 的情况下声明相同的内容：
+
+```js
+// 使用纯函数重写 class User
+
+// 创建构造器函数
+function User(name) {
+  this.name = name;
+}
+
+// 将方法添加到原型
+User.prototype.sayHi = function() {
+  alert(this.name);
+}
+
+// 用法：
+const user = new User('CodePencil');
+user.sayHi();
+```
+
+这个定义结果与使用类得到的结果基本相同，所以这确实是将 `class` 视为一种定义构造器及其原型方法的语法糖的理由。
+
+**⚠️ 注意：** `class` 和构造函数之间存在着巨大差异：
+
+1. **通过 `class` 创建的函数具有特殊的内部属性标记 `[[IsClassConstructor]]: true`**，所以与构造函数方式创建并不完全相同
+
+   编程语言会在许多地方检查该属性，例如：**与普通函数不同，必须使用 `new` 来调用它**：
+
+   ```js
+   class User {
+     constructor() {}
+   }
+   
+   alert(typeof User); // function
+   User(); // Uncaught TypeError: Class constructor User cannot be invoked without 'new'
+   ```
+
+   另外**在大多数 JavaScript 引擎中类构造器的字符串表示形式都以 `class` 开头**。
+
+   ```js
+   class User {
+     constructor() {}
+   }
+   
+   alert(User);
+   /*
+   class User {
+     constructor() {}
+   }
+   */
+   ```
+
+2. **类方法不可枚举**，类定义将 `prototype` 中所有方法的 `enumerable` 标志设置为 `false`
+
+   这很好，如果对一个对象调用 `for..in` 方法，通常不希望出现 class 方法出现。
+
+3. **类总是使用 `'use strict'`**，类构造中的所有代码都将自动进入严格模式
+
+
+
+**类表达式**
+
+就像函数一样，**类可以在另一个表达式中被定义，被传递，被返回，被赋值等**。
+
+例如：
+
+```js
+const User = class {
+  sayHi() {
+    alert('Hello');
+  }
+};
+```
+
+类似于命名函数表达式（Named Function Expressions），类表达式也可以有一个名字。
+
+**如果类表达式有名字，那么该名字仅在类内部可见**：
+
+```js
+const User = class MyClass {
+  sayHi() {
+    alert(MyClass);
+  }
+};
+
+new User().sayHi(); // 正常运行，显示 MyClass 中定义的内容
+
+alert(MyClass); // ReferenceError: MyClass is not defined
+```
+
+可以动态的按需创建类：
+
+``` js
+function makeClass(phrase) {
+  return class {
+    sayHi() {
+      alert(phrase);
+    }
+  };
+}
+
+const User = makeClass('Hello');
+new User().sayHi(); // Hello
+```
+
+
+
+**getters/setters**
+
+就像对象字面量，类可以包括 getters/setters，计算属性（computed properties）等。
+
+下面是一个使用 `get/set` 实现 `user.name` 的示例：
+
+```js
+class User {
+  constructor(name) {
+    // 调用 setter
+    this.name = name;
+  }
+  
+  get name() {
+    return this._name;
+  }
+  
+  set name(value) {
+    if(value.length < 4) {
+      alert('姓名太短了');
+      return;
+    }
+    this._name = value;
+  }
+}
+
+let user = new User('CodePencil');
+alert(user.name); // CodePencil
+
+user = new User(''); // 姓名太短了
+```
+
+从技术上来讲，这样的类声明可以通过在 `User.prototype` 中创建 getters 和 setters 来实现。
+
+
+
+**计算属性名称 [...]**
+
+和对象字面量类似，可以在 `class` 中使用中括号 `[...]` 的计算方法名称，例如：
+
+```js
+class User {
+  ['say' + 'Hi']() {
+    alert('Hello');
+  }
+}
+
+new User().sayHi();
+```
+
+
+
+**class 字段**
+
+**⚠️ 注意：** 旧的浏览器中需要使用 polyfill 才能支持。
+
+之前在类中只能有方法，**“类字段” 是一种允许添加任何属性的语法**。
+
+例如：
+
+```js
+class User {
+  name = 'CodePencil'; // 类字段
+  
+  sayHi() {
+    alert(`Hello, ${this.name}!`);
+  }
+}
+
+new User().sayHi(); // Hello, CodePencil
+```
+
+只需要在表达式中写 `=` 就可以了。
+
+类字段的重要区别在于，**它们会被挂载对象实例上，而非 `User.prototype` 上**：
+
+```js
+class User {
+  name = 'CodePencil';
+}
+
+const user = new User();
+alert(user.name); // CodePencil
+alert(User.prototype.name); // undefined
+```
+
+也可以在赋值时使用更复杂的表达式和函数调用：
+
+```js
+class User {
+  name = prompt('请输入你的名字', 'CodePencil');
+}
+
+const user = new User();
+alert(user.name); // CodePencil
+```
+
+
+
+**使用类字段制作绑定方法**
+
+JavaScript 中的函数具有动态的 `this`，它取决于调用时的上下文。
+
+所以如果一个对象的方法被传递到某处，或者在另外一个上下文中被调用，则 `this` 将不再是其对象的引用。
+
+例如：
+
+```js
+class Button {
+  constructor(value) {
+    this.value = value;
+  }
+  
+  click() {
+    alert(this.value);
+  }
+}
+
+const button = new Button('Hello');
+
+setTimeout(button.click, 1000); // undefined
+```
+
+这个问题被称为 “丢失 `this`”。
+
+有两种可以修复它的方式：
+
+1. 传递一个包装器函数，例如：`setTimeout(() => button.click, 1000)`
+
+2. 在 `constructor` 中将方法绑定到对象，例如：
+
+   ```js
+   class Button {
+     constructor(value) {
+       this.value = value;
+       this.click = this.click.bind(this); // 将方法绑定到对象
+     }
+     
+     click() {
+       alert(this.value);
+     }
+   }
+   
+   const button = new Button('Hello');
+   
+   setTimeout(button.click, 1000); // Hello
+   ```
+
+类字段提供了一种非常优雅的语法：
+
+```js
+class Button {
+  constructor(value) {
+    this.value = value;
+  }
+  
+  click = () => { // 类字段
+    alert(this.value);
+  }
+}
+
+const button = new Button('Hello');
+setTimeout(button.click, 1000); // Hello
+```
+
+类字段语法 `click = () => {...}` 会在每次创建实例时，生成一个新的箭头函数作为实例属性。这个箭头函数通过词法作用域绑定定义时的 `this`（类似闭包的机制，不依赖于函数外部的变量值），从而保证无论如何调用该方法，`this` 始终指向当前实例。
+
+**⚠️ 注意：** 在浏览器环境中，它对于进行事件监听尤为有用。
+
+上述写法等价于下面的写法：
+
+```js
+class Button {
+  constructor(value) {
+    this.value = value;
+    this.click = () => alert(this.value);
+  }
+}
+
+const button = new Button('Hello');
+setTimeout(button.click, 1000); // Hello
+```
