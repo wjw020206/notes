@@ -14262,3 +14262,94 @@ article.createTodays(); // Uncaught TypeError: article.createTodays is not a fun
 
 
 
+**静态属性**
+
+**⚠️ 注意：** 旧的浏览器中需要使用 polyfill 才能支持，这是新添加的特性。
+
+在 `class` 上也可以添加静态属性，它们看起来就像常规的类字段，但前面加有 `static`：
+
+```js
+class Article {
+  static publisher = 'CodePencil';
+}
+
+alert(Article.publisher); // CodePencil
+```
+
+等价于
+
+```js
+Article.publisher = 'CodePencil';
+```
+
+
+
+**继承静态属性和方法**
+
+静态属性和方法是可以被继承的。
+
+例如：
+
+```js
+class Animal {
+  static planet = 'Earth';
+  
+  constructor(name, speed) {
+    this.speed = speed;
+    this.name = name;
+  }
+  
+  run(speed = 0) {
+    this.speed += speed;
+    alert(`${this.name} runs with speed ${this.speed}.`);
+  }
+  
+  static compare(animalA, animalB) {
+    return animalA.speed - animalB.speed;
+  }
+}
+
+class Rabbit extends Animal {
+  hide() {
+    alert(`${this.name} hides!`);
+  }
+}
+
+const rabbits = [
+  new Rabbit('White Rabbit', 10),
+  new Rabbit('Black Rabbit', 5)
+];
+
+rabbits.sort(Rabbit.compare);
+
+rabbits[0].run(); // Black Rabbit runs with speed 5.
+
+alert(Rabbit.planet); // Earth
+```
+
+当调用 `Rabbit.compare` 时，继承的 `Animal.compare` 将会被调用。
+
+它也是利用了原型，`extends` 让 `Rabbit` 的 `[[Prototype]]` 指向了 `Animal`。
+
+![image-20250717094019441](images/image-20250717094019441.png)
+
+所以 `Rabbit extends Animal` **创建了两个 `[[Prototype]]` 引用**：
+
+- `Rabbit` 函数原型继承自 `Animal` 函数
+- `Rabbit.prototype` 原型继承自 `Animal.prototype`
+
+结果就是继承对常规方法和静态方法都有效。
+
+可以通过下面的代码来验证：
+
+```js
+class Animal {}
+class Rabbit extends Animal {}
+
+// 对于静态的
+alert(Rabbit.__proto__ === Animal); // true
+
+// 对于常规方法
+alert(Rabbit.prototype.__proto__ === Animal.prototype); // true
+```
+
