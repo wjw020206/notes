@@ -14353,3 +14353,254 @@ alert(Rabbit.__proto__ === Animal); // true
 alert(Rabbit.prototype.__proto__ === Animal.prototype); // true
 ```
 
+
+
+## 私有的和受保护的属性和方法
+
+面向对象最重要的原则之一：**将内部接口与外部接口分隔开来**。
+
+内部接口与外部接口的划分被称为**封装**。
+
+
+
+**生活中的例子**
+
+咖啡机通过保护罩隐藏内部的实现细节，保证咖啡机的可靠性和简洁性，**在编程中对象就像咖啡机，为了隐藏内部细节，使用语言和约定中的特殊语法**。
+
+
+
+**内部接口和外部接口**
+
+在面向对象编程中，属性和方法可以分为两组：
+
+- **内部接口** —— 通过该类的其它方法访问，但**不能从类的外部访问**的方法和属性
+- **外部接口** —— **可以从类的外部访问**的方法和属性
+
+放在咖啡机中类比，内部隐藏的内容：锅炉管，加热元件等，也就是**内部接口**，内部接口用于对象工作，它们相互使用，例如：锅炉管连接到加热元件。
+
+从外面看，一台咖啡机被保护壳罩住了，所以没有人可以接触到其内部接口，只能通过**外部接口**使用它的功能，例如：咖啡机的开关等其它操作按钮。
+
+在 JavaScript 中，有两种类型的对象字段（属性和方法）：
+
+- **公共的：** 可以从任何地方访问
+- **私有的：** 只能在类的内部访问，**无法在派生类中访问**
+
+在许多其它编程语言中，还存在 **“受保护”** 的字段：**只能从类的内部和基于其扩展的类的内部访问**，从某种意义上讲，它们比私有的属性和方法使用更加广泛，因为**通常希望继承的类来访问它们**。
+
+**受保护的字段不是在语言级别的 JavaScript 中实现的**，但可以通过**命名约定或间接手段（访问器属性或者函数）模拟**。
+
+
+
+**受保护字段**
+
+受保护的字段通常**以下划线 `_` 作为前缀**。
+
+**⚠️ 注意：** 这不是在语言级别强制实施的，而是程序员之间的一个众所周知的约定：**不应该从外部访问下划线 `_` 前缀的属性和方法**。
+
+例如实现一个受保护的属性 `waterAmount`：
+
+```js
+class CoffeeMachine {
+  _waterAmount = 0;
+  
+  set waterAmount(value) {
+    if(value < 0) {
+      value = 0;
+    }
+    this.value = value;
+  }
+  
+  get waterAmount() {
+    return this.value;
+  }
+  
+  constructor(power) {
+    this._power = power;
+  }
+}
+
+// 创建咖啡机
+const coffeeMachine = new CoffeeMachine(100);
+
+// 加水
+cofeeMachine.waterAmount = -10; // _waterAmount 将变为 0，而不是 -10
+```
+
+上述代码中访问已受到控制，因此将水量的值设置为小于零的数变得不可能。
+
+
+
+**只读属性**
+
+对于 `power` 属性，可以将它设置为只读，**有时候一个属性必须只能被在创建时进行设置，之后不再被修改**。
+
+咖啡机就是这种情况：功率永远都不会变。
+
+要做到这一点，只需要设置 `getter`，而不是设置 `setter`：
+
+```js
+class CoffeeMachine {
+  // ...
+  
+  constructor(power) {
+    this._power = power;
+  }
+  
+  get power() {
+    return this._power;
+  }
+}
+
+// 创建咖啡机
+const coffeeMachine = new CoffeeMachine(100);
+
+alert(`功率是: ${coffeeMachine.power}W`); // 功率是：100W
+
+coffeeMachine.power = 25; // Uncaught TypeError: Cannot set property power of #<CoffeeMachine> which has only a getter
+```
+
+上述代码中 `coffeeMachine.power = 25` 报错，是因为没有 `setter`。
+
+**⚠️ 注意：**
+
+- **大多数的时候首选 `get.../set...` 函数**，像下面这样：
+
+  ```js
+  class CoffeeMachine {
+    _waterAmount = 0;
+    
+    setWaterAmount(value) {
+      if(value < 0) value = 0;
+      this._waterAmount = value;
+    }
+    
+    getWaterAmount() {
+      return this._waterAmount;
+    }
+  }
+  
+  const coffeeMachine = new CoffeeMachine();
+  
+  coffeeMachine.setWaterAmount(100); // 加水
+  
+  alert(`加水量: ${coffeeMachine.getWaterAmount()}`); // 加水量: 100
+  ```
+
+  虽然这看起来有点长，但**函数更灵活。它们可以接受多个参数**（即使现在还不需要），不过 `getter/setter` 语法更短，所以最终没有严格的规定，而是由自己来决定。
+
+- **受保护字段是可以被继承的**，例如继承 `class MegaMachine extends CoffeeMachine`，那么什么都无法阻止从新的类中方法访问 `this._waterAmount` 或 `this._power`，所以受保护的字段是自然可被继承的，**与私有字段不同**
+
+
+
+**私有字段**
+
+**⚠️ 注意：** 旧的浏览器中需要使用 polyfill 才能支持，这是新添加的特性。
+
+**私有属性和方法应该以 `#` 开头**，它们只在类的内部可被访问。
+
+例如，有一个私有属性 `#waterLimit` 和检查水量的私有方法 `#fixWaterAmount`：
+
+```js
+class CoffeeMachine {
+  #waterLimit = 200;
+  
+  #fixWaterAmount(value) {
+    if(value < 0) return 0;
+    if(value > this.#waterLimit) return this.#waterLimit;
+  }
+  
+  setWaterAmount(value) {
+    this.#waterLimit = this.#fixWaterAmount(value);
+  }
+}
+
+const coffeeMachine = new CoffeeMachine();
+
+// 不能从类的外部访问类的私有属性和方法
+coffeeMachine.#fixWaterAmount(123); // Uncaught SyntaxError: reference to undeclared private field or method #fixWaterAmount
+coffeeMachine.#waterLimit = 1000; // Uncaught SyntaxError: reference to undeclared private field or method #waterLimit
+```
+
+在语言级别，`#` 是该字段为私有的特殊标志，**无法从外部或从继承的类中访问它**。
+
+**私有字段和公共字段不会发生冲突**，也就是说可以同时拥有私有的 `#waterAmount` 和公共的 `waterAmount` 字段。
+
+例如：
+
+```js
+class CoffeeMachine {
+  #waterAmount = 0;
+  
+  get waterAmount() {
+    return this.#waterAmount;
+  }
+  
+  set waterAmount(value) {
+    if(value < 0) value = 0;
+    this.#waterAmount = value;
+  }
+}
+
+const machine = new CoffeeMachine();
+
+machine.waterAmount = 100;
+alert(machine.#waterAmount); // Uncaught SyntaxError: reference to undeclared private field or method #waterAmount
+```
+
+与受保护字段不同，私有字段是由语言本身强制执行的。
+
+如果继承自 `CoffeeMachine`，将无法直接访问 `#waterAmount`：
+
+```js
+class MegaCoffeeMachine extends CoffeeMachine {
+  method() {
+    alert(this.#waterAmount); // Uncaught SyntaxError: reference to undeclared private field or method #waterAmount
+  }
+}
+```
+
+正确的做法是使用 `waterAmount` getter/setter：
+
+```js
+class CoffeeMachine {
+  #waterAmount = 0;
+  
+  get waterAmount() {
+    return this.#waterAmount;
+  }
+  
+  set waterAmount(value) {
+    if(value < 0) value = 0;
+    this.#waterAmount = value;
+  }
+}
+
+class MegaCoffeeMachine extends CoffeeMachine {
+  method() {
+    alert(this.waterAmount); // 使用 waterAmount 的 getter
+  }
+}
+
+const machine = new MegaCoffeeMachine();
+
+machine.waterAmount = 100; // 使用 waterAmount 的 setter
+machine.method(); // 100
+```
+
+在很多时候这种限制太严重了，通常扩展 `CoffeeMachine`，可能有正当理由访问其内部字段，这也就是为什么大多数时候都会使用**受保护字段**，即使它们不受语言语法的支持。
+
+**⚠️ 注意：私有字段不能通过 ` this[name]` 访问**，例如：
+
+```js
+class User {
+  #name = 'CodePencil'
+
+  sayHi() {
+    alert(`Hello, ${this['#name']}`); // this['#name'] === undefined
+  }
+}
+
+new User().sayHi(); // Hello, undefined
+```
+
+对于私有字段来说，**`this['#name']` 不起作用**，这是确保私有性的语法限制。
