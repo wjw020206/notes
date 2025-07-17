@@ -13195,7 +13195,7 @@ alert(Object.keys(chineseDictionary)); // hello,bye
 
 ## class 基本语法
 
-在日常开发中经常需要创建许多相同类型的对象，使用 `new fucntion` 可以实现这种需求。
+在日常开发中经常需要创建许多相同类型的对象，使用 `new function` 可以实现这种需求。
 
 在现代 JavaScript 中，还有一个更高级的 “类（class）” 构造的方式，它引入了许多非常棒的新功能，这些功能对面向对象编程很有作用。
 
@@ -14604,3 +14604,85 @@ new User().sayHi(); // Hello, undefined
 ```
 
 对于私有字段来说，**`this['#name']` 不起作用**，这是确保私有性的语法限制。
+
+
+
+## 扩展内建类
+
+内建的类，如 `Array`、`Map` 等都是可以扩展的（extendable）。
+
+例如这里有一个继承自原生 `Array` 的类 `PowerArray`：
+
+```js
+class PowerArray extends Array {
+  isEmpty() {
+    return this.length === 0;
+  }
+}
+
+const arr = new PowerArray(1, 2, 5, 10, 50);
+alert(arr.isEmpty()); // false
+
+const filteredArr = arr.filter(item => item >= 10);
+alert(filteredArr); // 10, 50
+alert(filteredArr.isEmpty()); // false
+```
+
+**⚠️ 注意：** 内建方法 `filter`、`map` 等返回的依然是子类 `PowerArray` 的新对象，它们内部使用了对象的 `constructor` 属性来实现这一功能。
+
+上述代码中：
+
+```js
+arr.constructor === PowerArray;
+```
+
+当 `arr.filter()` 被调用时，它的**内部使用的是 `arr.constructor` 来创建新的结果数组，而不是使用原生的 `Array`**，所以可以在结果数组上继续使用 `PowerArray` 的方法。
+
+
+
+也可以定制这种行为，**通过给类添加特殊的静态 getter `Symbol.species`**，它会返回 JavaScript 在内部用来 `map` 和 `filter` 等方法中创建新实体的 `constructor`。
+
+例如如果希望前面代码中 `map` 或者 `filter` 这样的内建方法返回常规数组，可以在 `Symbol.species` 中返回 `Array`，像下面这样：
+
+```js
+class PowerArray extends Array {
+  isEmpty() {
+    return this.length === 0;
+  }
+  
+  // 内建方法将使用这个作为 constructor
+  static get [Symbol.species]() {
+    return Array;
+  }
+}
+
+const arr = new PowerArray(1, 2, 5, 10, 50);
+alert(arr.isEmpty()); // false
+
+const filteredArr = arr.filter(item => item >= 10);
+alert(filteredArr.isEmpty()); // Uncaught TypeError: filteredArr.isEmpty is not a function
+```
+
+上述代码中 `.filter` 返回的是 `Array` 对象，而非 `PowerArray`，所以没有 `isEmpty` 方法。
+
+**⚠️ 注意：** 其它集合例如 `Map` 和 `Set` 的工作方式类似，**它们也使用 `Symbol.species`**。
+
+
+
+**内建类没有静态方法继承**
+
+内建对象有它们自己的静态方法，例如：`Object.keys`、`Array.isArray` 等。
+
+原生的类互相扩展。例如，`Array` 扩展自 `Object`。
+
+通常当一个类扩展另一个类时，静态方法和非静态方法都会被继承，**但是内建类是个例外，它们相互间不继承静态方法**。
+
+例如：`Array` 和 `Date` 都继承自 `Object`，它们的实例都有来自 `Object.prototype` 的方法，但 `Array.[[Prototype]]` 并不指向 `Object`，所以它们没有例如 `Array.keys()`（或 `Date.keys()`）这些静态方法。
+
+`Date` 和 `Object` 的结构关系图：
+
+![image-20250717150631530](images/image-20250717150631530.png)
+
+从上图可以看到，`Date` 和 `Object` 之间没有连结，它们是独立的，只有 `Date.prototype` 继承自 `Object.prototype` 而已。
+
+**与通过 `extends` 获得的继承相比，这是内建对象之间继承的一个重要区别**。
