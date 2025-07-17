@@ -12644,7 +12644,7 @@ alert(Object.keys(rabbit)); // jumps
 for(let prop in rabbit) alert(prop); // jumps, 然后是 eats
 ```
 
-如果想要 `for..in` 排除继承的属性，可以使用内建方法 `obj.hasOwnProperty(key)`：如果 `obj` 具有自己的（非继承）名为 `key` 的属性，则返回 `true`，反之返回 `false`。
+如果想要 `for..in` 排除继承的属性，可以使用**内建方法 `obj.hasOwnProperty(key)`**：如果 `obj` 具有自己的（非继承）名为 `key` 的属性，则返回 `true`，反之返回 `false`。
 
 例如：
 
@@ -14155,6 +14155,110 @@ rabbit.eat(); // Uncaught SyntaxError: 'super' keyword unexpected here
 ```
 
 
+
+## 静态属性和静态方法
+
+可以给整个类设置一个方法，这样的方法被称为**静态的（static）**。
+
+在一个类的声明中，它**以 `static` 关键字开头**，例如：
+
+```js
+class User {
+  static staticMethod() {
+    alert(this === User);
+  }
+}
+
+User.staticMethod(); // true
+```
+
+这实际上跟直接将其作为属性赋值的作用相同：
+
+```js
+class User {}
+
+User.staticMethod = function() {
+  alert(this === User);
+};
+
+User.staticMethod(); // true
+```
+
+在 `User.staticMethod()` 调用中的 `this` 的值就是类构造器 `User` 自身（“点符号前面的对象” 规则）。
+
+通常来说**静态方法属于整个类，但不属于该类的任何特定对象实例**。
+
+例如有对象 `Article`，并且需要一个方法来比较它们，通常的解决方案就是添加 `Article.compare` 静态方法：
+
+```js
+class Article {
+  constructor(title, date) {
+    this.title = title;
+    this.date = date;
+  }
+  
+  // 日期比较静态方法
+  static compare(articleA, articleB) {
+    return articleA.date - articleB.date;
+  }
+}
+
+// 用法
+const articles = [
+  new Article('HTML', new Date(2019, 1, 1)),
+  new Article('CSS', new Date(2019, 0, 1)),
+  new Article('JavaScript', new Date(2019, 11, 1))
+];
+
+articles.sort(Article.compare);
+
+alert(articles[0].title); // CSS
+```
+
+上述代码中 `Article.compare` 是整个 `class` 的方法，而不是文章实例的方法。
+
+也可以用来实现 **“工厂” 方法**。
+
+例如需要通过多种方式来创建一篇文章：
+
+1. 通过用给定的参数来创建（`title`，`date` 等）
+
+2. 使用今天的日期来创建一个空的文章
+
+第一种方式可以通过 `constructor` 来实现，对于第二种可以创建一个静态方法来实现。
+
+```js
+class Article {
+  constructor(title, date) {
+    this.title = title;
+    this.date = date;
+  }
+  
+  // 使用今天的日期来创建一个空的文章
+  static createTodays() {
+    return new Article('今日摘要', new Date());
+  }
+}
+
+const article = Article.createTodays();
+alert(article.title); // 今日摘要
+
+article.createTodays();
+```
+
+静态方法也被用于与数据库相关的公共类，可以用于搜索/保存/删除数据库中的条目：
+
+```js
+// 假定 Article 是一个用来管理文章的特殊类
+// 通过 id 来移除文章的静态方法：
+Article.remove({id: 12345});
+```
+
+**⚠️ 注意：静态方法不适用于单个对象**，静态方法可以在类上调用，而不是在单个对象上。
+
+```js
+article.createTodays(); // Uncaught TypeError: article.createTodays is not a function
+```
 
 
 
