@@ -13955,7 +13955,7 @@ const rabbit = {
   __proto__: animal,
   name: 'Rabbit',
   eat() {
-    this.__proto__.eat; // 这就是 super.eat() 大概工作的方式
+    this.__proto__.eat.call(this); // 这就是 super.eat() 大概工作的方式
   }
 };
 
@@ -13965,3 +13965,196 @@ rabbit.eat(); // Rabbit eats.
 上述代码中 `this.__proto__.eat` 从原型（`animal`）中获取 `eat`，并在当前对象的上下文中调用它。
 
 **⚠️ 注意：** `.call(this)` 在这里非常的重要，**因为简单的调用 `this.__proto__.eat()` 将在原型上下文中执行 `eat`，而非当前对象**。
+
+上述代码确实按照期望运行：获得了正确的 `alert`。
+
+如果在原型链上再添加一个对象，运行就会出现问题：
+
+```js
+const animal = {
+  name: 'Animal',
+  eat() {
+    alert(`${this.name} eats.`);
+  }
+};
+
+const rabbit = {
+  __proto__: animal,
+  name: 'Rabbit',
+  eat() {
+    this.__proto__.eat.call(this); // 运行到这行时出现问题
+  }
+};
+
+const longEar = {
+  __proto__: rabbit,
+  name: 'Long Ear',
+  eat() {
+    this.__proto__.eat.call(this);
+  }
+};
+
+longEar.eat(); // Uncaught RangeError: Maximum call stack size exceeded
+```
+
+上述代码无法正常运行，在试图调用 `longEar.eat()` 时抛出了错误。
+
+因为 `longEar` 和 `rabbit` 中的 **`this.__proto__.eat.call(this);` 的 `this.__proto__` 的值是完全相同的**，它们调用的都是 `rabbit.eat`，**在不停地循环调用自己，而不是在原型链上向上寻找方法**。
+
+下面这张图介绍了发生的情况：
+
+![image-20250717072022170](images/image-20250717072022170.png)
+
+1. 在 `longEar.eat()` 中，`(**)` 这一行调用 `rabbit.eat` 并为其提供 `this.longEar`
+
+   ```js
+   // 在 longEar.eat() 中 this = longEar
+   this.__proto__.eat.call(this); // (**)
+   // 变成了
+   longEar.__proto__.eat.call(this);
+   // 也就是
+   rabbit.eat.call(this);
+   ```
+
+2. 之后在 `rabbit.eat` 的 `(*)` 行中，希望将函数调用在原型链上向更高层传递，**但是 `this = longEar`，所以 `this.__proto__.eat` 又是 `rabbit.eat`**
+
+   ```js
+   // 在 rabbit.eat() 中 this = longEar
+   this.__protot__.eat.call(this); // (*)
+   // 变成了
+   longEar.__proto__.eat.call(this);
+   // 也就是
+   rabbit.eat.call(this);
+   ```
+
+3. **所以 `rabbit.eat` 在不停地循环调用自己，因此它无法进一步地提升**
+
+这个问题没法仅通过使用 `this` 来解决。
+
+
+
+**[[HomeObject]]**
+
+为了提供解决方法，JavaScript 为函数添加了一个特殊的内部属性：`[[HomeObject]]`。
+
+**当一个函数被定义为类或者对象方法时，它的 `[[HomeObject]]` 属性就成为了该对象，然后 `super` 使用它来解析（resolve）父原型及其方法**。
+
+例如前面的例子可以调整为：
+
+```js
+let animal = {
+  name: 'Animal',
+  eat() {         // animal.eat.[[HomeObject]] === animal
+    alert(`${this.name} eats.`);
+  }
+};
+
+let rabbit = {
+  __proto__: animal,
+  name: 'Rabbit',
+  eat() {         // rabbit.eat.[[HomeObject]] === rabbit
+    super.eat();
+  }
+};
+
+let longEar = {
+  __proto__: rabbit,
+  name: 'Long Ear',
+  eat() {         // longEar.eat.[[HomeObject]] === longEar
+    super.eat();
+  }
+};
+
+// 正确执行
+longEar.eat();  // Long Ear eats.
+```
+
+它基于 `[[HomeObject]]` 运行机制按照预期执行，一个方法，例如：`longEar.eat` 知道其 `[[HomeObject]]` 并且从其原型中获取父方法，没有使用 `this`。
+
+**⚠️ 注意：** 在对象方法中使用 `super.eat()` 时，**JavaScript 会自动用当前对象的 `this` 上下文来调用 `super` 方法，不需要再手动写 `super.eat.call(this)`**。
+
+
+
+**方法并不是 “自由” 的**
+
+函数通常都是自由的，没有绑定到 JavaScript 对象，所以可以在对象之间复制，并用另外一个 `this` 调用它。
+
+但 `[[HomeObject]]` 的存在违反了这原则，因为**方法会记住它的对象，并且 `[[HomeObject]]` 不能被更改，所以这个绑定是永久的**。
+
+在 JavaScript 中，**`[[HomeObject]]` 仅被用于 `super`，如果一个方法不使用 `super`，那么仍然可以视它为自由的并且可以在对象之间复制**。
+
+例如复制后错误的 `super` 结果的示例：
+
+```js
+const animal = {
+  sayHi() {
+    alert(`I'm an animal`);
+  },
+};
+
+const rabbit = {
+  __proto__: animal,
+  sayHi() {
+    super.sayHi();
+  },
+};
+
+const plant = {
+  sayHi() {
+    alert(`I'm a plant`);
+  },
+};
+
+const tree = {
+  __proto__: plant,
+  sayHi: rabbit.sayHi,
+};
+
+tree.sayHi(); // I'm an animal
+```
+
+调用 `tree.sayHi()` 显示 `I'm an animal` 是绝对错误的。
+
+出现这个问题的原因很简单：
+
+- `rabbit.sayHi` 方法是从 `rabbit` 中复制过来的（也许是为了避免重复代码）
+- **`rabbit.sayHi` 的 `[[HomeObject]]` 是 `rabbit`**，因为它是在 `rabbit` 中创建的，没有办法修改 `[[HomeObject]]`
+- `tree.sayHi()` 内具有 `super.sayHi()`，它就**从 `rabbit` 中上溯，然后从 `animal` 中获取方法**
+
+情况发生的示意图：
+
+![image-20250717081920731](images/image-20250717081920731.png)
+
+**⚠️ 注意：** 因此，将一个带有 `super` 的方法从一个对象复制到另一个对象是**不安全**的。
+
+
+
+**方法不是函数属性**
+
+`[[HomeObject]]` 是为类和普通对象中的方法定义的，但是对于对象来说，**方法必须明确指定为 `method()`，而不是 `method: function()`**
+
+这个差别对 JavaScript 来说非常重要。
+
+下面的例子中**使用了非方法（non-method）的语法，导致未设置 `[[HomeObject]]` 属性，所以 `super` 使用无效**。
+
+```js
+const animal = {
+  eat: function() { // 这里是故意这样写的，而不是 eat() {...
+    // ...
+  },
+};
+
+const rabbit = {
+  __proto__: animal,
+  eat: function () {
+    super.eat();
+  },
+};
+
+rabbit.eat(); // Uncaught SyntaxError: 'super' keyword unexpected here
+```
+
+
+
+
+
