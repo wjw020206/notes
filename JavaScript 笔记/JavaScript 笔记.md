@@ -14686,3 +14686,197 @@ alert(filteredArr.isEmpty()); // Uncaught TypeError: filteredArr.isEmpty is not 
 从上图可以看到，`Date` 和 `Object` 之间没有连结，它们是独立的，只有 `Date.prototype` 继承自 `Object.prototype` 而已。
 
 **与通过 `extends` 获得的继承相比，这是内建对象之间继承的一个重要区别**。
+
+
+
+## 类检查 instanceof
+
+`instanceof` 操作符用于**检查一个对象是否属于某个特定的 `Class`，同时它还考虑了继承**。
+
+在很多情况下，可能都需要进行此类检查，例如它可以被用来构建一个**多态性（polymorphic）**的函数，**该函数根据参数的类型对参数进行不同的处理**。
+
+
+
+**instanceof 操作符**
+
+语法：
+
+```js
+obj instanceof Class
+```
+
+如果 `obj` 隶属于 `Class` 类（或 `Class` 的衍生类），则返回 `true`。
+
+例如：
+
+```js
+class Rabbit {}
+const rabbit = new Rabbit();
+
+// rabbit 是 Rabbit class 的对象吗？
+alert(rabbit instanceof Rabbit); // true
+```
+
+也可以和构造函数一起使用：
+
+```js
+function Rabbit() {}
+
+alert(new Rabbit() instanceof Rabbit); // true
+```
+
+也可以与 `Array` 之类的内建 `class` 一起使用：
+
+```js
+const arr = [1, 2, 3];
+alert(arr instanceof Array); // true
+alert(arr instanceof Object); // true
+```
+
+**⚠️ 注意：** 上述代码中 `arr` 还同时隶属于 `Object` 类，因为从原型上来讲，`Array` 是继承自 `Object` 的。
+
+通常 `instanceof` 在检查中会将原型链考虑在内，**还可以在静态方法 `Symbol.hasInstance` 中设置定义逻辑**。
+
+`obj instanceof Class` 算法的执行过程如下：
+
+1. 如果 `Class` 中**有静态方法 `Symbol.hasInstance`，那就直接调用这个方法**：
+
+   例如：
+
+   ```js
+   class Animal {
+     // 假设具有 canEat 属性的都是 animal
+     static [Symbol.hasInstance](obj) {
+       if(obj.canEat) return true;
+     }
+   }
+   
+   const obj = { canEat: true };
+   alert(obj instanceof Animal); // true
+   ```
+
+2. 大多数 `Class` 没有 `Symbol.hasInstance`，这种情况下，**标准逻辑是：使用 `obj instanceof Class` 检查 `Class.prototype` 是否等于 `obj` 的原型链中的原型之一**
+
+   换句话说，一个接着一个比较：
+
+   ```js
+   obj.__proto__ === Class.prototype
+   obj.__proto__.__proto__ === Class.prototype
+   obj.__proto__.__proto__.__proto__ === Class.prototype
+   // ...
+   // 如果任意一个的答案为 true，则返回 true
+   // 否则，如果已经检查到了原型链的尾端，则返回 false
+   ```
+
+   在前面的例子中，`rabbit.__proto__ === Rabbit.prototype`，所以立即就给出了结果。
+
+   在继承的例子中，匹配将在第二步进行：
+
+   ```js
+   class Animal {}
+   class Rabbit extends Animal {}
+   
+   const rabbit = new Rabbit();
+   alert(rabbit instanceof Animal); // true
+   
+   // rabbit.__proto__ === Animal.prototype（没有匹配）
+   // rabbit.__proto__.__proto__ === Animal.prototype（匹配）
+   ```
+
+   下图展示了 `rabbit instanceof Animal` 的执行过程，`Animal.prototype` 是如何参与比较的：
+
+   ![image-20250717170004794](images/image-20250717170004794.png)
+   
+   还有另一个方法 **`objA.isPrototypeOf(objB)`，如果 `objA` 处在 `objB` 的原型链中，则返回 `true`**，所以还可以将 `obj instanceof Class` 检查改为 `Class.prototype.isPrototypeOf(obj)`。
+   
+   **⚠️ 注意：** `Class` 的 `constructor` 自身是不参与检查的，检查过程只和原型链以及 `Class.prototype` 有关。
+   
+   创建对象后，如果修改 `prototype` 属性，可能会导致以下的问题：
+   
+   ```js
+   function Rabbit() {}
+   const rabbit = new Rabbit();
+   
+   Rabbit.prototype = {};
+   
+   alert(rabbit instanceof Rabbit); // false
+   ```
+
+
+
+**使用 Object.prototype.toString 方法来揭示类型**
+
+当一个普通对象被转换为字符串时为 `[object Object]`：
+
+```js
+const obj = {};
+
+alert(obj); // [object Object]
+alert(obj.toString()); // [object Object]
+```
+
+这是通过 `toString` 方法实现的，但这有一个**隐藏的功能**，该功能可以让 `toString` 更加强大。
+
+根据规范来讲，**内建的 `toString` 方法可以从对象中提取出来，并在其它值的上下文中运行，其结果取决于该值**。
+
+- 对于 `number` 类型，结果是 `[object Number]`
+- 对于 `boolean` 类型，结果是 `[object Boolean]`
+- 对于 `null` 类型，结果是 `[object Null]`
+- 对于 `undefined` 类型，结果是 `[object Undefined]`
+- 对于 `Array` 类型，结果是 `[object Array]`
+- ......等（可自定义）
+
+例如：
+
+```js
+// 方便起见，将 toString 方法复制到一个变量中
+const objectToString = Object.prototype.toString;
+
+const arr = [];
+
+alert( objectToString.call(arr) ); // [object Array]
+```
+
+通过 `call` 方法在上下文 `this = arr` 中执行函数 `objectToString`。
+
+在内部，`toString` 的算法会检查 `this`，并返回相应的结果，例如：
+
+```js
+const s = Object.prototype.toString;
+
+alert( s.call(123) ); // [object Number]
+alert( s.call(null) ); // [object Null]
+alert( s.call(alert) ); // [object Function]
+```
+
+
+
+**Symbol.toStringTag**
+
+可以**使用特殊的对象属性 `Symbol.toStringTag` 自定义对象的 `toString` 方法的行为**。
+
+例如：
+
+```js
+const user = {
+  [Symbol.toStringTag]: 'User'
+};
+
+alert({}.toString.call(user)); // [object User]
+```
+
+对于大多数特定于环境的对象，都有一个这样的属性，下面是一些特定于浏览器的示例：
+
+```js
+alert(window[Symbol.toStringTag]); // Window
+alert(XMLHttpRequest.prototype[Symbol.toStringTag]); // XMLHttpRequest
+
+alert( {}.toString.call(window) ); // [object Window]
+alert( {}.toString.call(new XMLHttpRequest()) ); // [object XMLHttpRequest]
+```
+
+从上述代码中可以看出，输出的结果恰好是 `Symbol.toStringTag`（如果存在），只不过被包裹进了 `[object ...]` 中。
+
+可以将其作为 `typeof` 的增强版或者 `instanceof` 的替代方法来使用，**如果希望获取内建对象的类型，并且希望信息以字符串的形式返回，可以使用 `{}.toString.call` 替代 `instanceof`**。
+
+如果使用类的层次结构，并想要对该类进行检，同时还要考虑继承时，这种场景下 `instanceof` 操作符更加出色。
