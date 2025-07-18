@@ -15055,5 +15055,499 @@ menu.on('select', value => alert(`Value selected: ${value}`));
 menu.choose('123');
 ```
 
-**⚠️ 注意：** `mixins` 可能会覆盖了现有类的方法，所以**通常应该仔细考虑 `mixin` 的命名方法**，以最大程度地降低发生这种冲突的可能性。
+**⚠️ 注意：** `mixins` 可能会覆盖了现有类的方法，所以**通常应该仔细考虑 `mixin` 的命名方法**，降低发生这种冲突的可能性。
 
+
+
+## 错误处理 try...catch
+
+通常如果发生错误，脚本就会 “死亡”（立即停止），并在控制台中将错误打印出来。
+
+语法结构 `try...catch` 它可以捕获（catch）错误，让脚本执行更合理的操作，而不是 “死亡”（立即停止）。
+
+
+
+**try...catch 语法**
+
+`try...catch` 结构由两部分组成：`try` 和 `catch`：
+
+```js
+try {
+  // 代码...
+} catch (error) {
+  // 错误捕获
+}
+```
+
+它按照以下步骤执行：
+
+1. 首先执行 `try { ... }` 中的代码
+2. **如果这里没有错误，则忽略 `catch (error) { ... }`：执行到 `try` 的末尾并跳过 `catch` 继续执行**
+3. **如果这里出现错误，则 `try` 执行停止，控制流转向 `catch (error)` 的开头**，变量 `error`（可以使用任何名称）将包含一个 error 对象，该对象包含了所发生事件的详细信息
+
+![image-20250718105339009](images/image-20250718105339009.png)
+
+所以 `try { ... }` 块内的 error 不会杀死脚本，有机会在 `catch` 中处理它。
+
+例如：
+
+- 没有 error 的例子：会显示 `(1)` 和 `(2)` 的 `alert`：
+
+  ```js
+  try {
+    alert('开始执行 try 中的内容'); // (1)
+    
+    // ...这里没有 error
+    
+    alert('try 中的内容执行完毕'); // (2)
+  } catch (error) {
+    alert('catch 被忽略，因为没有 error'); // (3)
+  }
+  ```
+
+- 包含 error 的例子：会显示 `(1)` 和 `(3)` 的 `alert`：
+
+  ```js
+  try {
+    alert('开始执行 try 中的内容'); // (1)
+    
+    lalala; // error，变量未定义
+    
+    alert('try 的末尾（未执行到此处）'); // (2)
+  } catch (error) {
+    alert('出现了 error！'); // (3)
+  }
+  ```
+
+**⚠️ 注意：**
+
+- **`try...catch` 仅对运行时的 error 有效**
+
+  要让 `try...catch` 能工作，**代码必须是可执行的**，换句话说，**它必须是有效的 JavaScript 代码**。
+
+  如果代码包含语法错误，那么 `try...catch` 将无法正常工作，例如：
+
+  ```js
+  try {
+    {{{{{
+  } catch (error) {
+    alert('引擎无法理解这段代码，它是无效的');
+  }
+  ```
+
+  上述代码 JavaScript 引擎首先会读取代码，然后运行它，**在读取阶段发生的错误被称为 “解析时间（parse-time）” 错误，并且无法恢复（从该代码内部）**，因为引擎无法理解该代码。
+
+  所以 `try...catch` 只能处理有效代码中出现的错误，这类错误被称为 **“运行时的错误（runtime errors）”**，有时被称为 **“异常（exceptions）”**。
+
+  
+
+- **`try...catch` 同步执行**
+
+  如果在 **“计划的（scheduled）”** 代码中发生异常，例如在 `setTimeout` 中，则 `try...catch` 不会捕获到异常：
+
+  ```js
+  try {
+    setTimeout(function() {
+      noSuchVariable; // 脚本将在这里停止运行
+    }, 1000);
+  } catch (error) {
+    alert('不工作');
+  }
+  ```
+
+  上述代码中因为 `try...catch` 包裹了计划要执行的函数，**该函数本身要稍后才执行，这时引擎已经离开了 `try...catch` 结构**。
+
+  **为了捕获到计划的（scheduled）函数中的异常，`try...catch` 必须在这个函数中**：
+
+  ```js
+  setTimeout(function() {
+    try {
+      noSuchVariable;
+    } catch {
+      alert('error 被这里捕获了');
+    }
+  }, 1000);
+  ```
+
+
+
+**Error 对象**
+
+**发生错误时，JavaScript 会生成一个包含有关此 error 详细信息的对象**，然后将该对象作为参数传递给 `catch`：
+
+```js
+try {
+  // ...
+} catch (error) { // error 对象，也可以用其他参数名代替 error
+  // ...
+}
+```
+
+对于**所有内建的 error**，error 对象具有两个主要属性：
+
+- **`name`** —— Error 名称，例如对于一个未定义的变量，名称是 `'ReferenceError'`
+- **`message`** —— 关于 error 的详细文字描述
+- 还有其它非标准的属性在大多数环境中可用，其中被使用最广泛的是 **`stack`** —— 当前的调用栈，用于调试目的的一个字符串，其中包含有关导致 error 的嵌套调用序列的信息
+
+例如：
+
+```js
+try {
+  lalala;
+} catch (error) {
+  alert(error.name); // ReferenceError
+  alert(error.message); // lalala is not defined
+  alert(error.stack); // ReferenceError: lalala is not defined at (...call stack)
+  
+  // 也可以将一个 error 作为整体显示出来
+  alert(error); // ReferenceError: lalala is not defined
+}
+```
+
+
+
+**可选的 catch 绑定**
+
+**⚠️ 注意：** 旧的浏览器中需要使用 polyfill 才能支持，这是新添加的特性。
+
+如果不需要 error 的详细信息，`catch` 也可以忽略它：
+
+```js
+try {
+  // ...
+} catch { // <-- 没有 (error)
+  // ...
+}
+```
+
+
+
+**使用 try...catch**
+
+JavaScript 中支持 `JSON.parse(str)` 方法来解析 JSON 编码的值。
+
+通常它被用来解析从网络、服务器或者其它来源接收到的数据，**如果 `JSON` 格式错误，`JSON.parse` 就会生成一个 error，因此脚本就会 “死亡”**。
+
+下面代码使用 `try...catch` 来处理这个 error：
+
+```js
+const json = '{ bad json }';
+
+try {
+  const user = JSON.parse(json); // <-- 当出现 error 时...
+  alert(user.name); // 不工作
+} catch (error) {
+  // 执行会跳转到这里并继续执行
+  alert('很抱歉，数据有错误，我们会尝试再请求一次。');
+  alert(error.name); // SyntaxError
+  alert(error.message); // Expected property name or '}' in JSON at position 2 (line 1 column 3)
+}
+```
+
+上述代码中虽然在 `catch` 中只是显示了信息，但实际上可以做很多的事情，例如：发送一个新的网络请求、向访问者建议一个替代方案，将有关错误的信息发送给记录日志的设备...等，比代码 “死掉” 要好得多。
+
+
+
+**抛出自定义的 error**
+
+如果前面的代码中的 `json` 在语法上是正确的，但是没有所必须的 `name` 属性该怎么处理？
+
+像下面这样：
+
+```js
+const json = '{ "age": 30 }'; // 不完整的数据
+
+try {
+  const user = JSON.parse(json); // <-- 没有 error
+  alert(user.name); // undefined
+} catch (error) {
+  alert('不工作');
+}
+```
+
+上述代码中 `JSON.parse` 正常执行，但是缺少 `name` 属性来说确实是个 error。
+
+为了统一进行 `error` 处理，需要使用 `throw` 操作符。
+
+
+
+**throw 操作符**
+
+`throw` 操作符**会生成一个 error 对象**。
+
+语法：
+
+```js
+throw <error object>
+```
+
+从技术上讲，可以将任何东西都作为 error 对象，甚至是一个原始类型数据，例如：数字或字符串，**但最好使用具有 `name` 和 `message` 属性的对象（某种程度上保持与内建 error 的兼容性）**。
+
+JavaScript 中有很多内建的标准 error 的构造器：`Error`、`SyntaxError`、`ReferenceError`、`TypeError` 等，也可以使用它们来创建 error 对象。
+
+它们的语法是：
+
+```js
+const error = new Error(message);
+// 或
+const error = new SyntaxError(message);
+const error = new ReferenceError(message);
+const error = new TypeError(message);
+// ...
+```
+
+对于内建的 error (**不是对于其它任何对象，仅仅是对于 error**)，`name` 属性刚好就是构造器的名字，`message` 则来自于参数（argument）。
+
+例如：
+
+```js
+const error = new Error('Things happen o_O');
+
+alert(error.name); // Error
+alert(error.message); // Things happen o_O
+```
+
+前面代码中的 `JSON.parse` 的错误会产生如下的 error：
+
+```js
+try {
+  JSON.parse('{ bad json o_O }');
+} catch(error) {
+  alert(error.name); // SyntaxError
+  alert(error.message); // Expected property name or '}' in JSON at position 2 (line 1 column 3)
+}
+```
+
+产生的是一个 `SyntaxError`，在前面的示例中缺少 `name` 属性就是一个 error，因为用户必须有一个 `name`。
+
+所以要抛出这个 error：
+
+```js
+const json = '{ "age": 30 }';
+
+try {
+  const user = JSON.parse(json);
+  
+  if(!user.name) {
+    throw new SyntaxError('数据不全：没有 name'); // (*)
+  }
+  
+  alert(user.name);
+} catch (error) {
+  alert('JSON Error: ' + error.message); // JSON Error: 数据不全：没有 name
+}
+```
+
+在 `(*)` 标记的这一行中，`throw` 操作符生成了包含给定的 `message` 的 `SyntaxError`，与 JavaScript 自己生成的相同，`try` 的执行立即停止，控制流转向 `catch` 块。
+
+现在 `catch` 成了所有 error 处理的唯一场所：对 `JSON.parse` 和其它情况都适用。
+
+
+
+**再次抛出（Rethrowing）**
+
+在前面的例子中，使用 `try...catch` 来处理不正确的数据，但是**在 `try` 块中可能发生另一个预料之外的 error**，例如：例如编程错误（未定义变量）或其它错误，而不仅仅是这种 “不正确的数据”。
+
+例如：
+
+```js
+let json = '{ "age": 30 }'; // 不完整的数据
+
+try {
+  user = JSON.parse(json); // <-- 忘记在 user 前放置 let
+} catch (err) {
+  alert('JSON Error: ' + err); // JSON Error: ReferenceError: user is not defined
+  // (实际上并没有 JSON Error)
+}
+```
+
+上述代码中，`try...catch` 的**本来目的是捕获 “数据不正确” 的 error，但实际上会捕获所有来自于 `try` 的 error**，导致仍然抛出的是同样的 `'JSON Error'` 信息，这是不正确的，会使代码变得难以调试。
+
+为了避免此类问题，可以使用 “重新抛出”  技术，规则很简单：
+
+**`catch` 应该只处理它知道的 error，并“抛出”所有其它 error**。
+
+具体点就是：
+
+1. `catch` 捕获所有 error
+2. 在 `catch (error) { ... }` 中，对应 error 对象进行分析
+3. 如果不知道怎么处理它，则 `throw error`
+
+通常可以通过 `instanceof` 操作符判断错误类型：
+
+``` js
+try {
+  user = { /*...*/ };
+} catch (err) {
+  if (err instanceof ReferenceError) {
+    alert('ReferenceError'); // 访问一个未定义（undefined）的变量产生了 'ReferenceError'
+  }
+}
+```
+
+也**可以从 `error.name` 中获取错误的类名**，所有原生的错误对象都有这个属性，**另一种方式是读取 `error.constructor.name`**。
+
+在下面的代码中，使用 “再次抛出”，以达到在 `catch` 中只处理 `SyntaxError` 的目的：
+
+```js
+const json = '{ "age": 23, "name": "CodePencil" }';
+
+try {
+
+  let user = JSON.parse(json);
+
+  if (!user.name) {
+    throw new SyntaxError('数据不全：没有 name');
+  }
+
+  blabla(); // 预料之外的 error
+
+  alert(user.name);
+
+} catch (err) {
+
+  if (err instanceof SyntaxError) {
+    alert('JSON Error: ' + err.message);
+  } else {
+    throw err; // 再次抛出 (*)
+  }
+}
+
+// Uncaught ReferenceError: blabla is not defined
+```
+
+如果 `(*)` 行的 error 从 `try...catch` 中 “掉” 出来，**它也可以被外部的 `try...catch` 结构（如果存在）捕获到**，如果外部不存在这种结构，**那么脚本就会被杀死**。
+
+下面的示例显示了 error 如何被另外一级 `try...catch` 捕获到：
+
+```js
+function readData() {
+  const json = '{ "age": 30 }';
+  
+  try {
+    blala(); // error
+  } catch (error) {
+    if(!(error instanceof SyntaxError)) {
+      throw error; // 再次抛出（不知道怎么处理）
+    }
+  }
+}
+
+try {
+  readData();
+} catch (error) {
+  alert('External catch got: ' + error); // External catch got: ReferenceError: blala is not defined
+}
+```
+
+上述代码中 `readData` 只知道如何处理 `SyntaxError`，而外部的 `try...catch` 知道如何处理任意的 error。
+
+
+
+**try...catch...finally**
+
+`try...catch` 结构可能还有另一个代码子句：`finally`。
+
+如果它存在，它在所有情况下都会被执行：
+
+```js
+try {
+  // ... 尝试执行的代码 ...
+} catch (error) {
+  // ... 处理 error ...
+} finally {
+  // ... 总是会执行的代码 ...
+}
+```
+
+例如：
+
+```js
+try {
+  alert('try');
+  if (confirm('Make an error?')) BAD_CODE();
+} catch (error) {
+  alert('catch');
+} finally {
+  alert('finally');
+}
+```
+
+该代码有两种执行方式：
+
+1. 如果 `confirm('Make an error?')` 的返回值是 `true`，那么执行 `try -> catch -> finally`
+2. 如果 `confirm('Make an error?')` 的返回值是 `false`，那么执行 `try -> finally`
+
+**`finally` 子句通常用在：当开始做某事时，希望无论出现什么情况都要完成某个任务**。
+
+例如：要测量一个斐波那契数字函数的 `fib(n)` 执行所花费的时间，通常在运行它之前开始测量，并在运行完成时结束测量，在这 `finally` 能确保无论是否出现 error，始终可以正确地测量时间。
+
+```js
+const num = +prompt('输入一个正整数', 35);
+
+let diff, result;
+
+function fib(n) {
+  if(n < 0 || Math.trunc(n) !== n) {
+    throw new Error('不能是负数，并且必须是整数。');
+  }
+  
+  return n <= 1 ? n : fib(n - 1) + fib(n - 2);
+}
+
+const start = Date.now();
+
+try {
+  result = fib(num);
+} catch (error) {
+  result = 0;
+} finally {
+  diff = Date.now() - start;
+}
+
+alert(result || '出现了 error');
+alert(`执行花费了 ${diff} ms`);
+```
+
+上述代码在 `prompt` 弹窗中输入 `35` 代码正常运行，先执行 `try` 然后是 `finally`，如果输入的是 `-1`，将立即出现 `error`，执行只花费 `0ms`，以上两种情况下的时间测量都正确的完成了。
+
+**⚠️ 注意：** 
+
+- 上述代码中 `result` 和 `diff` 变量都是在 `try...catch` 之前声明的，**否则使用 `let` 在 `try` 块中声明变量，那么变量将只在 `try` 块中可见**
+
+- **`finally` 子句适用于 `try...catch` 的任何出口，包括显式的 `return`**，例如：
+
+  ```js
+  function func() {
+    try {
+      return 1;
+    } catch (error) {
+      /* ... */
+    } finally {
+      alert('finally');
+    }
+  }
+  
+  alert( func() ); // 先执行 finally 中的 alert，然后执行这个 alert
+  ```
+
+  上述代码中，在 `try` 中有一个 `return`，这种情况下，**`finally` 会在控制转向外部代码前被执行**。
+
+  
+
+- **`try...finally`**
+
+  没有 `catch` 子句的 `try...finally` 结构也很有用，**当不想在原地处理 error 时（让它们掉出去），但是需要确保启动的处理需要被完成时，应该使用它**，例如：
+
+  ```js
+  function func() {
+    // 开始执行需要被完成的操作（比如测量）
+    try {
+      // ...
+    } finally {
+      // 完成前面需要完成的那件事，即使 try 中的执行失败了
+    }
+  }
+  ```
+
+  上面的代码中，由于没有 `catch`，所以 `try` 中的 error 总是会使代码执行跳转至函数 `func()` 外，**但是在跳出之前需要执行 `finally` 中的代码**。
