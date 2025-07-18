@@ -14880,3 +14880,180 @@ alert( {}.toString.call(new XMLHttpRequest()) ); // [object XMLHttpRequest]
 可以将其作为 `typeof` 的增强版或者 `instanceof` 的替代方法来使用，**如果希望获取内建对象的类型，并且希望信息以字符串的形式返回，可以使用 `{}.toString.call` 替代 `instanceof`**。
 
 如果使用类的层次结构，并想要对该类进行检，同时还要考虑继承时，这种场景下 `instanceof` 操作符更加出色。
+
+
+
+
+
+## Mixin 模式
+
+在 JavaScript 中只能继承单个对象，每个对象只能有一个 `[[Prototype]]`，并且每个类只能扩展另外一个类。
+
+这种设定会让人感觉到限制，如果有一个 `User` 类和 `EventEmitter` 类来实现事件生成，并且想将 `EventEmitter` 的功能添加到 `User` 中，以便用户可以触发事件。
+
+这时用继承不太好，可以使用 **mixin**。
+
+**`mixin` 提供了实现特定行为的方法，但是不单独使用它，而是将它这些行为添加到其它类中**。
+
+
+
+**一个 mixin 实例**
+
+在 JavaScript 中构造一个 mixin 最简单的方式就是**构造一个拥有实用方法的对象，以便可以轻松将这些实用方法合并到任何类的原型中**。
+
+例如名为 `sayHiMixin` 的 `mixin` 用于给 `User` 添加一些语言功能：
+
+```js
+const sayHiMixin = {
+  sayHi() {
+    alert(`Hello ${this.name}`);
+  },
+  sayBye() {
+    alert(`Bye ${this.name}`);
+  }
+};
+
+class User {
+  constructor(name) {
+    this.name = name;
+  }
+}
+
+// 拷贝方法
+Object.assign(User.prototype, sayHiMixin);
+	
+new User('CodePencil').sayHi(); // Hello CodePencil
+```
+
+上述代码中**没有继承，只有一个简单的方法拷贝**，所以可以让 `User` 在继承另一个类的同时，使用 `mixin` 来混合其它方法，例如：
+
+```js
+class User extends Person {
+  // ...
+}
+
+Object.assign(User.prototype, sayHiMixin);
+```
+
+`mixin` 可以在自己内部使用继承。
+
+例如这里的 `sayHiMixin` 继承自 `sayMixin`：
+
+```js
+const sayMixin = {
+  say(phrase) {
+    alert(phrase);
+  }
+};
+
+const sayHiMixin = {
+  __proto__: sayMixin,
+  
+  sayHi() {
+    super.say(`Hello ${this.name}`);
+  },
+  
+  sayBye() {
+    super.say(`Bye ${this.name}`);
+  }
+};
+
+class User {
+  constructor(name) {
+    this.name = name;
+  }
+}
+
+// 拷贝方法
+Object.assign(User.prototype, sayHiMixin);
+
+new User('CodePencil').sayHi(); // Hello CodePencil
+```
+
+**⚠️ 注意：** `sayHiMixin` 内部对父类方法 `super.say()` 的调用会在 `mixin` 的原型中查找方法，而不是在 `class` 中查找。
+
+具体的示意图如下：
+
+![image-20250718084534860](images/image-20250718084534860.png)
+
+因为方法 `sayHi` 和 `sayBye` 最初是在 `sayHiMixin` 中创建的，所以即使复制了它们，但它们的 `[[HomeObject]]` 内部属性仍然引用的是 `sayHiMixin`，所以当 `super` 在 `[[HomeObject]].[[Prototype]]` 中寻找父方法时，它搜索的是 `sayHiMixin.[[Prototype]]` 而不是 `User.prototype.[[Prototype]]`。
+
+
+
+**EventMixin**
+
+为实际运用构造一个 `mixin`。
+
+例如许多浏览器对象的一个重要功能是它们可以生成事件，事件是向任何有需要的人 “广播信息” 的好方法，所以可以构造一个 `mixin`，可以轻松的将与事件相关的函数添加到任意 `class/object` 中。
+
+- `mixin` 将提供 `.trigger(name, [...data])` 方法，以在发生重要的事情时 “生成一个事件”，`name` 是事件的名称，`[...data]` 是可选的带有事件数据的其他参数（arguments）
+- 此外还有 `.on(name, handler)` 方法，它为具有给定名称的事件添加 `handler` 函数作为监听器（listener），当具有给定 `name` 的事件触发时将调用该方法，并从 `.trigger` 调用中获取参数（arguments）
+- 还有 `.remove(name, handler)` 方法，它会删除 `handler` 监听器（listener）
+
+添加完 `mixin` 后，对象 `user` 将能够在访客登录时生成事件 `'login'`，另一个对象如 `calendar` 可能希望监听此事件以便为登录的人加载日历。
+
+或者当一个菜单被选中时，`menu` 可以生成 `'select'` 事件，其它对象可以分配事件处理程序对该事件做出反应，诸如此类。
+
+下面是 `mixin` 的代码：
+
+```js
+const eventMixin = {
+  /** 订阅事件，用法：
+   * menu.on('select', function(item) { ... }
+   */
+  on(eventName, handler) {
+    if (!this._eventHandlers) this._eventHandlers = {};
+    if (!this._eventHandlers[eventName]) {
+      this._eventHandlers[eventName] = [];
+    }
+
+    this._eventHandlers[eventName].push(handler);
+  },
+
+  /** 移除事件，用法：
+   * menu.off('select', handler)
+   */
+  off(eventName, handler) {
+    const handlers = this._eventHandlers?.[eventName];
+    if (!handlers) return;
+    for (let i = 0; i < handlers.length; i++) {
+      if (handlers[i] === handler) {
+        handlers.splice(i--, 1);
+      }
+    }
+  },
+
+  /** 生成具有给定名称和数据的事件，用法：
+   * this.trigger('select', data1, data2);
+   */
+  trigger(eventName, ...args) {
+    // 判断该事件名称是否有对应的事件处理程序
+    if (!this._eventHandlers?.[eventName]) return;
+
+    // 调用事件处理程序
+    this.__eventHandlers[eventName].forEach((handler) => handler.apply(this, args));
+  },
+};
+```
+
+用法：
+
+```js
+class Menu {
+  choose(value) {
+    this.trigger('select', value)
+  }
+}
+
+Object.assign(Menu.prototype, eventMixin);
+
+const menu = new Menu();
+
+menu.on('select', value => alert(`Value selected: ${value}`));
+
+// 触发事件 => 运行上述的事件处理程序（handler）并显示
+menu.choose('123');
+```
+
+**⚠️ 注意：** `mixins` 可能会覆盖了现有类的方法，所以**通常应该仔细考虑 `mixin` 的命名方法**，以最大程度地降低发生这种冲突的可能性。
+
