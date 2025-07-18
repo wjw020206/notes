@@ -15186,7 +15186,7 @@ try {
 对于**所有内建的 error**，error 对象具有两个主要属性：
 
 - **`name`** —— Error 名称，例如对于一个未定义的变量，名称是 `'ReferenceError'`
-- **`message`** —— 关于 error 的详细文字描述
+- **`message`** —— 关于 error 的详细文字描述，人类可读的 error 信息
 - 还有其它非标准的属性在大多数环境中可用，其中被使用最广泛的是 **`stack`** —— 当前的调用栈，用于调试目的的一个字符串，其中包含有关导致 error 的嵌套调用序列的信息
 
 例如：
@@ -15551,3 +15551,61 @@ alert(`执行花费了 ${diff} ms`);
   ```
 
   上面的代码中，由于没有 `catch`，所以 `try` 中的 error 总是会使代码执行跳转至函数 `func()` 外，**但是在跳出之前需要执行 `finally` 中的代码**。
+
+
+
+**全局 catch**
+
+**⚠️ 注意：** 这部分内容不是 JavaScript 核心的一部分，而是**环境特定的部分**。
+
+假设 `try...catch` **结构外**有一个致命的 error，然后使脚本 “死亡” 了，通常可能会记录这个 error，并向用户显示某些内容。
+
+规范中没有相关的代码，但是**代码的执行环境一般会提供这种机制**，例如：Node.js 有 `process.on('uncaughtException')`。
+
+在浏览器中，则可以将一个函数赋值给**特殊的 `window.onerror` 属性**，该函数**将在发生未捕获的 error 时执行**。
+
+语法：
+
+```js
+window.onerror = function(message, url, line, col, error) {
+  // ...
+}
+```
+
+- **`message`** —— error 信息
+- **`url`** —— 发生 error 的脚本的 URL
+- **`line`** —— 发生 error 处的行号
+- **`col`** —— 发生 error 处的列号
+- **`error`** —— error 对象
+
+例如：
+
+```js
+window.onerror = function(message, url, line, col, error) {
+  alert(`${message}\n At ${line}:${col} of ${url}`);
+};
+
+function readData() {
+  badFunc(); // 出问题了
+}
+
+readData();
+```
+
+`alert` 显示内容：
+
+```
+Uncaught ReferenceError:badFunc is not defined
+At 15:9 of http://127.0.0.1:3000/index.html
+```
+
+**⚠️ 注意：** 全局错误处理程序 `window.onerror` 的作用**通常不是恢复脚本的执行**，如果发生编程错误，恢复脚本执行几乎是不可能的，**它的作用是将错误信息发送给开发者**。
+
+也有针对这种情况提供 error 日志的 Web 服务，如：[http://www.muscula.com](http://www.muscula.com/)等。
+
+它们会像下面这样运行：
+
+1. 注册该服务，拿到一段 JavaScript 代码（或者脚本的 URL），然后插入页面中
+2. 该 JavaScript 脚本设置了自定义的 `window.onerror` 函数
+3. 当发生 error 时，它会发送一些此 error 相关的网络请求到服务提供方
+4. 可以登录到服务方的 Web 界面来查看这些 error
