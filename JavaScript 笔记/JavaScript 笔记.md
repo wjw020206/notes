@@ -16240,7 +16240,7 @@ const promise = new Promise(function(resolve, reject) {
   });
   ```
 
-  例如开始做一个任务时，随后发现一切都已经完成并已被缓存时，就可以立即给出结果，所以就立即就有了一个 `resolved` 的 promise。
+  例如开始做一个任务时，随后发现一切都已经完成并已被缓存时，就可以立即给出结果，所以就立即有了一个 `resolved` 的 promise。
 
 - **Promise 对象的 `state` 和 `result` 属性都是内部的，无法直接访问它们**，但可以对它们使用 `.then` / `.catch` / `.finally` 方法
 
