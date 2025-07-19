@@ -15892,3 +15892,244 @@ try {
 上述代码中外部代码检查 `instanceof ReadError`，而不必列出所有可能的 error 类型，对于未知错误将照常再次抛出。
 
 这种方法被称为 “包装异常（wrapping exceptions）”，**将 “低级别” 的异常 “包装” 到了更抽象的 `ReadError` 中，它被广泛应用于面向对象编程中**，低级别异常有时会成为该对象的属性，例如上述代码中的 `error.cause`，但这不是严格要求的。
+
+
+
+## 回调
+
+JavaScript 主机（host）环境提供许多函数，这些函数允许计划**异步**行为（action）：**也就是在执行一段时间后才自行完成的行为**。
+
+例如：`setTimeout` 函数就是一个这样的函数。
+
+实际开发中，例如加载脚本和模块也都是异步行为，例如实现一个 `loadScript(src)` 函数，该函数使用给定的 `src` 加载脚本：
+
+```js
+function loadScript(src) {
+  const script = document.createElement('script'); // 创建一个 <script> 标签
+  script.src = src; // <script> 标签根据给定的 src 属性加载脚本，并在加载完成后运行
+  document.head.append(script); // 将 <script> 标签附加到页面
+}
+```
+
+上述代码将一个新的、带有给定的 `src`、动态创建的标签 `<script src="…">` 插入文档中，**浏览器将自动开始加载它，并在加载完成后执行它**。
+
+可以像下面这样使用这个函数：
+
+```js
+// 在给定路径下加载并执行脚本
+loadScript('/my/script.js');
+```
+
+**脚本是 “异步” 调用的**，因为它从现在开始加载，但是**这个加载函数很快就执行完了，但浏览器还没来得及加载完脚本文件，脚本会稍后才执行**。
+
+例如在 `loadScript(...)` 下面有任何其它代码，它们**不会等到脚本加载完成之后才执行**。
+
+```js
+loadScript('/my/script.js');
+// loadScript 下面的代码
+// 不会等到脚本加载完成才执行
+// ...
+```
+
+这会导致假如想在新脚本加载后立即使用它，将不会有效。
+
+````js
+loadScript('/my/script.js'); // 这个脚本有 function newFunction() {…}
+
+newFunction(); // 没有这个函数
+````
+
+`loadScript` 函数没有提供追踪加载完成的方法，但希望了解脚本何时加载完成，以使用其中的新函数和变量。
+
+添加一个 `callback` 函数作为 `loadScript` 的第二个参数，该函数在脚本加载完成时执行：
+
+```js
+function loadScript(src, callback) {
+  const script = document.createElement('script');
+  script.src = src;
+  
+  script.onload = () => callback(script);
+ 
+  document.head.append(script);
+}
+```
+
+上述代码中 **`onload` 事件会在脚本加载和执行完成后执行一个函数**，现在**如果要调用该脚本中的新函数，应该将其写在回调函数中**：
+
+```js
+loadScript('/my/script.js', function() {
+  // 在脚本加载完成后，回调函数才会执行
+  newFunction();
+  // ...
+});
+```
+
+第二个参数是一个函数（通常是匿名函数），该函数会在行为（action）完成时运行。
+
+下面是一个真实的示例：
+
+```js
+function loadScript(src, callback) {
+  const script = document.createElement('script');
+  script.src = src;
+  script.onload = () => callback(script);
+  document.head.append(script);
+}
+
+loadScript('https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.2.0/lodash.js', script => {
+  alert(`脚本 ${script.src} 加载完成`);
+  alert(_); // _ 是所加载的脚本中声明的一个函数
+})
+```
+
+这种异步编程风格被称为 **“基于回调”**，异步执行某项功能的函数**应该提供一个 `callback` 参数用在相应事件完成时调用**（上述例子中的相应事件是指脚本加载）。
+
+
+
+**在回调中回调**
+
+如何依次加载两个脚本，自然的解决方案是将第二个 `loadScript` 调用放入第一个的 `loadScript` 的回调中，例如：
+
+```js
+loadScript('/my/script.js', function(script) {
+
+  alert(`脚本 ${script.src} 加载完成，继续加载另一个`);
+
+  loadScript('/my/script2.js', function(script) {
+    alert(`第二个脚本加载完成`);
+  });
+});
+```
+
+假如还要加载第三个脚本：
+
+```js
+loadScript('/my/script.js', function(script) {
+
+  loadScript('/my/script2.js', function(script) {
+    
+    loadScript('/my/script3.js', function(script) {
+      // ...加载完所有脚本后继续
+    }
+  });
+});
+```
+
+上述代码中每一个新行为（action）都在回调的内部，如果只有几个行为还好，但**当行为很多的时候不好了**。
+
+
+
+**处理 error**
+
+前面的例子中没有考虑出现 error 的情况，如果脚本加载失败也需要回调能够对此做出反应。
+
+下面是 `loadScript` 的改进版本，可以追踪加载错误：
+
+```js
+function loadScript(src, callback) {
+  let script = document.createElement('script');
+  script.src = src;
+
+  script.onload = () => callback(null, script);
+  script.onerror = () => callback(new Error(`Script load error for ${src}`));
+
+  document.head.append(script);
+}
+```
+
+当脚本加载成功时，它会调用 `callback(null, script)`，否则会调用 `callback(error)`。
+
+用法：
+
+```js
+loadScript('/my/script.js', function(error, script) {
+  if (error) {
+    // 处理 error
+  } else {
+    // 脚本加载成功
+  }
+});
+```
+
+在 `loadScript` 函数中所使用的方案非常普通，被称 **“Error 优先回调（error-first callback）”**。
+
+它的约定是：
+
+1. `callback` 的**第一个参数是为 error 保留的**，一旦出现 error，`callback(error)` 就会被调用
+2. **第二个参数（和之后的参数，如果需要的话）用于成功的结果**，此时 `callback(null, result1, result2...)` 就会被调用
+
+所以单一的 `callback` 函数可以同时具有报告 error 和传递返回结果的作用。
+
+
+
+**回调地狱**
+
+“基于回调” 的异步编程方式对于一个或两个嵌套的调用看起来还不错，但是对于一个接着一个的多个异步行为，代码会变成下面这样：
+
+```js
+loadScript('1.js', function(error, script) {
+
+  if (error) {
+    handleError(error);
+  } else {
+    // ...
+    loadScript('2.js', function(error, script) {
+      if (error) {
+        handleError(error);
+      } else {
+        // ...
+        loadScript('3.js', function(error, script) {
+          if (error) {
+            handleError(error);
+          } else {
+            // ...加载完所有脚本后继续
+          }
+        });
+
+      }
+    });
+  }
+});
+```
+
+上述代码中随着调用嵌套的增加，代码层次变得更深，维护难度也随之增加，这种写法被称为 **“回调地狱”** 或者 **“厄运金字塔”**。
+
+![image-20250719135935739](images/image-20250719135935739.png)
+
+嵌套调用的 “金字塔” 会随着每个异步行为会向右增长，很块它就会失控了，所以**这种编程方式不是很好**。
+
+可以通过使每个行为都称为一个独立的函数来尝试减轻这种问题，例如：
+
+```js
+loadScript('1.js', step1);
+
+function step1(error, script) {
+  if(error) {
+    handleError(error);
+  } else {
+    loadScript('2.js', step2);
+  }
+}
+
+function step2(error, script) {
+  if(error) {
+    handleError(error);
+  } else {
+    loadScript('3.js', step3);
+  }
+}
+
+function step3(error, script) {
+  if(error) {
+    handleError(error);
+  } else {
+    // ...加载完所有脚本后继续
+  }
+}
+```
+
+它的作用相同，但没有深层的嵌套了，每个行为都编写成了一个独立的顶层函数。
+
+**⚠️ 注意：** 上述代码可以工作，**但是代码的可读性很差，阅读时需要在各个代码块之间跳转，而且所有名为 `step*` 的函数都是一次性使用的，创建它们是为了避免 “回调地狱”，没有人会在行为链之外调用它们，所以命名空间有点混乱**。
+
+有其它方法可以避免此类 “回调地狱”，**最好的方法之一就是使用 `promise`**。
