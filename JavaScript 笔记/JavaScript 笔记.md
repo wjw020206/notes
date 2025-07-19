@@ -15609,3 +15609,286 @@ At 15:9 of http://127.0.0.1:3000/index.html
 2. 该 JavaScript 脚本设置了自定义的 `window.onerror` 函数
 3. 当发生 error 时，它会发送一些此 error 相关的网络请求到服务提供方
 4. 可以登录到服务方的 Web 界面来查看这些 error
+
+
+
+## 自定义 Error，扩展 Error
+
+在日常开发的时候，经常需要**使用自己的 error 类来反映在任务中可能出错的特定任务**，例如：对于网络操作中的 error，需要 `HttpError`、对于数据库操作中的 error，需要 `DbError`，对于搜索操作中的 error，需要 `NotFoundError` 等。
+
+**自定义的 error 应该支持基本的 error 的属性**，例如：`name`、`message`，并且最好还有 `stack`，但它们**也可能会有属于它们自己的属性**，例如：`HttpError` 对象可能会有 `statusCode` 属性，属性值可能是 `404`、`403` 或 `500` 等。
+
+JavaScript 允许将 `throw` 与任何参数一起使用，从技术上讲，自定义的 error 可以不需要从 `Error` 中继承，但**如果使用继承，就可以使用 `obj instanceof Error` 来识别 error 对象，所以最好还是继承它**。
+
+随着开发的应用程序的增长，自定义的 error 自然会形成一个层次结构，例如：`HttpTimeoutError` 可能继承 `HttpError` 等等。
+
+
+
+**扩展 Error**
+
+假如有一个 `readUser(json)` 函数，该函数应该读取带有用户数据的 JSON。
+
+例如：
+
+```js
+const json = `{ "name": "CodePencil", "age": 23 }`;
+```
+
+在函数的内部，使用 `JSON.parse`，如果它接收到格式不正确的 `json`，就会抛出 `SyntaxError`，但它也可能 JSON 格式正常，但缺少了必须的数据，例如对用户来说，必不可少的是 `name` 和 `age` 属性。
+
+所以 `readUser(json)` 不仅会读取 JSON，还要检查验证数据，如果没有所必须的字段，或者字段的格式错误，就会出现一个 error，但这些并不是 `SyntaxError`，而是另一种错误，可以称它为 `ValidationError`，所以需要创建一个类，这个列包含有关违规字段的信息。
+
+`ValidationError` 类应该继承自 `Error` 类。
+
+`Error` 类是内建的，近似于下面的内容：
+
+```js
+class Error {
+  constructor(message) {
+    this.message = message;
+    this.name = 'Error'; // (不同的内建 error 类有不同的名字)
+    this.stack = <call stack>; // 非标准的，但大多数环境都支持它
+  }
+}
+```
+
+接下来实现 `ValidationError` 类：
+
+```js
+class ValidationError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'ValidationError';
+  }
+}
+
+
+// 用法
+function readUser(json) {
+  let user = JSON.parse(json);
+
+  if (!user.age) {
+    throw new ValidationError('No field: age');
+  }
+  if (!user.name) {
+    throw new ValidationError('No field: name');
+  }
+
+  return user;
+}
+
+// try..catch 的工作示例
+
+try {
+  let user = readUser('{ "age": 25 }');
+} catch (error) {
+  if (error instanceof ValidationError) {
+    alert('Invalid data: ' + error.message); // Invalid data: No field: name
+  } else if (error instanceof SyntaxError) {
+    alert('JSON Syntax Error: ' + error.message);
+  } else {
+    throw error; // 未知的 error，再次抛出
+  }
+}
+```
+
+上述代码中，`try...catch` 块既处理 `validationError` 又处理来自 `JSON.parse` 的内建 `SyntaxError`，通过 `instanceof` 来检查特定的错误类型。
+
+也可以使用 `error.name` 来检查错误类型：
+
+```js
+// ...
+// instead of (error instanceof SyntaxError)
+} else if (error.name === 'SyntaxError')
+// ...
+```
+
+**但使用 `instanceof` 的版本要好的多，因为将来可能会对 `validationError` 进行扩展，创建它的子类型，例如： `PropertyRequiredError`，所以使用 `instanceof` 检查对于新继承的类也适用，这是面向未来的做法**。
+
+还有一点很重要，在 `catch` 中遇到了未知错误，**需要将它再次抛出**。
+
+
+
+**深入继承**
+
+`ValidationError` 类是非常通用的，但很多东西都可能出错，对象的属性可能缺失或者属性可能有格式错误（例如：`age` 属性的值为一个字符串而不是数字），所以需要针对缺少属性的错误来制作一个更具体的 `PropertyRequiredError` 类，它携带有关缺少的属性的相关信息。
+
+```js
+class ValidationError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'ValidationError';
+  }
+}
+
+class PropertyRequiredError extends ValidationError {
+  constructor(property) {
+    super('No property' + property);
+    this.name = 'PropertyRequiredError';
+    this.property = property;
+  }
+}
+
+// 用法：
+function readUser(json) {
+  const user = JSON.parse(json);
+  
+  if(!user.age) {
+    throw new PropertyRequiredError('age');
+  }
+ 	
+  if(!user.name) {
+    throw new PropertyRequiredError('name');
+  }
+  
+  return user;
+}
+
+try {
+  const user = readUser('{ "age": 25 }');
+} catch (error) {
+  if (error instanceof ValidationError) {
+    alert('Invalid data: ' + error.message); // Invalid data: No property: name
+    alert(error.name); // PropertyRequiredError
+    alert(error.property); // name
+  } else if (error instanceof SyntaxError) {
+    alert('JSON Syntax Error' + error.message);
+  } else {
+    throw error; // 未知错误，再次抛出
+  }
+}
+```
+
+上述的代码中新的类 `PropertyRequiredError` 使用起来很简单，只需要传递属性名：`new PropertyRequiredError(property)`，人类可读的 `message` 是由 `constructor` 生成的。
+
+**⚠️ 注意：** 上述代码中 `PropertyRequiredError` 类的 `constructor` 中的 **`this.name` 是手动重新赋值的**，这可能会变得有些重复 —— 在每个自定义 error 类中都要进行 `this.name = <class name>` 赋值操作，可以通过创建自己的 **“基础错误（basic error）” 类**来避免这种情况，该类进行 `this.name = this.constructor.name` 赋值，然后自定义的 error 都从这个 “基础错误” 类进行继承。
+
+下面代码中将 `MyError` 作为 “基础错误” 类。
+
+```js
+class MyError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = this.constructor.name;
+  }
+}
+
+class ValidationError extends MyError {}
+
+class PropertyRequiredError extends ValidationError {
+  constructor(property) {
+    super('No property' + property);
+    this.property = property;
+  }
+}
+
+// name 是对的
+alert(new PropertyRequiredError('field').name); // PropertyRequiredError
+```
+
+上述代码中自定义的 error 短了很多，特别是 `ValidationError`，摆脱了每次自定义 error 类都要在 `constructor` 中设置 `this.name = ...` 的操作。
+
+
+
+**包装异常**
+
+在前面的代码中，`readUser` 的目的就是 “读取用户数据”，这个过程可能会出现不同类型的 error，目前有了 `SyntaxError` 和 `ValidationError`，但是将来随着 `readUser` 函数的不断壮大，可能会产生其它类型的 error。
+
+调用 `readUser` 的代码应该处理这些 error，现在它在 `catch` 块中使用了多个 `if` 语句来检查 error 类，处理已知的 error，并再次抛出未知的 error。
+
+目前的方案是这样的：
+
+```js
+try {
+  ...
+  readUser()  // 潜在的 error 源
+  ...
+} catch (error) {
+  if (error instanceof ValidationError) {
+    // 处理 validation error
+  } else if (error instanceof SyntaxError) {
+    // 处理 syntax error
+  } else {
+    throw err; // 未知 error，再次抛出它
+  }
+}
+```
+
+在上述代码中，可以看到两种类型的 error，但可以有更多。
+
+如果 `readUser` 函数会产生多种 error，那么应该问自己：是否真的想每次都检查所有的 error 类型？
+
+通常答案是 No：希望能有一个比它高一个级别的错误，只想知道这里是否是 “数据读取异常”，为什么发生这样的 error 通常是无关紧要的（error 信息描述了它），或者有其它方式能够获取 error 的详细信息就更好了。
+
+上面这段话所描述的技术被称为 **“包装异常”**：
+
+1. 创建一个新的类 `ReadError` 来表示一般的 “数据读取” error
+2. 函数 `readUser` 将捕获内部发生的数据读取 error，例如 `ValidationError` 和 `SyntaxError`，并生成一个 `ReadError` 来进行替代
+3. 对象 `ReadError` 会把对原始 error 的引用保存在其 `cause` 属性中
+
+之后调用 `readUser` 的代码只需要检查 `ReadError` 即可，**不必检查每种 error 类型，如果需要更多的 error 细节，可以检查 `ReadError` 对象的 `cause` 属性**。
+
+下面代码中定义了 `ReadError`，并在 `readUser` 和 `try..catch` 中演示了其用法：
+
+```js
+class ReadError extends Error {
+  constructor(message, cause) {
+    super(message);
+    this.cause = cause;
+    this.name = 'ReadError';
+  }
+}
+
+class ValidationError extends Error { /*...*/ }
+class PropertyRequiredError extends ValidationError { /* ... */ }
+
+function validateUser(user) {
+  if(!user.age) {
+    throw new PropertyRequiredError('age');
+  }
+  
+  if(!user.name) {
+    throw new PropertyRequiredError('name');
+  }
+}
+
+function readUser(json) {
+  let user;
+  
+  try {
+    user = JSON.parse(json);
+  } catch (error) {
+    if(error instanceof SyntaxError) {
+      throw new ReadError('SyntaxError', error);
+    } else {
+      throw error;
+    }
+  }
+  
+  try {
+    validateUser(user);
+  } catch (error) {
+    if(error instanceof ValidationError) {
+      throw new ReadError('ValidationError', error);
+    } else {
+      throw error;
+    }
+  }
+}
+
+try {
+  readUser('{ basd json }');
+} catch (error) {
+  if(error instanceof ReadError) {
+    alert(error);
+    // Original error: SyntaxError: Unexpected token b in JSON at position 1
+    alert('Original error: ' + error.cause);
+  } else {
+    throw error;
+  }
+}
+```
+
+上述代码中外部代码检查 `instanceof ReadError`，而不必列出所有可能的 error 类型，对于未知错误将照常再次抛出。
+
+这种方法被称为 “包装异常（wrapping exceptions）”，**将 “低级别” 的异常 “包装” 到了更抽象的 `ReadError` 中，它被广泛应用于面向对象编程中**，低级别异常有时会成为该对象的属性，例如上述代码中的 `error.cause`，但这不是严格要求的。
