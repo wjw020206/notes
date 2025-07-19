@@ -16133,3 +16133,120 @@ function step3(error, script) {
 **⚠️ 注意：** 上述代码可以工作，**但是代码的可读性很差，阅读时需要在各个代码块之间跳转，而且所有名为 `step*` 的函数都是一次性使用的，创建它们是为了避免 “回调地狱”，没有人会在行为链之外调用它们，所以命名空间有点混乱**。
 
 有其它方法可以避免此类 “回调地狱”，**最好的方法之一就是使用 `promise`**。
+
+
+
+## Promise
+
+类似于你是一位顶尖的歌手，粉丝没日没夜的询问下一首歌什么时候发。
+
+为了从中解放，你承诺（promise） 会在单曲发布的第一时间发给他们，你给了粉丝们一个列表，他们可以在上面填写他们的电子邮箱地址，以便当歌曲发布后，所有订阅了的人能够立即收到，即使遭遇不测，例如录音室着火了，导致你无法发布新歌，粉丝们也能及时收到相关通知。
+
+这对每个人都很好，你不会被任何人催促，粉丝们也不用担心错过歌曲的发布。
+
+以下是编程与真实生活的类比：
+
+1. **“生产者代码（producing code）”** 会做一些事情，并且需要时间，例如通过网络加载数据的代码，它就像一位 “歌手”
+2. **“消费者代码（consuming code）”** 想要在 “生成者代码” 完成工作的第一时间就能获得其工作成果，许多函数可能都需要这个结果，这些就是 “粉丝”
+3. **Promise 是将 “生成者代码” 和 “消费者代码” 连接在一起的一个特殊的 JavaScript 对象**，就像是 “订阅列表”，“生产者代码” 花费它所需的任意长度的时间来产出承诺的结果，而 promise 将在 “生产者代码” 将承诺的结果准备好时，将结果向所有订阅了的 “消费者代码” 开放
+
+以上的类比并不准确，因为 JavaScript 的 promise 比简单的订阅列表更加复杂：它们还拥有其他的功能和局限性。
+
+Promise 对象的构造器语法如：
+
+```js
+const promise = new Promise(function(resolve, reject) {
+  // executor（生产者代码，“歌手”）
+});
+```
+
+传递给 `new Promise` 的函数被称为 **executor**，当 `new Promise` 被创建，**executor 会自动运行**，它包含最终产出结果的生产者代码，按照上面的类比：executor 就是 “歌手”。
+
+**executor 的参数 `resolve` 和 `reject` 是由 JavaScript 自身提供的回调**，我们要写的代码仅在 executor 的内部。
+
+当 executor 获得了结果，无论是早还是晚都没关系，它应该调用以下回调之一：
+
+- **`resolve(value)`** —— 当异步操作成功完成时调用，`value` 是最终结果
+- **`reject(error)`** —— 当异步操作失败时调用，`error` 是一个 `Error` 对象
+
+简单来说就是 executor 会自动运行并尝试执行一项工作，尝试结束后，**如果成功则调用 `resolve`，如果出现了 error 则调用 `reject`**。
+
+由 `new Promise` 构造器返回的 `promise` 对象具有以下内部属性：
+
+- **`state`** —— 最初是 `'pending'`，然后在 `resolve` 被调用时变为 `'fulfilled'`，或者在 `reject` 被调用时变为 `'rejected'`
+- **`result`** —— 最初是 `undefined`，然后在 `resolve(value)` 被调用时变为 `value`，或者在 `reject(error)` 被调用时变为 `error`
+
+具体的状态变化如下图：
+
+![image-20250719185539638](images/image-20250719185539638.png)
+
+下面是一个 promise 构造器和一个简单的 executor 函数：
+
+```js
+const promise = new Promise(function(resolve, reject) {
+  // 当 promise 被构造完成时，自动执行此函数
+  
+  // 1 秒后发出工作已经被完成的信号，并带有结果 'done'
+  setTimeout(() => resolve('done'), 1000);
+})
+```
+
+上述代码执行了两件事：
+
+1. executor 被自动且立即调用（通过 `new Promise`）
+
+2. executor 接收两个参数：`resolve` 和 `reject`，这些函数都是由 JavaScript 引擎预先定义，所以不需要手动创建它们，只需要在 executor 准备好时调用其中之一即可
+
+经过 1 秒的 “处理后”，executor 调用 `resolve('done')` 来产生结果，这将改变 `promise` 对象的状态：
+
+   ![image-20250719190555347](images/image-20250719190555347.png)
+
+   这个是一个成功完成任务的例子，下面则是一个 executor 以 error 拒绝 promise 的例子：
+
+```js
+const promise = new Promise(function(resolve, reject) {
+  // 1 秒后发出工作已经被完成的信号，并带有 error
+  setTimeout(() => reject(new Error('Whoops!')), 1000);
+});
+```
+
+`reject(...)` 调用将 `promise` 对象的状态移至 `'rejected'`：
+
+![image-20250719190934611](images/image-20250719190934611.png)
+
+**与最初的 `'pending'` 状态的 promise 相反，一个 `'resolved'` 或 `'rejected'` 的 promise 都会被称为 `'settled'`**。
+
+**⚠️ 注意：**
+
+- **executor 只能调用一个 `resolve` 或一个 `reject`**，任何状态的更改都是最终的，**如果再调用 `resolve` 和 `reject` 都会被忽略（不是后面的代码不执行，只是忽略 `resolve` 和 `reject` 的调用）**
+
+  ```js
+  const promise = new Promise(function(resolve, reject) {
+    resolve('done');
+  
+    reject(new Error('…')); // 被忽略
+    setTimeout(() => resolve('…')); // 被忽略
+  });
+  ```
+
+- **使用 `Error` 对象进行 `reject`**，如果出了问题，executor 应该调用 `reject`，虽然可以使用任何类型的参数来完成（就像 `resolve` 一样），**但建议使用 `Error` 对象（或继承自 `Error` 的对象）**
+
+- **`resolve/reject` 可以立即进行**，executor 通常是异步执行某些操作，并在一段时间之后调用 `resolve/reject`，但这**不是必须的**，还可以立即调用 `resolve` 或 `reject`，像下面这样：
+
+  ```js
+  const promise = new Promise(function(resolve, reject) {
+    // 不花时间去做这项工作
+    resolve(123); // 立即给出结果: 123
+  });
+  ```
+
+  例如开始做一个任务时，随后发现一切都已经完成并已被缓存时，就可以立即给出结果，所以就立即就有了一个 `resolved` 的 promise。
+
+- **Promise 对象的 `state` 和 `result` 属性都是内部的，无法直接访问它们**，但可以对它们使用 `.then` / `.catch` / `.finally` 方法
+
+  
+
+  
+
+  
+
