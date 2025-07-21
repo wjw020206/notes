@@ -16246,7 +16246,149 @@ const promise = new Promise(function(resolve, reject) {
 
   
 
-  
+**消费者：then，catch**
 
-  
+  最重要最基础的就是 `.then`。
 
+语法：
+
+```js
+promise.then(
+  function(result) { /* 处理成功的结果 */ },
+  function(result) { /* 处理错误的结果 */ },  
+);
+```
+
+- `.then` 的第一参数是一个函数，该函数将**在 promise resolved 并接收到结果后执行**
+
+- `.then` 的第二个参数也是一个函数，该函数**在 promise rejected 并接收到 error 信息后执行**
+
+例如以下是对成功 resolved 的 promise 做出的反应：
+
+```js
+const promise = new Promise(function(resolve, reject) {
+  setTimeout(() => resolve(('done!');), 1000);
+});
+
+// resolve 运行 .then 中的第一个函数
+promise.then(
+  result => alert(result), // 1 秒后显示 done!
+  error => alert(error), // 不运行
+);
+```
+
+
+
+在 reject 的情况下，会运行第二个函数：
+
+```js
+const promise = new Promise(function(resolve, reject) {
+  setTimeout(() => reject(new Error('Whoops!')), 1000);
+});
+
+// reject 运行 .then 中的第二个函数
+promise.then(
+  result => alert(result), // 不运行
+  error => alert(error), // 1 秒后显示 Error: Whoops!
+);
+```
+
+
+
+如果只对成功的情况感兴趣，可以只为 `.then` 提供一个函数参数：
+
+```js
+const promise = new Promise(resolve => {
+  setTimeout(() => resolve('done!'), 1000);
+});
+
+promise.then(alert); //1 秒后显示 done!
+```
+
+反之如果只对 error 感兴趣，**可以使用 `null` 作为第一个参数**：
+
+```js
+const promise = new Promise(function(resolve, reject) {
+  setTimeout(() => reject(new Error('Whoops!')), 1000);
+});
+
+// 只处理 error 的情况
+promise.then(
+  null,
+  error => alert(error), // 1 秒后显示 Error: Whoops!
+);
+```
+
+或者**也可以使用 `.catch(errorHandlingFunction)`**：
+
+```js
+const promise = new Promise((resolve, reject) => {
+  setTimeout(() => reject(new Error('Whoops!')), 1000);
+});
+
+// .catch(f) 与 promise.then(null, f) 一样
+promise.catch(alert); // 1 秒后显示 Error: Whoops!
+```
+
+**⚠️ 注意：`.catch(f)` 调用是 `.then(null, f)` 的完全模拟**，它只是一个简写形式。
+
+
+
+**清理 finally**
+
+调用 `.finally(f)` 类似于 `.then(f, f)`，因为 promise settled 时 `f` 就会执行：**无论 promise 被 resolve 还是 reject**。
+
+`finally` 的功能是设置一个处理程序在前面的操作完成后，执行清理/终结，例如：停止加载指示器，关闭不再需要的连接等。
+
+具体代码如下：
+
+```js
+new Promise((resolve, reject) => {
+  /* 做一些需要时间的事，之后调用可能会 resolve 也可能会 reject */
+})
+  .finally(() => stop loading indicator)
+	// 所以，加载指示器（loading indicator）始终会在我们继续之前停止
+  .then(result => show result, err => show error);
+```
+
+**⚠️ 注意：** `finally(f)` 并不完全是 `then(f,f)` 的别名，它们之间有如下区别：
+
+- **`finally` 处理程序（handler）没有参数**，在 `finally` 中无法知道 promise 是否成功，不过也没关系，因为这里的的任务主要是**执行 “常规” 的完成程序（finalizing procedures）**
+
+- **`finally` 处理程序将结果或 error 传递给下一个合适的处理程序**
+
+  例如：
+
+  ```js
+  new Promise((resolve, reject) => {
+    setTimeout(() => resolve('value'), 2000)
+  })
+    .finally(() => alert('Promise ready')) // 先触发
+    .then(result => alert(result)); // 显示 value
+  ```
+
+  上述代码中 promise 返回的 `value` 通过 `finally` 被传递给下一个 `then`。
+
+  同样 `finally` 也可以将 error 传递给下一个 `catch`：
+
+  ```js
+  new Promise(function(resolve, reject) {
+    throw new Error('error');
+  })
+    .finally(() => alert('Promise ready')) // 先触发
+    .catch(err => alert(err));  // 显示 Error: error
+  ```
+
+- **`finally` 处理程序不应该返回任何内容，如果返回了，返回值会默认被忽略**
+
+  **⚠️ 注意：** 唯一例外的是当 `finally` 处理程序抛出 error 时，那么原本 promise 链中已有的错误或结果会被**覆盖**，而接下来的 `.catch()` 或 `.then()` 接收到的将是 **`.finally()` 抛出的那个新错误**，例如：
+
+  ```js
+  new Promise((resolve, reject) => {
+    throw new Error('Original error');
+  })
+    .finally(() => {
+      throw new Error('New error in finally');
+    })
+    .catch(error => alert(error)); // 显示 Error: New error in finally 而非 Original error
+  ```
