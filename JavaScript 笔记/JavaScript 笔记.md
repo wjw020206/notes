@@ -16392,3 +16392,186 @@ new Promise((resolve, reject) => {
     })
     .catch(error => alert(error)); // 显示 Error: New error in finally 而非 Original error
   ```
+
+
+
+**使用 promise 重写之前的 `loadScript` 函数**：
+
+```js
+function loadScript(src) {
+  return new Promise((resolve, reject) {
+    const script = document.createElement('script');
+    script.src = src;
+  
+  	script.onload = () => resolve(script);
+  	script.onerror = () => reject(new Error(`Script load error for ${src}`));
+  
+    document.head.append(script);
+  });
+}
+```
+
+用法：
+
+```js
+const promise = loadScript('https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.11/lodash.js')
+
+promise.then(
+  script => alert(`${script.src} is loaded!`),
+  error => alert(`Error: ${error.message}`)
+);
+
+promise.then(script => alert('Another handler...'));
+```
+
+
+
+**Promise 链**
+
+如果要将一系列的异步任务一个接着一个执行，例如按顺序加载多个脚本，可以使用 **promise 链**。
+
+它看起来像下面这样：
+
+```js
+new Proimse(function(resolve, reject) {
+  
+  setTimeout(() => resolve(1), 1000);
+  
+}).then(function(result) {
+  
+  alert(result); // 1
+  return result * 2;
+  
+}).then(function(result) {
+  
+  alert(result); // 2
+  return result * 2
+  
+}).then(function(result) {
+  
+  alert(result); // 4
+  return result * 2
+  
+});
+```
+
+它通过 `.then` 处理程序链进行 `result` 传递。
+
+具体运行流程如下：
+
+1. 初始 promise 在 1 秒后 resolve
+2. 然后 `.then` 处理程序被调用，它又创建了一个新的 promise（以 `2` 作为值 resolve）
+3. 下一个 `then` 得到了前一个 `then` 的值，对该值进行处理（`*2`）并将其传递给下一个处理程序
+4. ……依此类推
+
+随着 `result` 在处理程序链中传递，可以看到一系列的 `alert` 调用：`1` → `2` → `4`。
+
+![image-20250722082256943](images/image-20250722082256943.png)
+
+这样之所以可行，是**因为对每个 `.then` 调用都会返回一个新的 promise，所以可以在其之上调用下一个 `.then`**。
+
+**⚠️ 注意：** 在技术上**可以将多个 `.then` 添加到一个 promise 上，但这并不是 promise 链（chaining）**，例如：
+
+```js
+const promise = new Promise(function(resolve, reject) {
+  setTimeout(() => resolve(1), 1000);
+});
+
+promise.then(function(result) {
+  alert(result); // 1
+  return result * 2;
+});
+
+promise.then(function(result) {
+  alert(result); // 1
+  return result * 2;
+});
+
+promise.then(function(result) {
+  alert(result); // 1
+  return result * 2;
+});
+```
+
+上述代码中只是一个 promise 的几个处理程序，它们不会互相传递 `result`，它们彼此独立运行，所以它们的 `alert` 返回的都是相同的结果 `1`。
+
+![image-20250722082757647](images/image-20250722082757647.png)
+
+很少会遇到一个 promise 需要多个处理程序的情况，**使用链式调用的频率更高**。
+
+
+
+**返回 promise**
+
+在 `.then(handler)` 中所使用的处理程序（handler），**可以创建并返回一个 promise**。
+
+在这种情况下，**其它处理程序将等待它 settled 后再获得其结果**。
+
+例如：
+
+```js
+new Promise(function(reolve, reject) {
+  setTimeout(() => resolve(1), 1000);
+}).then(function(result) {
+  
+  alert(result); // 1
+  
+  return new Promise((resolve, reject) => {
+    setTimeout(() => resolve(result * 2), 1000);
+  });
+  
+}).then(function(result) {
+
+  alert(result); // 2
+
+  return new Promise((resolve, reject) => {
+    setTimeout(() => resolve(result * 2), 1000);
+  });
+
+}).then(function(result) {
+
+  alert(result); // 4
+
+});
+```
+
+上述代码中第一个 `.then` 先显示 `1`，然后 1 秒后它会进行 `resolve`，然后将 `result * 2` 传递给第二个 `.then` 处理程序，以此类推，输出与前面的示例相同：1 → 2 → 4，但在每次 `alert` 调用之间会有 1 秒钟的延迟。
+
+通过返回 promise 可以**构建异步行为链**。
+
+
+
+**使用 promise 链重写之前的 `loadScript` 函数的使用**
+
+```js
+loadScript('/article/promise-chaining/one.js')
+  .then(script => loadScript('/article/promise-chaining/two.js'))
+  .then(script => loadScript('/article/promise-chaining/three.js'))
+  .then(script => {
+    // 脚本加载完成，可以在这使用脚本中声明的函数
+    one();
+    two();
+    three();
+  });
+```
+
+上述代码中每个 `loadScript` 调用都返回一个 promise，并且在它 resolve 时下一个 `.then` 开始运行，然后，它启动下一个脚本的加载，所以，脚本是一个接一个地加载的。
+
+**可以向链中添加更多的异步行为，但代码仍然是 “扁平” 的，它向下增长，而不是向右**，没有 “回调地狱” 的迹象。
+
+**⚠️ 注意：** 从技术上讲，可以向每个 `loadScript` 直接添加 `.then`，像下面这样：
+
+```js
+loadScript('/article/promise-chaining/one.js').then(script1 => {
+  loadScript('/article/promise-chaining/two.js').then(script2 => {
+    loadScript('/article/promise-chaining/three.js').then(script3 => {
+      // 脚本加载完成，可以在这使用脚本中声明的函数
+      one();
+      two();
+      three();
+    });
+  });
+});
+```
+
+虽然这段代码做了相同的事情，**但是它是 “向右增长” 的，与回调函数一样会出现 “回调地狱” 的问题**。
