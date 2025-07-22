@@ -16828,8 +16828,32 @@ new Promise(function() {
 
 **⚠️ 注意：** 
 
-**这个事件是 [HTML 标准](https://html.spec.whatwg.org/multipage/webappapis.html#unhandled-promise-rejections) 的一部分**，如果出现了一个 error，并且没有 `.catch`，那么 `unhandledrejection` 处理程序就会被触发，并获取具有 error 相关信息的 `event` 对象。
+- **这个事件是 [HTML 标准](https://html.spec.whatwg.org/multipage/webappapis.html#unhandled-promise-rejections) 的一部分**，如果出现了一个 error，并且没有 `.catch`，那么 `unhandledrejection` 处理程序就会被触发，并获取具有 error 相关信息的 `event` 对象
 
-通常此类 error 是无法恢复的，所以最好的解决方案是将问题告知用户，并且可以将事件报告给服务器。
+  通常此类 error 是无法恢复的，所以最好的解决方案是将问题告知用户，并且可以将事件报告给服务器。
 
-**在 Node.js 等非浏览器环境中**，有其它用于跟踪未处理的 error 的方法。
+- **如果没有办法从 error 中恢复，不使用 `.catch` 也可以**
+
+- **在 Node.js 等非浏览器环境中**，有其它用于跟踪未处理的 error 的方法
+
+- **promise 只能处理 executor 的错误**，异步产生的错误无法处理，例如：
+
+  ```js
+  new Promise(function(resolve, reject) {
+    setTimeout(() => {
+      throw new Error('Whoops!');
+    }, 1000);
+  }).catch(alert); // 不会触发
+  ```
+
+  上述代码中函数代码周围有 **“隐式的 `try..catch`”**，所有同步错误都会得到处理，但这里的错误**不是在 executor 运行时生成的，而是在稍后生成的**，所以 promise 无法处理它。
+
+  解决方案：手动 `reject` 错误。
+
+  ```js
+  new Promise(function(resolve, reject) {
+    setTimeout(() => {
+      reject(new Error('Whoops!'));
+    }, 1000);
+  }).catch(alert); // Error: Whoops!
+  ```
