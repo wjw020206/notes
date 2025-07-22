@@ -16574,4 +16574,86 @@ loadScript('/article/promise-chaining/one.js').then(script1 => {
 });
 ```
 
-虽然这段代码做了相同的事情，**但是它是 “向右增长” 的，与回调函数一样会出现 “回调地狱” 的问题**。
+虽然这段代码做了相同的事情，**但是它是 “向右增长” 的，与回调函数一样会出现 “回调地狱” 的问题，所以通常，链式是首选，**但有时候直接写 `.then` 也是可以的，因为嵌套的函数可以访问外部作用域，在上面的例子中，嵌套在最深层的那个回调（callback）可以访问所有变量 `script1`，`script2` 和 `script3`。
+
+
+
+**Thenables**
+
+准确来说，`.then` 处理程序返回的不完全是一个 promise，而是**返回 “thenable” 对象—— 一个具有方法 `.then` 的任意对象，它会被当做一个 promise 来对待** 。
+
+之所以这样设计，是为了第三方库可以实现自己的 “promise 兼容（promise-compatible）” 对象，它们可以具有扩展的方法集，但也与原生的 promise 兼容，因为它们实现了 `.then` 方法。
+
+下面是一个 thenable 对象的示例：
+
+```js
+class Thenable {
+  constructor(num) {
+    this.num = num;
+  }
+  
+  then(resolve, reject) {
+    alert(resolve); // function () { [native code] }
+    // 1 秒后使用 this.num*2 进行 resolve
+    setTimeout(() => resolve(this.num * 2), 1000);
+  }
+}
+
+new Promise(resolve => resolve(1))
+  .then(result => {
+    return new Thenable(result);
+  })
+  .then(alert); // 1000ms 后显示 2
+```
+
+JavaScript 会检查返回的 `new Thenable(result)` 对象：如果它具有名为 `then` 的可调用方法，那么**将调用该方法并提供原生的函数 `resolve` 和 `reject` 作为参数（类似于 executor），并等待直到其中一个函数被调用**，反之则直接当作一个普通值，立即被封装成一个 resolved 的 promise 继续传递。
+
+这个特性**允许将自定义对象与 promise 链集成在一起，而不必继承自 `Promise`**
+
+
+
+**更复杂的示例：fetch**
+
+在前端编程中，promise 通常被用于网络请求，例如：
+
+```js
+fetch('./user.json')
+  .then((response) => response.json())
+  .then((user) => fetch(`https://api.github.com/users/${user.name}`))
+  .then((response) => response.json())
+  .then((githubUser) => {
+    const img = document.createElement('img');
+    img.src = githubUser.avatar_url;
+    img.className = 'promise-avatar-example';
+    document.body.append(img);
+
+    setTimeout(() => img.remove(), 3000);
+  });
+```
+
+上述代码可以正常工作，但是存在一个潜在的问题：如果想在头像显示结束并被移除**之后**做点什么，就目前的代码而言是做不到的。
+
+**为了使链可扩展，需要返回一个在头像显示结束时进行 resolve 的 promise**。
+
+``` js
+fetch('./user.json')
+  .then((response) => response.json())
+  .then((user) => fetch(`https://api.github.com/users/${user.name}`))
+  .then((response) => response.json())
+  .then((githubUser) => new Promise(function(resolve, reject) { // (*)
+  	const img = document.createElement('img');
+    img.src = githubUser.avatar_url;
+    img.className = 'promise-avatar-example';
+    document.body.append(img);
+
+    setTimeout(() => {
+      img.remove()
+      resolve(githubUser); // (**)
+    }, 3000);
+})
+  .then(githubUser => alert(`Finished showing ${githubUser.name}`)); // 3 秒后触发
+```
+
+上述代码中在第 `(*)` 行的 `.then` 处理程序中现在返回一个 `new Promise`，只有在 `setTimeout` 中的 `resolve(githubUser)` `(**)` 被调用后才会变为 settled，链中的下一个 `.then` 将一直等待这一时刻的到来。
+
+**作为一个好的做法，异步行为应该始终返回一个 promise**，这样就可以使得之后计划后续的行为成为可能，即使现在不打算对链进行扩展，但在之后可能会需要。

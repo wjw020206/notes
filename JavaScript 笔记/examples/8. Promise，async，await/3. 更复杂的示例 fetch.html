@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      .promise-avatar-example {
+        border-radius: 50%;
+        position: fixed;
+        left: 10px;
+        top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      // fetch('./user.json')
+      //   .then((response) => response.json())
+      //   .then((user) => fetch(`https://api.github.com/users/${user.name}`))
+      //   .then((response) => response.json())
+      //   .then((githubUser) => {
+      //     const img = document.createElement('img');
+      //     img.src = githubUser.avatar_url;
+      //     img.className = 'promise-avatar-example';
+      //     document.body.append(img);
+
+      //     setTimeout(() => img.remove(), 3000);
+      //   });
+
+      fetch('./user.json')
+        .then((response) => response.json())
+        .then((user) => fetch(`https://api.github.com/users/${user.name}`))
+        .then((response) => response.json())
+        .then(
+          (githubUser) =>
+            new Promise(function (resolve) {
+              const img = document.createElement('img');
+              img.src = githubUser.avatar_url;
+              img.className = 'promise-avatar-example';
+              document.body.append(img);
+
+              setTimeout(() => {
+                img.remove();
+                resolve(githubUser);
+              }, 3000);
+            })
+        );
+    </script>
+  </body>
+</html>
