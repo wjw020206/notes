@@ -9577,7 +9577,7 @@ let arr = [3, 5, 1];
 alert( Math.max(arr) ); // NaN
 ```
 
-这时可以使用**Spread 语法**解决这个问题，它看起来和 Rest 参数很像，也使用 `...`，**但是二者的用途完全相反**。
+这时可以使用 **Spread 语法**解决这个问题，它看起来和 Rest 参数很像，也使用 `...`，**但是二者的用途完全相反**。
 
 
 
@@ -17169,3 +17169,108 @@ const promise = new Promise((resolve, reject) => reject(error));
 
 实际上该方法几乎从未被使用过。
 
+
+
+## Promisification
+
+Promisification 是指将一个接受回调的函数转换为一个返回 promise 的函数。
+
+很多函数和库都是基于回调的，所以实际开发中经常会需要进行这种转换，因为 promise 更加方便，所以将基于回调的函数和库 promise 化是有意义的。
+
+例如前面的 `loadScript(src, callback)`。
+
+```js
+function loadScript(src, callback) {
+  let script = document.createElement('script');
+  script.src = src;
+
+  script.onload = () => callback(null, script);
+  script.onerror = () => callback(new Error(`Script load error for ${src}`));
+
+  document.head.append(script);
+}
+
+// 用法：
+// loadScript('path/script.js', (err, script) => {...})
+```
+
+基于 `loadScript(src, callback)` 创建一个新函数 `loadScriptPromise(src)`，与上面的函数作用相同，**只是这个函数返回一个 promise 而不是使用回调**。
+
+``` js
+const loadScriptPromise = function(src) {
+  return new Promise((resolve, reject) => {
+    loadScript(src, (error, script) => {
+      if(error) reject(error);
+      else resolve(script);
+    });
+  });
+};
+
+// 用法：
+// loadScriptPromise('path/script.js').then(...)
+```
+
+上述代码中，新函数是对原始的 `loadScript` 函数的包装，新函数调用它，并提供了自己的回调来将其转换为 promise `resolve/reject`。
+
+在实际开发中，可能需要 promise 化很多函数，所以使用一个 helper（辅助函数）很有意义。
+
+将其称为 `promisify(f)`：**它接受一个需要被 promise 化的函数 `f`，并返回一个包装（wrapper）函数**。
+
+```js
+function promisify(f) {
+  return function(...args) { // 返回一个包装函数
+    return new Promise((resolve, reject) => {
+      function callback(error, result) { // 对 f 的自定义的回调
+        if(error) {
+          reject(error);
+        } else {
+          resolve(result);
+        }
+      }
+      
+      args.push(callBack); // 将自定义的回调附加到 f 参数（arguments）的末尾
+      
+      f.apply(this, args); // 调用原始的函数
+    });
+  };
+}
+
+// 用法：
+// const loadScriptPromise = promisify(loadScript);
+// loadScriptPromise(...).then(...);
+```
+
+如果原始的 `f` 期望一个带有更多参数的回调 `callback(error, result1, result2, ...)`，需要继续改进上面的辅助函数。
+
+- 当它以 `promisify(f)` 的形式调用时，它应该与前面版本的工作方式类似
+
+- 当它以 `promisify(f, true)` 的形式调用时，它应该返回**以回调函数数组为结果 resolve 的 promise**
+
+  ```js
+  function promisify(f, manyArgs = false) {
+    return function(...args) {
+      return new Promise((resolve, reject) => {
+        function callback(error, ...results) { // 自定义的 f 的回调
+          if(error) {
+            reject(error);
+          } else {
+            // 如果 manyArgs 被指定，则使用所有回调的结果 resolve
+            resolve(manyArgs ? results : results[0]);
+          }
+        }
+        
+        args.push(callBack);
+        
+        f.apply(this, args);
+      });
+    };
+  }
+  ```
+
+  该版本与前面的实现基本相同，**只是根据 `manyArgs` 来判断是否决定仅使用一个还是所有参数调用 `resolve`**。
+
+  对于一些更加奇特的回调格式，例如根本没有 `err` 的格式：`callback(result)`，可以手动 promise 化这样的函数，不需要使用 helper。
+
+  也有一些更加灵活的 promisification 函数模块（module），例如 [es6-promisify](https://github.com/digitaldesignlabs/es6-promisify)，在 Node.js 中，有一个内建的 promise 化的函数 `util.promisify`。
+
+  **⚠️ 注意：** Promisification 虽然是一种很好的方法，但**不是回调的完全替代，因为一个 promise 只有一个结果，但从技术上讲，一个回调可能会被调用多次**，所以 Promisification **只适用于调用一次回调的函数，进一步的调用将被忽略**。
