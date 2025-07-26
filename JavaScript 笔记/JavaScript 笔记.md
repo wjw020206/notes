@@ -17274,3 +17274,91 @@ function promisify(f) {
   也有一些更加灵活的 promisification 函数模块（module），例如 [es6-promisify](https://github.com/digitaldesignlabs/es6-promisify)，在 Node.js 中，有一个内建的 promise 化的函数 `util.promisify`。
 
   **⚠️ 注意：** Promisification 虽然是一种很好的方法，但**不是回调的完全替代，因为一个 promise 只有一个结果，但从技术上讲，一个回调可能会被调用多次**，所以 Promisification **只适用于调用一次回调的函数，进一步的调用将被忽略**。
+
+
+
+## 微任务（Microtask）
+
+**promise 的处理程序 `.then`、`.catch` 和 `.finally` 都是异步的**。
+
+即使一个 promise 立即被 resolve，**`.then`、`.catch` 和 `.finally` 下面的代码也会在这些处理程序之前被执行**。
+
+例如：
+
+```js
+const promise = Promise.resolve();
+
+promise.then(() => alert('promise done!'));
+
+alert('code finished'); // 这个 alert 先显示
+```
+
+上述代码运行首先看到的是 `code finished`，然后才是 `promise done`。
+
+
+
+**微任务队列（Microtask queue）**
+
+异步任务需要适当的管理，为此，ECMA 标准制定了一个内部队列 `PromiseJobs`，**通常被称为 “微任务队列（microtask queue）”（V8 术语）**。
+
+如[规范](https://tc39.github.io/ecma262/#sec-jobs-and-job-queues)中所述：
+
+- **队列（queue）是先进先出的：** 首先进入队列的任务会首先运行
+- **只有在 JavaScript 引擎中没有其它任务在运行时，才开始执行任务队列中的任务**
+
+简单来说，当一个 promise 准备就绪时，它的 `.then/catch/finally` 处理程序就会被放入队列中，**但它们不会立即被执行。当 JavaScript 引擎执行完当前的代码，它会从队列中获取任务并执行它**。
+
+这也就是为什么前面示例中 code finished 会先显示：
+
+![image-20250726153020820](images/image-20250726153020820.png)
+
+promise 的处理程序总是会经过这个内部队列。
+
+如果一个包含多个 `.then/catch/finally` 的链，那么它们中的每一个都是异步执行的，也就是说，**它会首先进入队列，然后在当前代码执行完成并且先前排队的处理程序都完成时才会被执行**。
+
+如果执行顺序很重要，例如要让前面代码示例中的 `code finished` 在 `promise done` 之后显示，只需要像下面这样使用 `.then` 将其放入队列中：
+
+```js
+Promise.resolve()
+  .then(() => alert('promise done!'))
+  .then(() => alert('code finished'));
+// 现在代码按预期顺序执行
+```
+
+
+
+**未处理的 rejection**
+
+**如果一个 promise 的 error 未被在微任务队列的末尾进行处理，则会出现 “未处理的 rejection”**。
+
+通常来说，如果预期可能会发生错误，会在 promise 链上添加 `.catch` 来处理 error：
+
+```js
+const promise = Promise.reject(new Error('Promise Failed!'));
+promise.catch(error => alert('caught'));
+
+// 不会运行：error 已经被处理
+window.addEventListener('unhandledrejection', event => alert(event.reason));
+```
+
+如果忘记添加 `.catch`，JavaScript 引擎会在**微任务队列清空后**检查是否存在未处理的 Promise reject 或者 error，然后触发 `unhandledrejection` 事件：
+
+```js
+const promise = Promise.reject(new Error('Promise Failed!'));
+
+// 会运行：Error: Promise Failed!
+window.addEventListener('unhandledrejection', event => alert(event.reason));
+```
+
+如果迟一点处理这个 error：
+
+```js
+const promise = Promise.reject(new Error('Promise Failed!'));
+setTimeout(() => promise.catch(error => alert('caught')), 1000);
+
+window.addEventListener('unhandledrejection', event => alert(event.reason));
+```
+
+运行上述代码，会先显示 `Promise Failed!`，然后才是 `caught`。
+
+之所以会这样，是因为 `setTimeout` 是属于**宏任务队列 (Macrotask Queue）**，同步代码执行完成，然后 JavaScript 引擎在**微任务队列清空后**检查发现**存在未处理的 Promise reject**，所以触发了 `unhandledrejection` 事件，随后宏任务队列中的 `setTimeout` 执行结束 `.catch` 处理器被放入微任务队列中，最后，微任务队列被清空， `.catch` 被执行。
