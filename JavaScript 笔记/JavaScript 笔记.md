@@ -16816,7 +16816,7 @@ new Promise(funcion() {
 **在浏览器中，可以使用 `unhandledrejection` 事件来捕获这类 error**：
 
 ```js
-window.addEventListener('unhandledrejection', function(event) {
+window.addEventListener('unhandljection', function(event) {
   alert(event.promise); // [object Promise] —— 生成该全局 error 的 promise
   alert(event.reason); // Error: Whoops! —— 未处理的 error 对象
 });
@@ -16857,3 +16857,82 @@ new Promise(function() {
     }, 1000);
   }).catch(alert); // Error: Whoops!
   ```
+
+  
+
+## Promise API
+
+在 `Promise` 类中，有 7 种静态方法。
+
+
+
+**Promise.all**
+
+**作用：** 如果希望**并行执行多个 promise**，并等待所有 promise 都准备完成。
+
+例如：并行下载几个 URL，并等到所有内容都下载完成后再对它们进行处理。
+
+语法：
+
+```js
+const promise = Promise.all(iterable);
+```
+
+`Promise.all` 接收一个**可迭代的对象**（通常是一个数组项为 promise 的数组），并返回一个新的 promise。
+
+**当所有给定的 promise 都 resolve 时，新的 promise 才会 resolve，并将其结果数组作为的新的 promise 的结果**。
+
+例如：
+
+```js
+Promise.all([
+  new Promise(resolve => setTimeout(() => resolve(1), 3000)), // 1
+  new Promise(resolve => setTimeout(() => resolve(2), 2000)), // 2
+  new Promise(resolve => setTimeout(() => resolve(3), 1000)), // 3
+]).then(alert); // 1,2,3 当上面这些 promise 准备好时：每个 promise 都贡献了数组中的一个元素
+```
+
+**⚠️ 注意：** 数组中的元素的顺序与其在源 promise 中的**顺序相同**，即使第一个 promise 花费了最长时间才 resolve，但它仍是结果数组中的第一个。
+
+**一个常见的技巧是将一个任务数据数组映射（map）到一个 promise 数组，然后将其包装到 `Promise.all`**。
+
+例如：
+
+```js
+const urls = [
+  'https://api.github.com/users/iliakan',
+  'https://api.github.com/users/remy',
+  'https://api.github.com/users/jeresig',
+];
+
+// 将每个 url 映射（map）到 fetch 的 promise 中
+const requests = urls.map(url => fetch(url));
+
+Promise.all(requests)
+  .then(response => responses.forEach(
+    response => alert(`${response.url}: ${response.status}`);
+  ));
+```
+
+一个更真实的示例：
+
+```js
+const names = ['iliakan', 'remy', 'jeresig'];
+
+const requests = names.map(name => fetch(`https://api.github.com/users/${name}`));
+
+Promise.all(requests)
+  .then(responses => {
+    // 所有响应都被成功 resolved
+    for(const response of responses) {
+      alert(`${response.url}: ${response.status}`);
+    }
+  
+    return responses;
+  })
+  // 将响应数组映射（map）到 response.json() 数组中以读取它们的内容
+  .then(responses => Promise.all(responses.map(r => r.json())))、
+  // 所有 JSON 结果都被解析：users 数组
+  .then(users => users.forEach(user => alert(user.name));
+```
+
