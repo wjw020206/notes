@@ -16936,3 +16936,236 @@ Promise.all(requests)
   .then(users => users.forEach(user => alert(user.name));
 ```
 
+**⚠️ 注意：如果任意一个 promise 被 reject，由 `Promise.all` 返回的 promise 会立即 reject，并且带有的就是这个 error**。
+
+例如：
+
+```js
+Promise.all([
+  new Promise((resolve, reject) => setTimeout(() => resolve(1), 1000)),
+  new Promise((resolve, reject) => setTimeout(() => reject(new Error('Whoops!')), 2000)),
+  new Promise((resolve, reject) => setTimeout(() => resolve(3), 3000))
+]).catch(alert); // Error: Whoops!
+```
+
+上述代码中第二个 promise 在两秒后被 reject，这立即导致了 `Promise.all` 的 reject，所以 `.catch` 执行了。
+
+**⚠️ 注意：** 
+
+- **如果出现 error，其他 promise 将被忽略**
+
+  如果其中一个 promise 被 reject，`Promise.all` 会立即 reject，并完全忽略列表中其它的 promise，它们的结果也将被忽略，例如前面的例子中，如果多个同时进行的 `fetch` 调用，其中一个失败，**其它的 `fetch` 操作仍然会继续执行，但是 `Promise.all` 将不再关心它们，它们可能会 settle，但它们的结果将被忽略。**
+
+  **`Promise.all` 没有采取任何操作来取消它们，因为 promise 中没有取消的概念**，可以使用 `AbortController` 来解决这个问题，但它不是 Promise API 的一部分。
+
+- **`Promise.all(iterable)` 允许在 `iterable` 中使用非 promise 的 “常规” 值**
+
+  通常 `Promise.all(...)` 接受含有 promise 项的可迭代对象（大多数情况下是数组）作为参数，但这些对象中任何一个不是 promise，**它将会被 “按原样” 传递给结果数组**。
+
+  例如：
+
+  ```js
+  Promise.all([
+    new Promise((resolve, reject) => {
+      setTimeout(() => resolve(1), 1000)
+    }),
+    2,
+    3
+  ]); // 1, 2, 3
+  ```
+
+
+
+**Promise.allSettled**
+
+**⚠️ 注意：** 旧的浏览器中需要使用 polyfill 才能支持，这是新添加的特性。
+
+如果任意 promise reject，`Promise.all` 整个将会 reject，当需要所有结果都成功时，它对这种 “全有或全无” 的情况很有用：
+
+```js
+Promise.all([
+  fetch('/template.html'),
+  fetch('/style.css'),
+  fetch('/data.json')
+]).then(render); // render 方法需要所有 fetch 的数据
+```
+
+而 `Promise.allSettled` 等待所有的 promise 都被 settle，无论结果如何，结果数组都会像下面这样：
+
+- 对于成功的响应，结果数组对应元素的内容为 **`{status:"fulfilled", value:result}`**
+- 对于 error 的响应，结果数组对应元素的内容为 **`{status:"rejected", reason:error}`**
+
+例如想要获取（fetch）多个用户的信息，即使其中一个请求失败，我们仍然对其他的感兴趣：
+
+```js
+const urls = [
+  'https://api.github.com/users/iliakan',
+  'https://api.github.com/users/remy',
+  'https://no-such-url'
+];
+
+Promise.allSettled(urls.map(url => fetch(url)))
+  .then(results => {
+    results.forEach((result, num) => {
+      if(result.status === 'fulfilled') {
+        alert(`${urls[num]}: ${result.value.status}`)
+      }
+      if(result.status === 'rejected') {
+        alert(`${urls[num]}: ${result.reason}`);
+      }
+    });
+  });
+```
+
+上述代码中 `results` 的结果将会是：
+
+```js
+[
+  {status: 'fulfilled', value: ...response...},
+  {status: 'fulfilled', value: ...response...},
+  {status: 'rejected', reason: ...error object...}
+]
+```
+
+对于每个 promise，都得到其状态（status）和 `value/reason`。
+
+
+
+**Polyfill**
+
+如果浏览器不支持 `Promise.allSettled`，很容易进行 polyfill：
+
+```js
+if(!Promise.allSettled) {
+  const rejectHandler = reason => ({ status: 'rejected', reason });
+  const resolveHandler = value => ({ status: 'fulfilled', value });
+  
+  Promise.allSettled = function(promises) {
+    const convertedPromises = promises.map(p => Promise.resolve(p)).then(resolveHandler, rejectHandler);
+    return Promise.all(convertedPromises);
+  }
+}
+```
+
+上述代码中，`promises.map` 获取输入值，通过 `p => Promise.resolve(p)` 将输入值转换为 promise（以防传递了非 promise 值），然后向每一个 promise 都添加 `.then` 处理程序。
+
+这个处理程序将成功结果 `value` 转换为 `{ status:'fulfilled', value }`，将 error `reason` 抓换为 `{ status:'rejected', reason }`，正是 `Promise.allSettled` 的格式。
+
+
+
+**Promise.race**
+
+与 `Promise.all` 类似，但**只等待第一个 settled 的 promise 并获取其结果（或 error）**。
+
+语法：
+
+```js
+const promise = Promise.race(iterable);
+```
+
+例如：
+
+````js
+Promise.race([
+  new Promise((resolve, reject) => setTimeout(() => resolve(1), 1000)),
+  new Promise((resolve, reject) => setTimeout(() => reject(new Error('Whoops!')), 2000)),
+  new Promise((resolve, reject) => setTimeout(() => resolve(3), 3000))
+]).then(alert); // 1
+````
+
+上述代码中**第一个 promise 是最快的，所以它变成了结果，之后其它 promise 的 result/error 都会被忽略**。
+
+
+
+**Promise.any**
+
+与 `Promise.race` 类似，区别在于 `Promise.any` **只等待第一个 fulfilled 的 promise**，并将 fulfilled 的 promise 返回，如果给出的 promise 都 rejected，那么返回的 promise 会带有 `AggregateError` —— **一个特殊的 error 对象，在其 `errors` 属性中存储着所有 promise error**。
+
+语法：
+
+```js
+const promise = Promise.any(iterbale);
+```
+
+例如：
+
+```js
+Promise.any([
+  new Promise((resolve, reject) => setTimeout(() => reject(new Error('Whoops!')), 1000)),
+  new Promise((resolve, reject) => setTimeout(() => resolve(1), 2000)),
+  new Promise((resolve, reject) => setTimeout(() => resolve(3), 3000))
+]).then(alert); // 1
+```
+
+上述代码中**虽然第一个 promise 是最快的，但是被 rejected 了，所以第二个 promise 成为了结果，之后其它的 promise 的 result/error 都会被忽略**。
+
+所有 promise 都失败的例子：
+
+```js
+Promise.any([
+  new Promise((resolve, reject) => setTimeout(() => reject(new Error('Ouch!')), 1000)),
+  new Promise((resolve, reject) => setTimeout(() => reject(new Error('Error!')), 2000))
+]).catch(error => {
+  console.log(error.constructor.name); // AggregateError
+  console.log(error.errors[0]); // Error: Ouch!
+  console.log(error.errors[1]); // Error: Error!
+});
+```
+
+正如上述代码所示，可以在 `AggregateError` 错误类型的 error 实例的 `errors` 属性中可以访问到失败的 promise 的 error 对象。
+
+
+
+**Promise.resolve/reject**
+
+在现代代码中，很少需要使用 `Promise.resolve` 和 `Promise.reject` 方法，**因为 `async/await` 语法使它们变得有些过时**。
+
+
+
+**Promise.resolve**
+
+`Promise.resolve(value)` 用结果 `value` 创建一个 resolved 的 promise。
+
+等同于：
+
+``` js
+const promise = new Promise(resolve => resolve(value));
+```
+
+当一个函数被期望返回一个 promise 时，可以使用 `Promise.resolve(value)` 将 `value` “封装” 进 promise，以满足期望返回一个 promise 的需求。
+
+例如：
+
+```js
+const catch = new Map();
+
+function loadCached(url) {
+  if(cache.has(url)) {
+    return Promise.resolve(cache.get(url)); // 如果已经缓存了结果，则直接返回 resolve 的结果
+  }
+  
+  return fetch(url)
+    .then(response => response.text())
+    .then(text => {
+      cache.set(url, text);
+      return text;
+    });
+}
+```
+
+因为 `loadCached(url)` 函数保证返回一个 promise，可以放心的在 `loadedCached` 后面使用 `.then`。
+
+
+
+**Promise.reject**
+
+`Promise.reject(error)` 用 `error` 创建一个 rejected 的promise。
+
+例如：
+
+```js
+const promise = new Promise((resolve, reject) => reject(error));
+```
+
+实际上该方法几乎从未被使用过。
+
