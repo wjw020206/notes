@@ -5951,7 +5951,7 @@ alert( '𝒳'[1] ); // 代理对的另一部分
 
 从技术角度来说，代理对也是可以通过代码检测到的：如果一个字符的代码在 `0xd800..0xdbff` 范围内，那么它是代理对的第一部分，下一个字符（第二部分）必须在 `0xdc00..0xdfff` 范围中，这些范围是按照标准专门为代理对保留的。
 
-**只有 `String.fromCodePoint` 和 `str.codePointAt` 等方法可以正确处理代理对，但这些方法都是后来出现出现的，旧版浏览器不支持**，在此之前只有 `String.fromCharCode` 和 `str.charCodeAt`，功能与前者相同，但是无法正确处理代理对，例如：
+**只有 `String.fromCodePoint` 和 `str.codePointAt` 等方法可以正确处理代理对，但这些方法都是后来出现的，旧版浏览器不支持**，在此之前只有 `String.fromCharCode` 和 `str.charCodeAt`，功能与前者相同，但是无法正确处理代理对，例如：
 
 ```js
 // 可以正确处理代理对
@@ -17602,3 +17602,460 @@ f().catch(alert); // TypeError: failed to fetch
   ```
 
   如果出现了 error，也会正常传递，从失败了的 promise 传到 `Promise.all`，可以通过 `try...catch` 在调用周围捕获异常。
+
+
+
+## generator
+
+常规函数只会返回一个单一值（或者不返回任何值）。
+
+而 generator 可以按需一个接一个返回多个值，它们可以与 iterable 完美配合使用，可以轻松的创建数据流。
+
+
+
+**generator 函数**
+
+要创建一个 generator，需要一个特殊的语法结构：`function*`，即所谓的 **“generator function”**。
+
+像下面这样：
+
+```js
+function* generatorSequence() {
+  yield 1;
+  yield 2;
+  return 3;
+}
+```
+
+generator 函数与常规函数的行为不同：**此类函数被调用时，它不会运行其内部代码，而是返回一个被称为 “generator object” 的特殊对象，来管理执行流程**。
+
+例如：
+
+```js
+function* generateSequence() {
+  yield 1;
+  yield 2;
+  return 3;
+}
+
+const generator = generateSequence();
+alert(generator); // [object Generator]
+```
+
+上述代码中的**函数体代码还没有开始执行**：
+
+![image-20250728090242610](images/image-20250728090242610.png)
+
+一个 “generator object” 主要的方法就是 `next()`，当 `next()` 方法被调用时，它会**恢复上述函数体中代码的运行，执行到最近的 `yield <value>` 语句（`value` 可以被省略，默认为 `undefined`），然后函数执行暂停，并将产出的（yielded）值返回到外部代码**。
+
+`next()` 的结果始终是一个具有两个属性的对象：
+
+- `value`：产出的（yielded）的值
+- `done`：如果 generator 函数已执行完成则为 `true`，否则为 `false`
+
+例如：
+
+```js
+function* generateSequence() {
+  yield 1;
+  yield 2;
+  return 3;
+}
+
+const generator = generateSequence();
+
+const one = generator.next();
+
+alert(JSON.stringify(one)); // {value: 1, done: false}
+```
+
+上述代码截止目前，只获取了第一个值，函数执行处在第二行：
+
+![image-20250728091106246](images/image-20250728091106246.png)
+
+当再次调用 `generator.next()` 时，代码恢复执行并返回下一个 `yield` 的值：
+
+```js
+const two = generator.next();
+
+alert(JSON.stringify(two)); // {value: 2, done: false}
+```
+
+![image-20250728091257524](images/image-20250728091257524.png)
+
+当第三次调用 `generator.next()` 时，代码会执行到 `return` 语句，此时完成了这个函数的执行：
+
+```js
+const three = generator.next();
+
+alert(JSON.stringify(three)); // {value: 3, done: true}
+```
+
+![image-20250728091525589](images/image-20250728091525589.png)
+
+现在 generator 执行完成，再对 `generator.next()` 进行新的调用不再有任何意义，它将返回相同的对象：`{done: true}`
+
+**⚠️ 注意：`function* f(...)` 或 `function *f(...)` 两种语法都对，但通常更倾向第一种语法**，因为星号 `*` 表示它是一个 generator 函数，它描述的是函数种类而不是名称，因此 `*` 应该和 `function` 关键字紧贴一起。
+
+
+
+**generator 是可迭代的**
+
+“‘generator object” 是可迭代的，可以使用 `for..of` 循环遍历它的值：
+
+```js
+function* generatorSequence() {
+  yield 1;
+  yield 2;
+  return 3;
+}
+
+const generator = generatorSequence();
+
+for(const value of generator) {
+  alert(value); // 1，然后是 2
+}
+```
+
+`for..of` 的写法比使用 `.next().value` 更加优雅。
+
+**⚠️ 注意：** 上述代码会先显示 `1`，然后是 `2`，**不会显示 `3`**，因为当 `done: true` 时，`for..of` 循环会忽略最后一个 `value`，所以**要通过 `for..of` 循环显示所有结果，必须使用 `yield` 返回它们**：
+
+```js
+function* generateSequence() {
+  yield 1;
+  yield 2;
+  yield 3;
+}
+
+const generator = generatorSequence();
+
+for(const value of generator) {
+  alert(value); // 1，然后是 2，然后是 3
+}
+```
+
+因为 “‘generator object” 是可迭代的，**可以使用 iterator 的所有相关功能**，例如：spread 语法 `...`：
+
+```js
+function* generateSequence() {
+  yield 1;
+  yield 2;
+  yield 3;
+}
+
+const sequence = [0, ...generateSequence()];
+
+alert(sequence); // 0, 1, 2, 3
+```
+
+
+
+**使用 generator 进行迭代**
+
+有一个可迭代的 `range` 对象，它返回 `from...to` 的值。
+
+例如：
+
+```js
+const range = {
+  from: 1,
+  to: 5,
+
+  [Symbol.iterator]() {
+    return {
+      current: this.from,
+      last: this.to,
+
+      next() {
+        if (this.current <= this.last) {
+          return { done: false, value: this.current++ };
+        } else {
+          return { done: true };
+        }
+      }
+    };
+  }
+};
+
+alert([...range]); // 1,2,3,4,5
+```
+
+上述代码也可以使用 generator 函数来作为 `Symbol.iterator`，使用 generator 进行迭代：
+
+```js
+const range = {
+  from: 1,
+  to: 5,
+
+  *[Symbol.iterator]() {
+    for (let value = this.from; value <= this.to; value++) {
+      yield value;
+    }
+  }
+};
+
+alert([...range]); // 1,2,3,4,5
+```
+
+这段代码与之前的写法功能相同，但结构更加紧凑和简洁。
+
+这段代码之所以可以正常工作，因为 `range[Symbol.iterator]()` 返回了一个 generator，而 generator 方法正是 `for..of` 所期望的：
+
+- 它具有 `.next()` 方法
+- 它以 `{value: ..., done: true/false}` 的形式返回值
+
+这并不是巧合，generator 被添加到 JavaScript 语言中是有对 iterator 的考量，以便更容易实现 iterator。
+
+**⚠️ 注意：generator 可以永远产出（yield）值**，前面的例子中生成了有限的序列，但也可以创建一个生成无限序列的 generator，它可以一直产出（yield）值，**这种情况下需要在 generator 的 `for..of` 循环中添加一个 `break`（或者 `return`），否则循环将永远重复下去并挂起**。
+
+
+
+**generator 组合**
+
+generator 组合是 generator 的一个特殊功能，它**允许透明地（transparently）将 generator 彼此 “嵌入（embed）” 到一起**。
+
+例如，有一个生产数组序列的函数：
+
+```js
+function* generatorSequence(start, end) {
+  for (let i = start; i <= end; i++) yield i;
+}
+```
+
+如果想复用它来生成一个更复杂的序列：
+
+- 首先是数字 `0..9`（字符代码为 48…57），
+- 接下来是大写字母 `A..Z`（字符代码为 65…90）
+- 接下来是小写字母 `a...z`（字符代码为 97…122）
+
+可以对这个序列进行应用，例如：这个序列可以用来生成密码。
+
+在常规函数中，要合并其它多个函数的结果，需要调用它们，并存储它们的结果，最后将它们合并在一起。
+
+对于 generator 而言，可以**使用 `yield*` 这个特殊的语法将一个 generator “嵌入”（组合）到另一个 generator 中**，例如：
+
+```js
+function* generatorSequence(start, end) {
+  for (let i = start; i <= end; i++) yield i;
+}
+
+function* generatorPasswordCodes() {
+  // 0...9
+  yield* generatorSequence(48, 57);
+  
+  // A...Z
+  yield* generatorSequence(65, 90);
+  
+  // a...z
+  yield* generatorSequence(97, 122);
+}
+
+let str = '';
+
+for(let code of generatorPasswordCodes()) {
+  str += String.fromCharCode(code);
+}
+
+alert(str); // 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
+```
+
+**`yield*` 指令将执行委托给另一个 generator**，意味着 `yield* gen` 在 generator `gen` 上进行迭代，**将其产出（yield）的值透明地（transparently）转发到外部，好像这些值就是由外部的 generator yield 的一样**。
+
+执行结果与内嵌套 generator 中的代码获得的结果相同：
+
+```js
+function* generateSequence(start, end) {
+  for (let i = start; i <= end; i++) yield i;
+}
+
+function* generateAlphaNum() {
+  // yield* generateSequence(48, 57);
+  for (let i = 48; i <= 57; i++) yield i;
+  
+  // yield* generateSequence(65, 90);
+  for (let i = 65; i <= 90; i++) yield i;
+  
+  // yield* generateSequence(97, 122);
+  for (let i = 97; i <= 122; i++) yield i;
+}
+
+let str = '';
+
+for(let code of generateAlphaNum()) {
+  str += String.fromCharCode(code);
+}
+
+alert(str); // 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
+```
+
+generator 组合（composition）是将一个 generator 流插入到另一个 generator 流的自然的方式，它**不需要使用额外的内存来存储中间结果**。
+
+
+
+**yield 是一条双向路**
+
+generator 和可迭代对象类似，都是用来生成值的特殊语法，但**实际上 generator 更加强大且灵活**。
+
+**`yield` 是一条双向路（two-way street）：它不仅可以向外返回结果，还可以将外部的值传递到 generator 内**。
+
+**通过调用 `generator.next(arg)`，就可以将参数 `arg` 传递到 generator 内部，这个 `arg` 参数会变成 `yield` 的结果**。
+
+例如：
+
+``` js
+function* gen() {
+  const result = yield '2 + 2 = ?'; // (*)
+  
+  alert(result);
+}
+
+const generator = gen();
+
+const question = generator.next().value; // yield 返回的 value
+
+generator.next(4); // 将结果传递到 generator 中，作为 yield '2 + 2 = ?' 的值赋值给 result
+```
+
+![image-20250728103447224](images/image-20250728103447224.png)
+
+1. 第一次调用 `generator.next()` 应该是不带参数的（如果带参数，那么参数也会被忽略），它开始执行并返回第一个 `yield '2 + 2 = ?'` 的结果，此时 generator 执行暂停，而停留在 `(*)` 行上
+2. 然后像图片中显示的那样，`yield` 的结果进入调用代码中的 `question` 变量
+3. 在 `generator.next(4)`，generator 恢复执行，并获得了 `4` 作为结果：`let result = 4`
+
+**⚠️ 注意：外部代码不必立即调用 `next(4)`**，外部代码可能需要一些时间，这没问题：generator 将等待它，例如：
+
+```js
+// 一段时间后恢复 generator
+setTimeout(() => generator.next(4), 1000);
+```
+
+与常规函数不同，generator 和调用 generator 的代码可以通过在 `next/yield` 中传递值来交换结果。
+
+看另一个例子：
+
+```js
+function* gen() {
+  const ask1 = yield '2 + 2 = ?';
+  
+  alert(ask1); // 4
+  
+  const ask2 = yield '3 * 3 = ?';
+  
+  alert(ask2); // 9
+}
+
+const generator = gen();
+
+alert(generator.next().value); // 2 + 2 = ?
+
+alert( generator.next(4).value ); // 3 * 3 = ?
+
+alert( generator.next(9).done ); // true
+```
+
+执行图：
+
+![image-20250728104513017](images/image-20250728104513017.png)
+
+1. 第一个 `.next()` 启动了 generator 的执行......执行到达第一个 `yield`
+2. 结果被返回到外部代码中
+3. 第二个 `.next(4)` 将 `4` 作为第一个 `yield` 的结果传递回 generator 并恢复 generator 的执行
+4. 执行到达第二个 `yield`，它变成了 generator 调用的结果
+5. 第三个 `next(9)` 将 `9` 作为第二个 `yield` 的结果传入 generator 并恢复 generator 的执行，执行现在到达了函数的最底部，所以返回 `done: true`
+
+**每个 `next(value)`（除了第一个）传递一个值到 generator 中，该值变成了当前 `yield` 的结果，然后获取下一个 `yield` 的结果**。
+
+
+
+**generator.throw**
+
+外部代码可能会将一个值传递到 generator，作为 `yield` 的结果，也可以在那里抛出一个 error。
+
+**要向 `yield` 传递一个 error，应该调用 `generator.throw(error)`**，这种情况下，`error` 将被抛到对应的 `yield` 所在的行。
+
+例如：
+
+```js
+function* gen() {
+  try {
+    const result = yield '2 + 2 = ?'; // (1)
+    
+    alert('执行不到这里，因为上面抛出了异常');
+  } catch (error) {
+    alert(error); // Error: 我的数据库中找不到答案
+  }
+}
+
+const generator = gen();
+
+const question = generator.next().value;
+
+generator.throw(new Error('我的数据库中找不到答案')); // (2)
+```
+
+上述代码中，在 `(2)` 行引入到 generator 的 error 导致了在 `(1)` 行中 `yield` 出现了一个异常，`try..catch` 捕获并显示了这 error。
+
+如果没有捕获它，那么就会像其它异常一样将从 generator “掉出” 到调用代码中。
+
+调用代码的当前行是 `generator.throw` 所在的那一行，标记为 `(2)`，也可以在这里捕获它，像下面这样：
+
+```js
+function* generate() {
+  let result = yield "2 + 2 = ?"; // 这行出现 error
+}
+
+const generator = generate();
+
+const question = generator.next().value;
+
+try {
+  generator.throw(new Error('我的数据库中找不到答案'));
+} catch (error) {
+  alert(error); // Error: 我的数据库中找不到答案
+}
+```
+
+上述代码中没有 generator 内部捕获 error，所以 error 会 “掉入” 外部的调用代码（如果有），如果在外部也没有捕获，则会杀死脚本。
+
+
+
+**generator.return**
+
+`generator.return(value)` **完成 generator 的执行并返回给定的 `value`**。
+
+```js  
+function* gen() {
+  yield 1;
+  yield 2;
+  yield 3;
+}
+
+const g = gen();
+
+g.next();               // { value: 1, done: false }
+g.return('CodePencil'); // { value: "CodePencil", done: true }
+g.next();               // { value: undefined, done: true }
+```
+
+**⚠️ 注意：** 如果在**已完成的 generator 上再次使用 `generator.return()`**，它会再次返回该值，例如：
+
+```js
+function* gen() {
+  yield 1;
+  yield 2;
+  yield 3;
+}
+
+const g = gen();
+
+g.next();               // { value: 1, done: false }
+g.next();               // { value: 2, done: false }
+g.next();               // { value: 3, done: false }
+g.next();               // { value: undefined, done: true }
+g.return('CodePencil'); // { value: 'CodePencil', done: true }
+```
+
+它**不会执行生成器函数体内部的任何代码**，只是**形式上返回指定值并标记为已完成**。
+
+通常不会使用它，因为大多数时候想要获取所有的返回值，但**当想要在特定条件下停止 generator 时它会很有用**。
