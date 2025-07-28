@@ -18059,3 +18059,136 @@ g.return('CodePencil'); // { value: 'CodePencil', done: true }
 它**不会执行生成器函数体内部的任何代码**，只是**形式上返回指定值并标记为已完成**。
 
 通常不会使用它，因为大多数时候想要获取所有的返回值，但**当想要在特定条件下停止 generator 时它会很有用**。
+
+
+
+## 异步迭代和 generator
+
+**异步迭代允许对按需通过异步请求而得到的数据进行迭代**，例如：通过网络分段（chunk-by-chunk）下载数据时，异步生成器（generator）使这一步骤更加方便。
+
+
+
+**异步可迭代对象**
+
+当值是以异步的形式出现时，例如在 `setTimeout` 或者另一种延迟之后，就需要**异步迭代**。
+
+最常见的场景是：对象需要发送一个网络请求以传递下一个值。
+
+要使用对象异步迭代：
+
+1. **使用 `Symbol.asyncIterator` 取代 `Symbol.iterator`**
+2. **`next()` 方法应该返回一个 `promise`**（带有下一个值，并且状态为 `fulfilled`）
+   - 关键字 `async` 可以实现这一点，可以简单地使用 `async next()`
+3. **应该使用 `for await (let item of iterable)` 循环来迭代这样的对象**
+   - 注意关键字 `await`
+
+例如：
+
+```js
+const range = {
+  from: 1,
+  to: 5,
+  
+  [Symbol.asyncIterator]() { // (1)
+    return {
+      current: this.from,
+      last: this.to,
+      
+      async next() { // (2)
+        // 可以在 async next 内部使用 await
+        await new Promise(resolve => setTimeout(resolve, 1000)); // (3)
+        
+        if(this.current <= this.last) {
+          return { done: false, value: this.current++ };
+        } else {
+          return { done: true };
+        }
+      }
+    };
+  }
+};
+
+(async () => {
+  for await (let value of range) { // (4)
+    alert(value); // 1,2,3,4,5
+  }
+})();
+```
+
+上述代码中可以看到，其结构与常规的 iterator 类似：
+
+1. 为了使一个对象可以异步迭代，**它必须具有方法 `Symbol.asyncIterator`** `(1)`
+2. **这个方法必须返回一个带有 `next()` 方法的对象**，`next()` 方法会返回一个 promise `(2)`
+3. 这个 `next` 方法可以不是 `async` 的，它可以是一个返回值是一个 promise 的常规的方法，但是使用 `async` 关键字可以允许在方法内部使用 `await`，更加方便，这里只是用于延迟 1 秒的操作 `(3)`
+4. **使用 `for await(let value of range)` `(4)` 来进行迭代**，在 `for` 后面添加 `await`，它会调用一次 `range[Symbol.asyncIterator]()` 方法，然后调用它的 `next()` 方法获取值
+
+以下是 iterator 与 异步 iterator 之间差异的表格：
+
+|                          | iterator          | **异步 iterator**      |
+| :----------------------- | :---------------- | ---------------------- |
+| 提供 iterator 的对象方法 | `Symbol.iterator` | `Symbol.asyncIterator` |
+| `next()` 返回的值是      | 任意值            | `Promise`              |
+| 要进行循环，使用         | `for..of`         | `for await..of`        |
+
+**⚠️ 注意：Spread 语法 `...` 无法异步工作**。
+
+需要常规的同步 iterator 的功能，无法与异步 iterator 一起使用，例如：
+
+```js
+alert( [...range] ); // Uncaught TypeError: range is not iterable
+```
+
+上述代码出现错误，是因为**它期望找到 `Symbol.iterator`，而不是 `Symbol.asyncIterator`**。
+
+`for..of` 的情况跟这个一样：**没有 `await` 关键字时，期望找到的是 `Symbol.iterator`**。
+
+
+
+**异步 generator**
+
+对于大多数异步生成一系列值的对象时，可以使用异步 generator。
+
+**语法：在 `function*` 前面加上 `async`，就可以使 generator 变为异步的**。
+
+然后使用 `for await (...)` 来遍历它，像下面这样：
+
+```js
+async function* generatorSequence(start, end) {
+  for (let i = start; i <= end; i++) {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    yield i;
+  }
+}
+
+(async () => {
+  const generator = generatorSequence(1, 5);
+  for await (let value of generator) {
+    alert(value);
+  }
+})();
+```
+
+因为 generator 是异步的，所以可以在其内部使用 `await`，依赖于 promise，执行网络请求等任务。
+
+**⚠️ 注意：** 从技术上讲异步 generator 和常规的 generator 在内部是有区别的。
+
+对于**异步 generator，`generator.next()` 方法是异步的，它返回 `promise`**。
+
+常规 generator 使用 `result = generator.next()` 来获取值，但**在一个异步 generator 中，应该添加 `await` 关键字**，像下面这样：
+
+```js
+const result = await generator.next(); // // result = {value: ..., done: true/false}
+```
+
+这就是为什么异步 generator 可以和 `for await...of` 一起工作的原因。
+
+
+
+**异步可迭代对象 range**
+
+常规的 generator 可以用作 `Symbol.iterator` 以使迭代代码更短。
+
+类似的，异步的 generator 可用作 `Symbol.asyncIterator` 实现异步迭代。
+
+例如前面的代码可以使用异步的 `Symbol.asyncIterator` 替换同步的 `Symbol.iterator`
