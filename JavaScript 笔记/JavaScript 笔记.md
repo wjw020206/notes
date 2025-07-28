@@ -18191,4 +18191,28 @@ const result = await generator.next(); // // result = {value: ..., done: true/fa
 
 类似的，异步的 generator 可用作 `Symbol.asyncIterator` 实现异步迭代。
 
-例如前面的代码可以使用异步的 `Symbol.asyncIterator` 替换同步的 `Symbol.iterator`
+例如前面的代码**可以使用异步的 `Symbol.asyncIterator` 替换同步的 `Symbol.iterator`，来使对象 `range` 异步地生成值**：
+
+```js
+const range = {
+  from: 1,
+  to: 5,
+  
+  async *[Symbol.asyncIterator]() {
+    for(let value = this.from; value <= this.to; value++) {
+      // 在 value 之简暂停一会儿，等待一些东西
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      yield value;
+    }
+  }
+};
+
+(async () => {
+  for await (let value of range) {
+    alert(value); // 1，然后 2，然后 3，然后 4，然后 5
+  }
+})();
+```
+
+**⚠️ 注意：** 从技术上讲，**可以把 `Symbol.iterator` 和 `Symbol.asyncIterator` 同时都添加到一个对象中**，因此它既可以是同步的（`for..of`）也可以是异步的（`for await..of`）可迭代对象，**但实际上这将是一件很奇怪的事情，不推荐两者同时添加**。
