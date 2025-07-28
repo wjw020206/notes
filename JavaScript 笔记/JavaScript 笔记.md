@@ -18216,3 +18216,123 @@ const range = {
 ```
 
 **⚠️ 注意：** 从技术上讲，**可以把 `Symbol.iterator` 和 `Symbol.asyncIterator` 同时都添加到一个对象中**，因此它既可以是同步的（`for..of`）也可以是异步的（`for await..of`）可迭代对象，**但实际上这将是一件很奇怪的事情，不推荐两者同时添加**。
+
+
+
+## 模块（Module）
+
+随着应用越来越大，会想要将其拆分为多个文件，即所谓的 **“模块（module）”**，一个模块可以包含用于特定目的类或函数库。
+
+很长一段时间，JavaScript 都没有语言级别（language-level）的模块语法，因为最初的脚本又小又简单，没有必要将其模块化。
+
+但最终脚本变得越来越复杂，所以社区发明了许多方法来将代码组织到模块中，使用特殊的库按需加载模块。
+
+场景的有以下几个：
+
+- **AMD** —— 最古老的模块系统之一，最初由 [require.js](http://requirejs.org/) 库实现
+- **Common** —— 为 Node.js 服务器创建的模块系统
+- **UMD** —— 另一个模块系统，建议作为通用的模块系统，它与 AMD 和 CommonJS 都兼容
+
+现在它们都慢慢成为历史的一部分，但仍然可以在旧脚本中找到它们。
+
+语言级的模块系统在 2015 年的时候出现在了标准（ES6）中，即 **ES6 模块系统**，此后逐渐发展，**现在已经得到了所有主流浏览器和 Node.js 的支持**。
+
+
+
+**什么是模块**
+
+一个模块（module）就是一个文件，一个脚本就是一个模块。
+
+模块之间可以相互加载，并使用特殊的指令 `export` 和 `import` 来交换功能，从一个模块调用另一个模块的函数：
+
+- `export` 关键字标记了可以**从当前模块外部访问的变量和函数**
+- `import` 关键字允许**从其它模块导入功能**
+
+例如，有一个 `sayHi.js` 文件导出了一个函数：
+
+```js
+// sayHi.js
+export function sayHi(user) {
+  alert(`Hello, ${user}!`);
+}
+```
+
+然后在另一个文件中可能导入并使用了这个函数：
+
+```js
+// main.js
+import { sayHi } from './sayHi.js';
+
+alert(sayHi); // function...
+sayHi('CodePencil'); // Hello, CodePencil!
+```
+
+`import` 指令通过相对于当前文件的路径 `./sayHi.js` 加载模块，并将导入的函数 `sayHi` 分配给相应的变量。
+
+由于模块支持特殊的关键字和功能，所以**必须通过使用 `<script type="module">` 特性（attribute）来告诉浏览器，此脚本应该被当做模块来对待**。
+
+```js
+// say.js
+export function sayHi(user) {
+  return `Hello, ${user}!`;
+}
+```
+
+```html
+<!doctype html>
+<script type="module">
+  import {sayHi} from './say.js';
+
+  document.body.innerHTML = sayHi('CodePencil');
+</script>
+```
+
+上述代码**浏览器会自动获取并解析（evaluate）导入的模块（如果需要，还可以分析该模块的导入），然后运行该脚本**。
+
+**⚠️ 注意：模块只能通过 HTTP(S) 工作，而非本地**，如果尝试通过 `file://` 协议在本地打开一个网页，会发现 `import/export` 指令不起作用，可以使用本地 Web 服务器，例如 [static-server](https://www.npmjs.com/package/static-server#getting-started)，或者使用编辑器的 “实时服务器” 功能，例如 VS Code 的 [Live Server Extension](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) 来测试模块。
+
+
+
+**模块核心功能**
+
+模块与 “常规” 脚本相比，具有以下核心功能，对浏览器和服务端的 JavaScript 来说都有效：
+
+- **模块始终使用 “use strict”**
+
+  **模块始终在严格模式下运行**，例如：对一个未声明的变量赋值将产生错误：
+
+  ```html
+  <script type="module">
+    a = 5; // Uncaught ReferenceError: a is not defined
+  </script>
+  ```
+
+  
+
+- **每个模块都有自己的顶级作用域（top-level scope）**
+
+  简单来说，**一个模块中的顶级作用域变量和函数在其它脚本中是不可见的**。
+
+  例如：
+
+  - user.js
+
+    ```js
+    let user = 'CodePencil';
+    ```
+
+  - hello.js
+
+    ```js
+    alert(user); // Uncaught ReferenceError: user is not defined
+    ```
+
+  - index.html
+
+    ```html
+    <!doctype html>
+    <script type="module" src="user.js"></script>
+    <script type="module" src="hello.js"></script>
+    ```
+
+  上述代码中 `hello.js` 脚本尝试使用 `user.js` 中声明的变量 `user` 时出现了错误，因为**它是一个单独的模块**。
