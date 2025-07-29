@@ -19198,3 +19198,250 @@ say();
   ```
 
 - **`import()` 看起来像一个函数调用，但它只是一种特殊语法**，恰好使用了括号（类似于 `super()`），不能将 `import` 赋值到一个变量中或者对其使用 `call/apply`，因为它不是一个函数
+
+
+
+## Proxy 和 Reflect
+
+一个 `Proxy` 对象包装另一个对象并拦截诸如读取/写入属性和其他操作，可以选择自行处理它们，或者透明地允许该对象处理它们。
+
+**Proxy 被用于许多库和某些浏览器框架中**。
+
+
+
+**Proxy**
+
+语法：
+
+```js
+const proxy = new Proxy(target, handler);
+```
+
+- **`target`** —— 要包装的对象，可以是任何东西，包括函数
+- **`handler`** —— 代理配置：带有 **“捕捉器”（“traps”，即拦截操作的方法）**的对象，例如 `get` 捕捉器用于读取 `target` 的属性，`set` 捕捉器用于写入 `target` 的属性，等等
+
+**对 `proxy` 进行操作，如果在 `handler` 中存在相应的捕捉器，它将运行，并且 `Proxy` 有机会对其进行处理，否则将直接对 `target` 进行处理**。
+
+首先，创建一个没有任何捕捉器的代理（Proxy）：
+
+```js
+const target = {};
+const proxy = new Proxy(target, {}); // 空的 handler 对象
+
+proxy.test = 5; // 写入 proxy 对象（1）
+alert(target.test); // 5，test 属性出现在了 target 中
+
+alert(proxy.test); // 5，也可以从 proxy 对象读取它（2）
+
+for(let key in proxy) alert(key); // test，迭代也可以正常工作
+```
+
+上述代码中，由于没有捕捉器，所有对 `proxy` 的操作都**直接转发**给了 `target`。
+
+1. 写入操作 `proxy.test =` 会将值写入 `target`
+2. 读取操作 `proxy.test` 会从 `target` 返回对应的值
+3. 迭代 `proxy` 会从 `target` 返回对应的值
+
+**没有任何捕捉器，`proxy` 是一个 `target` 的透明包装器（wrapper）**。
+
+![image-20250729181147148](images/image-20250729181147148.png)
+
+`Proxy` 是一种特殊的 **“奇异对象（exotic object）”**，它没有自己的属性，如果 `handler` 为空，则透明地将操作转发给 `target`。
+
+**要激活更多功能，需要添加捕捉器**。
+
+**对于对象的大多数操作，JavaScript 规范中有一个所谓的 “内部方法”，它描述了最底层的工作方式**，例如：`[[Get]]` 用于读取属性的内部方法，`[[Set]]` 用于写入属性的内部方法，等等，**这些 “内部方法” 仅在规范中使用，不能直接通过方法名调用它们**。
+
+**`Proxy` 捕捉器会拦截这些方法的调用**，它们在 proxy 规范](https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots) 和下表中被列出。
+
+对于每个内部方法，此表中都有一个捕捉器：可用于添加到 `new Proxy` 的 `handler` 参数中的用来拦截操作的方法的名称：
+
+| 内部方法                | Handler 方法               | 何时触发                                                     |
+| :---------------------- | :------------------------- | :----------------------------------------------------------- |
+| `[[Get]]`               | `get`                      | 读取属性                                                     |
+| `[[Set]]`               | `set`                      | 写入属性                                                     |
+| `[[HasProperty]]`       | `has`                      | `in` 操作符                                                  |
+| `[[Delete]]`            | `deleteProperty`           | `delete` 操作符                                              |
+| `[[Call]]`              | `apply`                    | 函数调用                                                     |
+| `[[Construct]]`         | `construct`                | `new` 操作符                                                 |
+| `[[GetPrototypeOf]]`    | `getPrototypeOf`           | [Object.getPrototypeOf](https://developer.mozilla.org/zh/docs/Web/JavaScript/Reference/Global_Objects/Object/getPrototypeOf) |
+| `[[SetPrototypeOf]]`    | `setPrototypeOf`           | [Object.setPrototypeOf](https://developer.mozilla.org/zh/docs/Web/JavaScript/Reference/Global_Objects/Object/setPrototypeOf) |
+| `[[IsExtensible]]`      | `isExtensible`             | [Object.isExtensible](https://developer.mozilla.org/zh/docs/Web/JavaScript/Reference/Global_Objects/Object/isExtensible) |
+| `[[PreventExtensions]]` | `preventExtensions`        | [Object.preventExtensions](https://developer.mozilla.org/zh/docs/Web/JavaScript/Reference/Global_Objects/Object/preventExtensions) |
+| `[[DefineOwnProperty]]` | `defineProperty`           | [Object.defineProperty](https://developer.mozilla.org/zh/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty), [Object.defineProperties](https://developer.mozilla.org/zh/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperties) |
+| `[[GetOwnProperty]]`    | `getOwnPropertyDescriptor` | [Object.getOwnPropertyDescriptor](https://developer.mozilla.org/zh/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertyDescriptor), `for..in`, `Object.keys/values/entries` |
+| `[[OwnPropertyKeys]]`   | `ownKeys`                  | [Object.getOwnPropertyNames](https://developer.mozilla.org/zh/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertyNames), [Object.getOwnPropertySymbols](https://developer.mozilla.org/zh/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertySymbols), `for..in`, `Object.keys/values/entries` |
+
+**⚠️ 注意：** JavaScript 强制执行某些**不变量（Invariant）**—— **内部方法和捕捉器必须满足的条件**。
+
+其中大多数用于返回值：
+
+- `[[Set]]` 如果值已经**写入成功，则必须返回 `true`，否则返回 `false`**
+- `[[Delete]]` 如果**已成功删除该值，则必须返回 `true`，否则返回 `false`**
+- ……依此类推
+
+还有其它一些不变量，例如：
+
+- 应用于代理（proxy）对象的 `[[GetPrototypeOf]]`，必须返回与应用于被代理对象的 `[[GetPrototypeOf]]` 相同的值，换句话说就是**指读取代理对象的原型必须始终返回被代理对象的原型**
+
+**捕捉器可以拦截这些操作，但是必须遵循上面这些规则**。
+
+不变量可以确保语言功能的正确和一致的行为，如果不做奇怪的事情，可能就不会违反它们。
+
+
+
+**带有 get 捕捉器的默认值**
+
+最常见的捕捉器是用于读取/写入的属性。
+
+要拦截读取操作，`handler` 应该有 **`get(target, property, receiver)`** 方法。
+
+读取属性时触发该方法，参数如下：
+
+- **`target`** —— 是目标对象，该对象被作为第一个参数传递给 `new Proxy`
+- **`property`** —— 目标属性名
+- **`receiver`** —— 如果目标属性是一个 getter 访问器属性，**则 `receiver` 就是本地读取属性所在的 `this` 对象**，通常这就是 `proxy` 对象本身（或者，如果从 `proxy` 继承，则是从该 `proxy` 继承的对象）
+
+例如使用 `get` 来**创建一个对不存在的数组项返回 `0` 的数组**：
+
+```js
+let numbers = [0, 1, 2];
+
+numbers = new Proxy(numbers, {
+  get(target, property) {
+    if(property in target) {
+      return target[property];
+    } else {
+      return 0; // 默认值
+    }
+  }
+});
+
+alert( numbers[1] ); // 1
+alert( numbers[123] ); // 0
+```
+
+通常在试图读取不存在的数组项时，会得到 `undefined`，上述代码将常规数组包装到代理（proxy）中，以捕获读取操作，并在没有要读取的属性时返回 `0`。
+
+使用 `get` 捕捉器很容易实现，可以想象一下，有一本词典，上面有短语及其翻译：
+
+```js
+let dictionary = {
+  'Hello': 'Hola',
+  'Bye': 'Adiós'
+};
+
+alert( dictionary['Hello'] ); // Hola
+alert( dictionary['Welcome'] ); // undefined
+```
+
+上述代码中没有要读取的短语，从 `dictionary` 读取它将返回 `undefined`，但实际上返回未翻译的短语通常比 `undefined` 要好，因此这种情况下返回一个未翻译的短语来替代 `undefined`。
+
+下面是将 `dictionary` 包装进一个拦截读取操作的代理：
+
+```js
+let dictionary = {
+  'Hello': 'Hola',
+  'Bye': 'Adiós'
+};
+
+dictionary = new Proxy(dictionary, {
+  get(target, phrase) { // 拦截读取属性操作
+    if(phrase in target) { // 如果词典中有该短语
+      return target[phrase];
+    } else {
+      return phrase; // 否则返回未翻译的短语
+    }
+  }
+});
+
+// 在词典中查找任意短语
+alert( dictionary['Hello'] ); // Hola
+alert( dictionary['Welcome to Proxy'] ); // Welcome to Proxy
+```
+
+**⚠️ 注意：代理应该在所有地方都完全替代目标对象，目标对象被代理后，任何人都不应该再引用目标对象**，否则很容易出问题。
+
+```js
+dictionary = new Proxy(dictionary, ...);
+```
+
+
+
+**使用 set 捕捉器进行验证**
+
+当写入属性时 `set` 捕捉器被触发。
+
+**`set(target, property, value, receiver)`**：
+
+- **`target`** —— 是目标对象，该对象被作为第一个参数传递给 `new Proxy`
+- **`property`** —— 是目标属性名称
+- **`value`** —— 是目标属性的值
+- **`receiver`** —— 与 `get` 捕捉器类似，仅与 setter 访问器属性有关
+
+如果写入操作成功，`set` 捕捉器应该返回 `true`，否则返回 `false`（触发 `TypeError`）。
+
+例如，想要一个专门用于数字的数组，**如果添加了其它类型的值，则应该抛出一个错误**：
+
+```js
+let numbers = [];
+
+numbers = new Proxy(numbers, {
+  set(target, property, value) {
+    if(typeof value === 'number') {
+      target[property] = value;
+      return true;
+    } else {
+      return false;
+    }
+  }
+});
+
+numbers.push(1); // 添加成功
+numbers.push(2); // 添加成功
+alert('Length is: ' + numbers.length); // 2
+
+numbers.push('test'); // Uncaught TypeError: proxy set handler returned false for property '2'
+```
+
+**⚠️ 注意：数组的内建方法依然有效**，值被使用 `push` 方法添加到数组后，数组的 `length` 属性会自动增加，代理对象 `proxy` 没有破坏任何东西。
+
+**不必重写诸如 `push` 和 `unshift` 等添加元素的数组方法**，就可以在其中添加检查，**因为在内部它们使用代理所拦截的 `[[Set]]` 操作**。
+
+**对于 `set` 操作，它必须在成功写入时返回 `true`**，如果忘记这样做，或返回任何假（falsy）值，则该操作触发 `TypeError`。
+
+
+
+**使用 ownKeys 和 getOwnPropertyDescriptor 进行迭代**
+
+`Object.keys`、`for..in` 循环和大多数其它遍历对象属性的方法**都使用内部方法 `[[OwnPropertyKeys]]`（由 `ownKeys` 捕捉器拦截）来获取属性列表**。
+
+这些方法在细节上有所不同：
+
+- `Object.getOwnPropertyNames(obj)` 返回非 symbol 键
+- `Object.getOwnPropertySymbols(obj)` 返回 symbol 键
+- `Object.keys/values()` 返回带有 `enumerable` 标志的非 symbol 键/值
+- `for..in` 循环遍历所有带有 `enumerable` 标志的非 symbol 键，以及原型对象的键
+
+下面的示例中，使用 `ownKeys` 捕捉器拦截 `for..in` 对 `user` 的遍历，并使用 `Object.keys` 和 `Object.values` 来跳过下划线 `_` 开头的属性：
+
+```js
+let user = {
+  name: 'CodePencil',
+  age: 23,
+  _password: '***'
+};
+
+user = new Proxy(user, {
+  ownKeys(target) {
+    return Object.keys(target).filter(key => !key.startsWith('_'));
+  }
+});
+
+// ownKeys 过滤掉了 _password
+for(let key in user) alert(key); // name，然后是 age
+
+// 对这些方法的效果相同：
+alert( Object.keys(user) ); // name,age
+alert( Object.values(user) ); // CodePencil,23
+```
