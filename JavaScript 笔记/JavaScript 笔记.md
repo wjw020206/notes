@@ -18587,7 +18587,7 @@ export function sayHi(user) {
      简单来说，如果一个模块脚本是从另一个源获取的，则远程服务器必须提供表示允许获取的 header `Access-Control-Allow-Origin`。
 
      ```html
-   <!-- another-site.com 必须提供 Access-Control-Allow-Origin -->
+      <!-- another-site.com 必须提供 Access-Control-Allow-Origin -->
      <!-- 否则，脚本将无法执行 -->
      <script type="module" src="http://another-site.com/their.js"></script>
      ```
@@ -18627,3 +18627,29 @@ export function sayHi(user) {
      ```
 
      
+
+**构建工具**
+
+在实际开发中，浏览器模块很少以 “原始” 形式进行使用，通常会使用一些特殊工具，例如：Webpack，将它们打包在一起，然后部署到实际生产环境的服务器。
+
+使用打包工具的一个好处是：它们可以更好的控制模块的解析方式，允许使用裸模块和更多功能，例如：CSS/HTML 模块等。
+
+构建工具做了以下的事情：
+
+1. 从一个打算放在 HTML 中的 `<script type="module">`  “主” 模块开始
+2. 分析它的依赖：它的导入，以及它的导入的导入等
+3. 使用所有模块构建一个文件（或者多个文件，这是可调的），并用打包函数（bundler function）替代原生的 `import` 调用，以使其正常工作，还支持像 HTML/CSS 模块等 “特殊” 的模块类型
+4. 在处理过程中，可能会应用其他转换和优化：
+   - 删除无法访问的代码
+   - 删除未使用的导出（“tree-shaking”）
+   - 删除特定于开发的像 `console` 和 `debugger` 这样的语句
+   - 可以使用 [Babel](https://babeljs.io/) 将前沿的现代的 JavaScript 语法转换为具有类似功能的旧的 JavaScript 语法
+   - 压缩生成的文件（删除空格，用短的名字替换变量等）
+
+如果我们使用打包工具，那么脚本会被打包进一个单一文件（或者几个文件），在这些脚本中的 `import/export` 语句会被替换成特殊的打包函数（bundler function），所以最终打包好的脚本中不包含任何 `import/export`，它也不需要 `type="module"`，可以放入常规的 `<script>`：
+
+```html
+<!-- 假设从诸如 Webpack 这类的打包工具中获得了 bundle.js 脚本 -->
+<script src="bundle.js"></script>
+```
+
