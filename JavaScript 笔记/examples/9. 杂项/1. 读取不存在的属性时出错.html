@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      function wrap(target) {
+        return new Proxy(target, {
+          get(target, property, receiver) {
+            if (property in target) {
+              return Reflect.get(...arguments);
+            } else {
+              throw new ReferenceError(`Property doesn't exist: "${property}"`);
+            }
+          },
+        });
+      }
+
+      let user = {
+        name: 'John',
+      };
+
+      user = wrap(user);
+
+      alert(user.name); // John
+      alert(user.age); // ReferenceError: Property doesn't exist: "age"
+    </script>
+  </body>
+</html>

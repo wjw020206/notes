@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      const handlers = Symbol('handlers');
+
+      function makeObservable(target) {
+        // 初始化 handlers 存储
+        target[handlers] = [];
+
+        // 将 handler 函数存储到数组中，以便于之后调用
+        target.observe = function (handler) {
+          this[handlers].push(handler);
+        };
+
+        return new Proxy(target, {
+          set(target, property, value, receiver) {
+            const success = Reflect.set(...arguments);
+
+            if (success) {
+              target[handlers].forEach((handler) => handler(property, value));
+            }
+
+            return success;
+          },
+        });
+      }
+
+      // function makeObservable(target) {
+      //   const handlers = [];
+
+      //   return new Proxy(target, {
+      //     get(target, property, receiver) {
+      //       if (property === 'observe') {
+      //         return function (handler) {
+      //           handlers.push(handler);
+      //         };
+      //       }
+
+      //       return Reflect.get(...arguments);
+      //     },
+
+      //     set(target, property, value, receiver) {
+      //       const result = Reflect.set(...arguments);
+
+      //       if (result) {
+      //         for (const handler of handlers) {
+      //           handler(property, value);
+      //         }
+      //       }
+
+      //       return result;
+      //     },
+      //   });
+      // }
+
+      let user = {};
+      user = makeObservable(user);
+
+      user.observe((key, value) => {
+        alert(`SET ${key}=${value}`);
+      });
+
+      user.name = 'John'; // alerts: SET name=John
+    </script>
+  </body>
+</html>
