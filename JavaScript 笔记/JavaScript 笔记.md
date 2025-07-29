@@ -18653,3 +18653,316 @@ export function sayHi(user) {
 <script src="bundle.js"></script>
 ```
 
+
+
+## 导出和导入
+
+导出（export）和导入（import）指令有几种语法变体。
+
+
+
+**在声明前导出**
+
+可以在声明之前可以放置 `export` 来标记任意声明导出，无论声明的是变量、函数还是类都可以。
+
+例如：
+
+```js
+// 导出数组
+export let months = ['Jan', 'Feb', 'Mar','Apr', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+// 导出 const 声明的变量
+export const MODULES_BECAME_STANDARD_YEAR = 2015;
+
+// 导出类
+export class User {
+  constructor(name) {
+    this.name = name;
+  }
+}
+```
+
+**⚠️ 注意：在类或者函数的前的 `export` 不会让它们变成函数表达式**，尽管被导出了，但它仍然是一个函数声明。
+
+大部分 JavaScript 样式指南都不建议在函数和类声明后使用分号，这就是为什么在 `export class` 和 `export function` 的末尾不需要加分号：
+
+```js
+export function sayHi(user) {
+  alert(`Hello, ${user}!`);
+}  // 在这里没有分号 ;
+```
+
+
+
+**导出与声明分开**
+
+还可以将 `export` 分开放置。
+
+例如：
+
+```js
+// say.js
+function sayHi(user) {
+  alert(`Hello, ${user}!`)；
+}
+
+function sayBye(user) {
+  alert(`Bye, ${user}!`);
+}
+
+export { sayHi, sayBye }; // 导出变量列表
+```
+
+从技术上讲，也可以把 `export` 放在函数上面。
+
+
+
+**import ***
+
+通常要把导入的东西列在花括号 `import {...}` 中，像下面这样：
+
+```js
+// main.js
+import { sayHi, sayBye } from './say.js';
+
+sayHi('CodePencil'); // Hello, CodePencil!
+sayBye('CodePencil'); // Bye, CodePencil!
+```
+
+如果有很多要导入的内容，**可以使用 `import * as <obj>` 将所有内容导入为一个对象**，例如：
+
+```js
+import * as say from './say.js';
+
+say.sayHi('CodePencil');
+say.sayBye('CodePencil');
+```
+
+乍一看，将所有内容都导入看起来很酷，写起来也短，但**通常还是要明确列出需要导入的内容**。
+
+因为以下几个原因：
+
+1. **现代构建工具（webpack 和其它工具）将模块打包到一起会对其进行优化**，以加快加载速度并删除未使用的代码
+
+   例如向项目中添加一个第三方库 `say.js`，它具有许多函数：
+
+   ```js
+   // say.js
+   export function sayHi() { ... }
+   export function sayBye() { ... }
+   export function becomeSilent() { ... }
+   ```
+
+   现在如果只在项目里使用了 `say.js` 中的一个函数：
+
+   ``` js
+   // main.js
+   import { sayHi } from './say.js';
+   ```
+
+   那么优化器（optimizer）就会检测它，并从打包好的代码中删除那些未被使用的函数，从而使构建更小，这就是所谓的 **“摇树（tree-shaking）”**。
+
+2. **明确列出要导入的内容会使得名称较短**：`sayHi()` 而不是 `say.sayHi()`
+
+3. **导入的显式列表可以更好地概述代码结构**：使用的内容和位置，它使得代码支持重构，并且重构起来更容易
+
+
+
+**import as**
+
+可以使用 `as` 让导入具有不同的名字。
+
+例如：
+
+```js
+// main.js
+import { sayHi as hi, sayBye as bye } from './say.js';
+
+hi('CodePencil'); // Hello, CodePencil!
+bye('CodePencil'); // Bye, CodePencil!
+```
+
+
+
+**export as**
+
+导出也具有类似的语法。
+
+将函数导出为 `hi` 和 `bye`：
+
+```js
+// say.js
+// ...
+export {sayHi as hi, sayBye as bye};
+```
+
+现在 `hi` 和 `bye` 是在外面使用时的正式名称：
+
+```js
+// main.js
+import { hi, bye } from './say.js';
+
+hi('CodePencil'); // Hello, CodePencil!
+bye('CodePencil'); // Bye, CodePencil!
+```
+
+
+
+**export default**
+
+在实际开发中，主要有两种模块。
+
+- 包含库或函数包的模块，像上面的 `say.js`
+- 声明单个实体的模块，例如：模块 `user.js` 仅导出 `class User`
+
+**大部分情况下，开发者倾向使用第二种方式，以便每个 “东西” 都存在于它自己的模块中**。
+
+当然，这需要大量文件，因为每个东西都需要自己的模块，但这根本不是问题，实际上如果文件具有良好的命名，并且文件夹结构得当，那么代码导航（navigation）会变得容易。
+
+模块提供一个特殊的默认导出 `export default` 语法，放在要导出的实体前：
+
+```js
+// user.js
+export default class User {
+  constructor(name) {
+    this.name = name;
+  }
+}
+```
+
+**每个文件应该只有一个 `export default`**：
+
+然后**将其导入不需要使用花括号**：
+
+```js
+// main.js
+import User from './user.js'; // 不需要花括号 { User }，只需要写成 User 即可
+new User('CodePencil');
+```
+
+**⚠️ 注意：** 不使用花括号导入看起来很酷，刚开始使用模块时，一个常见的错误就是忘记写花括号，需要记住，`import` 命名的导出时需要花括号，而 `import` 默认的导出时不需要花括号。
+
+| 命名的导出                 | 默认的导出                        |
+| :------------------------- | :-------------------------------- |
+| `export class User {...}`  | `export default class User {...}` |
+| `import { User } from ...` | `import User from ...`            |
+
+从技术上讲，**可以在一个模块中同时有默认的导出和命名的导出，但实际上通常不会混合使用它们，模块要么是命名的导出要么是默认的导出**。
+
+因为每个文件最多只能有一个默认的导出，所以导出的实体可能没有名称。
+
+例如：
+
+```js
+export default class { // 没有类名
+  constructor() { ... }
+}
+```
+
+```js
+export default function(user) { // 没有函数名
+  alert(`Hello, ${user}!`);
+}
+```
+
+```js
+// 导出单个值，而不使用变量
+export default ['Jan', 'Feb', 'Mar','Apr', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+```
+
+不指定名称是可以的，因为每个文件只有一个 `export default`，因此不带花括号的 `import` 知道要导入的内容是什么。
+
+如果没有 `default`，这样的导出将出错：
+
+```js
+export class { // Error!（非默认的导出需要名称）
+  constructor() {}
+}
+```
+
+
+
+**default 名称**
+
+在某些情况下，**`default` 关键字被用于引用默认的导出**。
+
+例如，要将函数与其定义分开导出：
+
+```js
+function sayHi(user) {
+  alert(`Hello, ${user}!`);
+}
+
+export { sayHi as default }; // 就像在函数之前添加了 export default 一样
+// 等同于 export default sayHi;
+```
+
+或者，另外一种情况，假设模块 `user.js` **导出了一个主要的默认的导出和一些命名的导出**（这种情况很少见，但确实会发生）：
+
+```js
+// user.js
+export default class User {
+  constructor(name) {
+    this.name = name;
+  }
+}
+
+export function sayHi(user) {
+  alert(`Hello, ${user}!`);
+}
+```
+
+在导入时需要按照如下方式：
+
+```js
+// main.js
+import { default as User, sayHi } from './user.js';
+
+new User('CodePencil');
+```
+
+如果将所有东西 `*` 作为一个对象导入，那么 `default` 属性正是默认的导出：
+
+```js
+// main.js
+import * as user from './user.js';
+
+const User = user.default; // 默认的导出
+new User('CodePencil');
+```
+
+
+
+**应该使用默认的导出吗？**
+
+命名的导出是明确的，它们确切的命名了它们要导出的内容，所以可以从它们获得这些信息，这是一件好事。
+
+**命名的导出会强制使用正确的名称进行导入**：
+
+```js
+import { User } from './user.js';
+// 导入 { MyUser } 不起作用，导入名字必须为 { User }
+```
+
+**对于默认的导出，总是在导入时选择名称**：
+
+```js
+import User from './user.js'; // 有效
+import MyUser from './user.js'; // 也有效
+// 使用任何名称导入都没有问题
+```
+
+因此，**团队成员可能会使用不同的名称来导入相同的内容，这不好**。
+
+通常为了避免这种情况并使代码保持一致，可以遵从这条规则：**导入的变量应与文件名相对应**，例如：
+
+```js
+import User from './user.js';
+import LoginForm from './loginForm.js';
+import func from '/path/to/func.js';
+// ...
+```
+
+**⚠️ 注意：** 一些团队仍然认为这是默认的导出的严重缺陷，**所以他们更倾向于始终使用命名的导出，即使只导出一个东西，也仍然使用命名的导出，而不是默认的导出**。
+
+**这也使得重新导出更容易**。
