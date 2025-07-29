@@ -19095,3 +19095,106 @@ if (something) {
 
 如果真的需要根据某些条件来进行导入或者在某些合适的时间导入，例如：根据请求（request）加载模块，需要使用**动态导入**。
 
+
+
+**动态导入**
+
+导入和导出的语句被称为 **“静态” 导入**，语法非常简单且严格。
+
+不能动态生成 **“静态” 导入** `import` 的任何参数。
+
+**模块的路径必须是原始类型字符串，不能是函数调用**，下面这样行不通：
+
+```js
+import ... from getModuleName(); // Error, only from "string" is allowed
+```
+
+其次，**无法根据条件或者在运行时导入**：
+
+```js
+if(...) {
+   import ...; // Error, not allowed!
+}
+
+{
+  import ...; // Error, we can't put import in any block
+}
+```
+
+**之所以这样是因为 `import/export` 提供代码结构的主干**，这样便于分析代码结构，可以收集模块，可以使用特殊的工具将收集的模块打包到一个文件中，可以删除为使用的导出（“tree-shaken”），这些只有在 `import`/`export` 结构简单且固定的情况下才能够实现。
+
+
+
+**import() 表达式**
+
+**`import(module)` 表达式加载模块并返回一个 promise，该 promise resolve 为一个包含其所有导出的模块对象**，可以在代码中的任意位置调用这个表达式。
+
+例如：
+
+```js
+const modulePath = prompt('Which module to load?');
+
+import(modulePath)
+  .then(obj => <module object>)
+  .catch(err => <loading error, e.g. if no such module>);
+```
+
+或者如果在异步函数中，可以使用 `let module = await import(modulePath)`。
+
+例如，有模块 `say.js`：
+
+```js
+// say.js
+export function hi() {
+  alert(`Hello`);
+}
+
+export function bye() {
+  alert(`Bye`);
+}
+```
+
+可以像下面这样进行动态导入：
+
+```js
+const { hi, bye } await import('./say.js');
+
+hi();
+bye();
+```
+
+或者，如果 `say.js` 有默认的导出：
+
+```js
+// 📁 say.js
+export default function() {
+  alert("Module loaded (export default)!");
+}
+```
+
+那么为了访问它，可以使用模块对象的 `default` 属性：
+
+```js
+const obj = await import('./say.js');
+const say = obj.default;
+
+say();
+```
+
+**⚠️ 注意：**
+
+- **动态导入在常规脚本中工作时，不需要 `<script type="module">`**
+
+  ```html
+  <script>
+    async function load() {
+      let say = await import('./say.js');
+      say.hi(); // Hello!
+      say.bye(); // Bye!
+      say.default(); // Module loaded (export default)!
+    }
+  </script>
+  <button onclick="load()">Click me</button>
+  ```
+
+- **`import()` 看起来像一个函数调用，但它只是一种特殊语法**，恰好使用了括号（类似于 `super()`），不能将 `import` 赋值到一个变量中或者对其使用 `call/apply`，因为它不是一个函数
