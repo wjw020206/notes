@@ -18966,3 +18966,132 @@ import func from '/path/to/func.js';
 **⚠️ 注意：** 一些团队仍然认为这是默认的导出的严重缺陷，**所以他们更倾向于始终使用命名的导出，即使只导出一个东西，也仍然使用命名的导出，而不是默认的导出**。
 
 **这也使得重新导出更容易**。
+
+
+
+**重新导出**
+
+重新导出（Re-export）语法 `export ... from ...` 允许导入内容，并立即将其导出（可能是用的是其他的名字），像下面这样：
+
+```js
+export { sayHi } from './say.js'; // 重新导出 sayHi
+
+export { default as User } from './user.js'; // 重新导出 default
+```
+
+为什么要重新导出，想象一下正在编写一个 package：一个包含大量模块的文件夹，其中一些功能是导出到外部的（像 NPM 这样的工具允许我们发布和分发这样的 package，但不是必须要去使用它们），并且其中一些模块仅仅是供其它 package 中的模块内部使用的 “helpers”。
+
+文件结构可能是这样的：
+
+```
+auth/
+    index.js
+    user.js
+    helpers.js
+    tests/
+        login.js
+    providers/
+        github.js
+        facebook.js
+        ...
+```
+
+希望通过单个入口暴露包的功能，**简单来说就是想使用包的人，应该只从 “主文件” `auth/index.js` 导入**。
+
+像这样：
+
+```js
+import { login, logout } from 'auth/index.js';
+```
+
+“主文件”，`auth/index.js` 导出了希望在包中提供的所有功能。
+
+这样做是因为其它使用包的开发者不应该干预其内部结构，不应该搜索包文件夹中的文件，**只在 `auth/index.js` 中导出必要的部分，并保持其它内容 “不可见”**。
+
+由于实际导出的功能分散在 package 中，所以可以将它们导入到 `auth/index.js`，然后再从中导出它们：
+
+```js
+// auth/index.js
+
+// 导入 login/logout 然后立即导出它们
+import { login, logout } from './helpers.js';
+export { login, logout };
+
+// 将默认导出导入为 User，然后导出它
+import User from './user.js';
+export { User };
+
+// ...
+```
+
+语法 `export ... from ...` 是前面这种导入\-导出的简写。
+
+```js
+// auth/index.js
+// 重新导出 login/logout
+export { login, logout } from './helpers.js';
+
+// 将默认导出重新导出为 User
+export { default as User } from './user.js';
+
+// ...
+```
+
+**⚠️ 注意：`export ... from` 与 `import/export` 相比明显的区别是重新导出的模块在当文件中不可用**，所以在上面的 `auth/index.js` 示例中不能使用重新导出的 `login/logout` 函数。
+
+
+
+**重新导出默认导出**
+
+重新导出时，**默认导出需要单独处理**。
+
+假设有一个 `user.js` 脚本，其中写了 `export default class User`，想要重新导出类 `User`：
+
+```js
+// user.js
+export default class User {
+  // ...
+}
+```
+
+可能会遇到这两个问题：
+
+1. **`export User from './user.js'` 无效**，会导致一个语法错误
+
+   **要重新导出默认导出，必须明确写出 `export { default as User }`**，像之前的例子中一样。
+
+2. **`export * from './user.js'` 重新导出只导出了命名的导出，但是忽略了默认的导出**
+
+   如果想将命名的导出和默认的导出都重新导出，需要两条语句：
+
+   ```js
+   export * from './user.js'; // 重新导出命名的导出
+   export { default } from './user.js'; // 重新导出默认的导出
+   ```
+
+   重新导出一个默认导出的这种奇怪现象，是某些开发者不喜欢默认导出的原因之一。
+
+
+
+从技术上讲，下面这样的代码没有问题：
+
+```js
+sayHi();
+
+// ...
+
+import { sayHi } from './say.js'; // 在文件底部导入
+```
+
+**在实际开发中，导入通常位于文件的开头，但是这只是为了更加方便**。
+
+**⚠️ 注意：在 `{...}` 中的 `import/export` 语句无效**。
+
+```js
+if (something) {
+  import { sayHi } from './say.js'; // Error: import must be at top level
+}
+```
+
+如果真的需要根据某些条件来进行导入或者在某些合适的时间导入，例如：根据请求（request）加载模块，需要使用**动态导入**。
+
