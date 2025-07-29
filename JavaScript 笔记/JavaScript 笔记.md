@@ -18336,3 +18336,294 @@ export function sayHi(user) {
     ```
 
   上述代码中 `hello.js` 脚本尝试使用 `user.js` 中声明的变量 `user` 时出现了错误，因为**它是一个单独的模块**。
+
+  **模块应该 `export` 它们想要被外部访问的内容，并 `import` 它们所需的内容**。
+
+  - `user.js` 应该导出 `user` 变量
+  - `hello.js` 应该从 `user.js` 模块中导入它
+
+  **对于模块，应该使用导入/导出功能而不是依赖全局变量**。
+
+  下面是正确的变体：
+
+  - user.js
+
+    ```js
+    export let user = 'CodePencil';
+    ```
+
+  - hello.js
+
+    ```js
+    import { user } from './user.js';
+    alert(user); // CodePencil
+    ```
+
+  - index.html
+
+    ```js
+    <!doctype html>
+    <script type="module" src="hello.js"></script>
+    ```
+
+    在浏览器中，**对于 HTML 页面，每个 `<script type="module">` 都存在独立的顶级作用域**。
+
+    下面是同一个页面上的两个脚本，都是 `type="module"`，它们**看不到彼此的顶级变量**：
+
+    ```html
+    <script type="module">
+      let user = 'CodePencil';
+    </script>
+    
+    <script type="module">
+      alert(user); // Uncaught ReferenceError: user is not defined
+    </script>
+    ```
+
+    **⚠️ 注意：** 在浏览器中，可以通过将变量显式分配给 `window` 的一个属性，使其称为窗口级别的全局变量，例如：`window.user = 'CodePencil'`，这样所有的脚本都会看到它，无论是否带有 `type="module"`，**创建这种全局变量不是一种好的方式，应该尽量避免**。
+
+  
+
+- **模块代码仅在第一次导入时被解析**
+
+  **如果同一个模块被导入到多个其它位置，那么它的代码只会执行一次（即在第一次被导入时）**，然后将其导出（export）的内容提供给进一步的导入（importer）。
+
+  如果执行一个模块中的代码会带来副作用（side-effect），例如显示一条消息，那么多次导入它只会触发一次，例如：
+
+  ```js
+  // alert.js
+  alert('模块已执行');
+  ```
+
+  ```js
+  // 在不同的文件中导入相同的模块
+  // 📁 1.js
+  import `./alert.js`; // 模块已执行
+  
+  // 📁 2.js
+  import `./alert.js`; // (什么都不显示)
+  ```
+
+  第二次导入后什么也没显示，因为模块已经执行过了。
+
+  **⚠️ 注意：顶层模块代码应该用于初始化，创建模块特定的内部数据结构，如果需要多次调用某些东西，应该将其以函数的形式导出**。
+
+  假设一个模块导出了一个对象：
+
+  ```js
+  // admin.js
+  export const admin = {
+    name: 'CodePencil',
+  };
+  ```
+
+  这个模块被导入到多个文件中，**模块仅在第一次被导入时解析，并创建 `admin` 对象，然后将其传入到所有的导入**。
+
+  所有的导入都只获得了一个唯一的 `admin` 对象：
+
+  ```js
+  // 1.js
+  import { admin } from './admin.js';
+  admin.name = 'Pete';
+  
+  // 2.js
+  import { admin } from './admin.js';
+  alert(admin.name); // Pete
+  ```
+
+  上述代码中，当 `1.js` 中修改了导入的 `admin` 中的 `name` 属性时，在 `2.js` 中可以看到新的 `admin.name`。
+
+  **因为模块只会执行一次，生成导出，然后这些导出在导入之间共享**，因此如果修改了 `admin` 对象，在其它导入中也会看到。
+
+  **这种行为实际上非常方便，因为它允许配置模块**。
+
+  模块可以提供需要配置的功能，例如身份验证需要凭证，模块可以导出一个配置对象，期望外部代码可以对其进行赋值。
+
+  经典的使用模式：
+
+  1. 模块导出一些配置方法，例如配置一个对象
+  2. 在第一次导入时，对其进行初始化，写入其属性，可以在应用顶级脚本中进行此操作
+  3. 进一步导入使用模块
+
+  例如：
+
+  ``` js
+  // admin.js
+  export let config = {};
+  
+  export function sayHi() {
+    alert(`服务已准备, ${config.user}`);
+  }
+  ```
+
+  这里 `admin.js` 导出了 `config` 对象（最初是空的，但也可能有默认属性）。
+
+  然后在 `init.js` 中使用第一个脚本，从 `init.js` 中导入 `config` 并配置 `config.user`：
+
+  ```js
+  // init.js
+  import { config } from './admin.js';
+  config.user = 'CodePencil';
+  ```
+
+  现在模块 `admin.js` 已经是被配置过的了。
+
+  其它导入可以调用它，它会正确显示当前用户：
+
+  ```js
+  // another.js
+  import { sayHi } from './admin.js';
+  
+  sayHi(); // 服务已准备, CodePencil
+  ```
+
+  
+  
+- **import.meta**
+
+  `import.meta` 对象包含关于当前模块的信息。
+
+  它的内容取决于其所在的环境，在浏览器环境中，它包含当前脚本的 URL，或者如果它是在 HTML 中的话，则包含当前页面的 URL。
+
+  ```html
+  <script type="module">
+    alert(import.meta.url); // 脚本的 URL
+    // 对于内联脚本来说，则是当前 HTML 页面的 URL
+  </script>
+  ```
+
+  
+
+- **在一个模块中，“this” 是 undefined**
+
+  在一个模块中，顶级 `this` 是 `undefined`。
+
+  下面是模块和非模块脚本的比较：
+
+  ```html
+  <script>
+    alert(this); // window
+  </script>
+  
+  <script type="module">
+    alert(this); // undefined
+  </script>
+  ```
+
+
+
+**浏览器特定功能**
+
+与常规脚本相比，拥有 `type="modules"` 标识的脚本有一些特定于浏览器的差异。
+
+- **模块脚本是延迟的**
+
+  模块脚本**总是**被延迟的，与 `defer` 特性对外部脚本和内联脚本的影响相同。
+
+  简单来说：
+
+  - **下载外部脚本 `<script type="module" src="...">` 不会阻塞 HTML 的处理，它会与其它资源并行加载**
+  - **模块脚本会等到 HTML 文档完全准备就绪（即使它们很小并且比 HTML 加载速度更快），然后才会运行**
+  - 保持脚本的相对顺序：在文档中排在前面的脚本先执行
+
+  例如：模块脚本总是会 “看到” 已完全加载的 HTML 页面，包括在它们下方的 HTML 元素。
+
+  ```html
+  <script type="module">
+    alert(typeof button); // object：脚本可以“看见”下面的 button
+    // 因为模块是被延迟的（deferred，所以模块脚本会在整个页面加载完成后才运行
+  </script>
+  
+  <script>
+    alert(typeof button); // undefined，脚本看不到下面的元素
+    // 常规脚本会立即运行，常规脚本的运行是在在处理页面的其余部分之前进行的
+  </script>
+  
+  <button id="button">Button</button>
+  ```
+
+  **⚠️ 注意：** 上述代码中，**第二个脚本实际上要先于第一个脚本运行**，所以会先看到 `undefined`，然后才是 `object`，因为模块脚本是被延迟执行的，要等到 HTML 页面被处理完成后才会执行它，而常规脚本则会立即运行，所以会先看到常规脚本的输出。
+
+  **当使用模块脚本时，用户可能会在 JavaScript 应用程序准备好之前看到该页面，但此时某些功能还无法使用，应该放置 “加载指示器（loading indicator）”，或者以其它方式确保访问者不会因此而感到困惑**。
+
+  
+
+- **async 适用于内联脚本（inline script）**
+
+  **对于非模块脚本，`async` 特性仅适用于外部脚本**，异步脚本会在准备好后立即运行，独立于其它脚本或 HTML 文档。
+
+  **对于模块脚本，它也适用于内联脚本**。
+
+  例如，下面的内联脚本具有 `async` 特性，因此它不会等待任何东西。
+
+  ```html
+  <!-- 所有依赖都获取完成（analytics.js）然后脚本开始运行 -->
+  <!-- 不会等待 HTML 文档或者其他 <script> 标签 -->
+  <script async type="module">
+    import {counter} from './analytics.js';
+    
+    counter.count();
+  </script>
+  ```
+
+  **⚠️ 注意：** 这对于不依赖任何其它东西的功能是非常棒的，例如：计数器、广告，文档级事件监听器。
+
+  
+
+- **外部脚本**
+
+   具有 `type="module"` 的**外部脚本**在以下两个方面有所不同：
+
+  1. **具有相同 `src` 的外部脚本仅运行一次**：
+
+     ```html
+     <!-- 脚本 my.js 被加载完成（fetched）并只被运行一次 -->
+     <script type="module" src="my.js"></script>
+     <script type="module" src="my.js"></script>
+     ```
+
+  2. **从另一个源获取外部脚本需要 CORS heaer**
+
+     简单来说，如果一个模块脚本是从另一个源获取的，则远程服务器必须提供表示允许获取的 header `Access-Control-Allow-Origin`。
+
+     ```html
+   <!-- another-site.com 必须提供 Access-Control-Allow-Origin -->
+     <!-- 否则，脚本将无法执行 -->
+     <script type="module" src="http://another-site.com/their.js"></script>
+     ```
+  
+     默认这样做可以确保更好的安全性。
+
+     
+
+- **不允许裸模块（“bare” module）**
+
+     **在浏览器中，`import` 必须给出相对或绝对的 URL 路径，没有任何路径的模块被称为 “裸（bare）模块”**，在 `import` 中不允许这种模块。
+
+     例如下面的 `import` 是无效的：
+
+     ```js
+     import {sayHi} from 'sayHi'; // Error，“裸”模块
+     // 模块必须有一个路径，例如 './sayHi.js' 或者其他任何路径
+     ```
+
+     **⚠️ 注意：** 在某些环境下，**像 Node.js 或者打包工具（bundle tool）允许没有任何路径的裸模块，因为它们有自己的查找模块的方法和钩子（hook）来对它们进行微调**，但是浏览器尚不支持裸模块。
+     
+     
+     
+- **兼容性，“nomodule”**
+
+     旧的浏览器不理解 `type="module"`，未知类型的脚本将会被忽略，对此可以使用 `nomodule` 特性来提供一个后备：
+
+     ```html
+     <script type="module">
+       alert('在现代浏览器中运行');
+     </script>
+     
+     <script nomodule>
+       alert("现代浏览器都支持 type=module 和 nomodule，所以会跳过这个")
+       alert("旧浏览器忽略具有未知的 type=module，但执行此脚本");
+     </script>
+     ```
+
+     
