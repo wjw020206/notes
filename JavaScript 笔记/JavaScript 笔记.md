@@ -19445,3 +19445,670 @@ for(let key in user) alert(key); // name，然后是 age
 alert( Object.keys(user) ); // name,age
 alert( Object.values(user) ); // CodePencil,23
 ```
+
+如果**返回对象中不存在的键，`Object.keys` 并不会列出这些键**：
+
+```js
+let user = {};
+
+user = new Proxy(user, {
+  ownKeys(target) {
+    return ['a', 'b', 'c'];
+  }
+});
+
+alert(Object.keys(user)); // <empty>
+```
+
+**因为 `Object.keys` 仅返回带有 `enumerable` 标志的属性，为了检查它，改方法会对每个属性调用内部方法 `[[GetOwnProperty]]` 来获取它的描述符**，上述代码中因为没有属性，其描述符为空，没有 `enumerable` 标志，所以它被忽略。
+
+**所以要让 `Object.keys` 返回对象中不存在的键，需要拦截对 `[[GetOwnProperty]]` 内部方法的调用（使用 `getOwnPropertyDescriptor` 捕捉器可以做到这一点），并返回带有 `enumerable: true` 的描述符**。
+
+例如：
+
+```js
+let user = {};
+
+user = new Proxy(user, {
+  ownKeys(target) { // 一旦要获取属性列表就会被调用
+    return ['a', 'b', 'c'];
+  },
+  
+  getOwnPropertyDescriptor(target, property) { // 每个属性都会被调用
+    return {
+      enumerable: true,
+      configurable: true
+    }
+  }
+});
+
+alert(Object.keys(user)); // a,b,c
+```
+
+**⚠️ 注意：** 上述代码中**必须加上 `configurable: true`**，否则就会违反代理的 **“不变性规则（invariant）”**，如果不加就表示属性是 “不可配置的”，就像是在**伪造了一个锁死的属性**，这是被禁止的。
+
+
+
+**具有 deleteProperty 和其它捕捉器的受保护属性**
+
+有一个普遍的约定：**下划线 `_` 开头的属性和方法是内部的，不应该从对象外部访问它们**。
+
+但从技术上讲，依旧可以直接访问这样的属性：
+
+```js
+let user = {
+  name: 'CodePencil',
+  _password: 'secret',
+};
+
+alert(user._password); // secret
+```
+
+可以使用代理来防止对 `_` 开头的属性的任何访问。
+
+需要使用以下捕捉器：
+
+- `get` 读取此类属性时抛出错误
+- `set` 写入属性时抛出错误
+- `deleteProperty` 删除属性时抛出错误
+- `ownKeys` 在使用 `for..in` 和像 `Object.keys` 这样的方法时排除 `_` 开头的属性
+
+代码如下：
+
+```js
+let user = {
+  name: 'CodePencil',
+  _password: '***',
+};
+
+user = new Proxy(user, {
+  get(target, property) { // 拦截属性读取
+    if(property.startsWith('_')) {
+      throw new Error('Access denied');
+    }
+    
+    const value = target[property];
+    return (typeof value === 'function') ? value.bind(target) : value; // (*)
+  },
+  set(target, property, value) { // 拦截属性写入
+    if(property.startsWith('_')) {
+      throw new Error('Access denied');
+    } else {
+      target[property] = value;
+      return true;
+    }
+  },
+  deleteProperty(target, property) { // 拦截属性删除
+    if(property.startsWith('_')) {
+      throw new Error('Access denied');
+    } else {
+      delete target[property];
+      return true;
+    }
+  },
+  ownKeys(target) { // 拦截读取属性列表
+    return Object.keys(target).filter(key => !key.startsWith('_'));
+  }
+});
+
+// get 不允许读取 _password
+try {
+  alert(user._password); // Error: Access denied
+} catch (error) {
+  alert(error.message);
+}
+
+// set 不允许写入 _password
+try {
+  user._password = 'test'; // Error: Access denied
+} catch (error) {
+  alert(error.message);
+}
+
+// deleteProperty 不允许删除 _password
+try {
+  delete user._password; // Error: Access denied
+} catch (error) {
+  alert(error.message);
+}
+
+// ownKeys 将 _password 过滤出去
+for(let key in user) alert(key); // name
+```
+
+**⚠️ 注意：** 在上述代码中 `(*)` 行处 `get` 捕捉器的重要细节：
+
+```js
+get(target, property) {
+  // ...
+  let value = target[prop];
+  return (typeof value === 'function') ? value.bind(target) : value; // (*)
+}
+```
+
+这里之所以使用 `value.bind(target)`，是因为对象方法（例如 `user.checkPassword()`）必须能够访问 `_password`：
+
+```js
+user = {
+  // ...
+  checkPassword(value) {
+    // 对象方法必须能读取 _password
+    return value === this._password;
+  }
+};
+```
+
+对 `user.checkPassword()` **调用会将被代理的对象 `user` 作为 `this`（点符号之前的对象会成为 `this`），因此，当它尝试访问 `this._password` 时，`get` 捕捉器将被激活（在任何属性读取时，它都会被触发）并抛出错误**。
+
+**所以在 `(*)` 行将对象方法的上下文绑定到原始对象 `target`，它将在将来调用时将 `target` 作为 `this`，而不会触发任何捕捉器**。
+
+该解决方案通常可行，但并不理想，**因为一个方法可能会将未被代理的对象传递到其它地方，然后无法区分 “代理对象” 与 “原始对象”**。
+
+例如，绑定的函数时写了：
+
+```js
+return (typeof value === 'function') ? value.bind(target) : value;
+```
+
+当使用如下方式调用一个方法时：
+
+```js
+let fn = user.checkPassword;
+fn('test');
+```
+
+这个 `fn` 是绑定了原始对象 `target` 的 `checkPassword` 方法，所以它的 `this` 不再是 `user`（即代理对象），而是 `target`（原始对象）。
+
+会出现如下问题：
+
+- 如果某个外部代码把这个绑定后的函数 `fn` 拿走，甚至拿到 `target` 本身（通过某种绕过手段），那么你的私有属性 `_password` 就暴露了
+- 当程序中开始出现了两个可能操作的对象——**原始对象和代理对象**，已经丢失了对 “谁是代理对象” 的追踪
+
+此外，一个对象可能会被代理多次（多个代理可能会对该对象添加不同的 “调整”），并且如果将未包装的对象传递给方法，可能会产生意想不到的后果。
+
+**因此，在任何地方都不应该使用这种代理**。
+
+JavaScript 引擎原生支持 class 中的私有属性，私有属性以 `#` 为前缀，**私有属性不需要通过代理来拦截读取、写入、删除操作**，它本身就无法从类外访问。
+
+
+
+**带有 has 捕捉器 in range**
+
+假如有一个 `range` 对象：
+
+```js
+let range = {
+  start: 1,
+  end: 10
+};
+```
+
+想使用 `in` 操作符来检查一个数字是否在 `range` 范围内。
+
+**`has` 捕捉器会拦截 `in` 调用**。
+
+`has(target, property)`
+
+- **`target`** —— 是目标对象，被作为第一个参数传递给 `new Proxy`
+- **`property`** —— 属性名称
+
+代码如下：
+
+```js
+let range = {
+  start: 1,
+  end: 10
+};
+
+range = new Proxy(range, {
+  has(target, property) {
+    return property >= target.start && property <= target.end;
+  }
+});
+
+alert(5 in range); // true
+alert(50 in range); // false
+```
+
+
+
+**包装函数 apply**
+
+可以将代理包装在函数周围。
+
+**`apply(target, thisArg, args)` 捕捉器可以使代理以函数的方式被调用**：
+
+- **`target`** —— 目标对象（在 JavaScript 中，函数就是一个对象）
+- **`thisArg`** —— 是 `this` 的值
+- **`args`** —— 是参数列表
+
+不使用 proxy，使用函数包装器来实现 `delay(f, ms)` 装饰器：
+
+```js
+function delay(f, ms) {
+  return function() {
+    setTimeout(() => f.apply(this, arguments), ms);
+  }
+}
+
+function sayHi(user) {
+  alert(`Hello, ${user}!`);
+}
+
+// 在进行这个包装后，sayHi 函数会被延迟 3 秒后被调用
+sayHi = delay(sayHi, 3000);
+
+sayHi('CodePencil'); // Hello, CodePencil!
+```
+
+上述代码在大多数情况下都是可行的，但是**包装函数不会转发函数的属性读取/写入操作或者任何其它操作，进行包装后，就失去了对原始函数属性的访问，例如 `name`、`length` 及其它属性**：
+
+```js
+function delay(f, ms) {
+  return function() {
+    setTimeout(() => f.apply(this, arguments), ms);
+  };
+}
+
+function sayHi(user) {
+  alert(`Hello, ${user}!`);
+}
+
+alert(sayHi.length); // 1（函数的 length 是函数声明中的参数个数）
+
+sayHi = delay(sayHi, 3000);
+
+alert(sayHi.length); // 0（在包装器声明中，参数个数为 0)
+```
+
+`proxy` 的功能要强大的多，因为它可以将所有东西转发到目标对象：
+
+```js
+function delay(f, ms) {
+  return new Proxy(f, {
+    apply(target, thisArg, args) {
+      setTimeout(() => target.apply(thisArg, args), ms);
+    }
+  })
+}
+
+function sayHi(user) {
+  alert(`Hello, ${user}!`);
+}
+
+sayHi = delay(sayHi, 3000);
+
+alert(sayHi.length); // 1
+
+sayHi('CodePencil');
+```
+
+结果是相同的，但现在不仅仅是调用，代理上的所有操作都会被转发到原始函数，所以上述代码中 `sayHi.length` 会返回正确的结果。
+
+
+
+**Reflect**
+
+`Reflect` 是一个内建对象，可以**简化 `proxy` 的创建**。
+
+**内部方法，例如 `[[Get]]` 和 `[[Set]]` 等都是规范性的，不能直接调用**。
+
+`Reflect` 对象使调用这些内部方法成为了可能，它的方法是内部方法的最小包装。
+
+以下是执行相同操作和 `Reflect` 调用的示例：
+
+| 操作                | `Reflect` 调用                      | 内部方法        |
+| :------------------ | :---------------------------------- | :-------------- |
+| `obj[prop]`         | `Reflect.get(obj, prop)`            | `[[Get]]`       |
+| `obj[prop] = value` | `Reflect.set(obj, prop, value)`     | `[[Set]]`       |
+| `delete obj[prop]`  | `Reflect.deleteProperty(obj, prop)` | `[[Delete]]`    |
+| `new F(value)`      | `Reflect.construct(F, value)`       | `[[Construct]]` |
+| …                   | …                                   | …               |
+
+例如：
+
+```js
+let user = {};
+
+Reflect.set(user, 'name', 'CodePencil');
+
+alert(user.name); // CodePencil
+```
+
+尤其是 **`Reflect` 允许将操作符（`new`、`delete` 等...）作为函数（`Reflect.construct`、`Reflect.deleteProperty` 等...）执行调用**。
+
+**对于每个可被 `proxy` 捕获的内部方法，在 `Reflect` 中都有一个对应的方法，其名称和参数与 `proxy` 捕捉器相同**，所以可以使用 `Reflect` 来将操作转发给原始对象。
+
+例如：
+
+```js
+let user = {
+  name: 'CodePencil',
+};
+
+user = new Proxy(user, {
+  get(target, property, receiver) {
+    alert(`GET ${property}`);
+    return Reflect.get(target, property, receiver);
+  },
+  set(target, property, value, receiver) {
+    alert(`SET ${property}=${value}`);
+    return Reflect.set(target, property, value, receiver);
+  }
+});
+
+let name = user.name; // 显示 "GET name"
+user.name = 'Pete'; // 显示 "SET name=Pete"
+```
+
+上述代码中：
+
+- `Reflect.get` 读取一个对象属性
+- `Reflect.set` 写入一个对象属性，**如果写入成功则会返回 `true`，否则返回 `false`**
+
+一切都很简单：如果一个捕获器想将调用转发给对象，则只需要使用相同的参数调用 `Reflect.<method>` 就足够了。
+
+**⚠️ 注意：在大多数情况下，可以不使用 `Reflect` 完成相同的事情**，例如：用于读取属性的 `Reflect.get(target, property, receiver)` 可以被替换为 `target[property]`，**但两者存在细微的差别**。
+
+通过一个示例来说明为什么 `Reflect.get` 更好，例如代理一个 getter：
+
+```js
+let user = {
+  _name: 'Guest',
+  get name() {
+    return this._name;
+  }
+};
+
+let useProxy = new Proxy(user, {
+  get(target, property, receiver) {
+    return target[property];
+  }
+});
+
+alert(useProxy.name); // Guest
+```
+
+在上述代码中 `get` 捕捉器是 “透明的”，它返回原来的属性，不会做任何其它的事情。
+
+当另一个对象 `admin` 从 `user` 继承后，可以观察到错误的行为：
+
+```js
+let user = {
+  _name: 'Guest',
+  get name() {
+    return this._name;
+  }
+};
+
+let userProxy = new Proxy(user, {
+  get(target, property, receiver) {
+    return target[property]; // (*) target = user
+  }
+});
+
+let admin = {
+  __proto__: userProxy,
+  _name: 'Admin',
+};
+
+alert(admin.name); // 输出 Guest (?!?)
+```
+
+上述代码中，读取 `admin.name` 应该返回 `Admin` 而不是 `Guest`。
+
+继承方面是没有问题的，如果移除代理，一切都按预期进行。
+
+**问题实际上出在代理中，在 `(*)` 行中**：
+
+1. 当读取 `admin.name` 时，由于 `admin` 对象自身没有对应的属性，搜索将转到其原型
+
+2. 原型是 `userProxy`
+
+3. 从代理读取 `name` 属性时，`get` 捕捉器会被触发，并从原始对象返回 `target[property]` 属性，在 `(*)` 行
+
+   **当调用 `target[property]` 时，若 `property` 是一个 getter，它将在 `this = target` 上下文中运行其代码，所以结果是来自原始对象 `target` 的 `this._name`，即 `user._name`**。
+
+为了解决这种情况，需要使用 `get` 捕捉器的第三个参数 `receiver`，它保证将正确的 `this` 传递给 `getter`，在本例子中正确的 `this` 是 `admin`。
+
+**对于常规函数，可以使用 `call/apply`，但这是一个 getter，不能 “被调用” ，只能被访问**。
+
+`Reflect.get` 可以做到，如果使用它，一切都会正常运行。
+
+这是更正之后的代码：
+
+```js
+let user = {
+  _name: 'Guest',
+  get name() {
+    return this._name;
+  }
+};
+
+let userProxy = new Proxy(user, {
+  get(target, property, receiver) {
+    return Reflect.get(target, property, receiver); // (*)
+  }
+});
+
+let admin = {
+  __proto__: userProxy,
+  _name: 'Admin',
+};
+
+alert(admin.name); // Admin
+```
+
+上述代码中，`receiver` 保留了对正确 `this` 的引用（即 `admin`），该引用是在 `(*)` 行中通过 `Reflect.get` 传递给 getter 的。
+
+还可以把捕捉器写的更短：
+
+```js
+get(target, property, receiver) {
+  return Reflect.get(...arguments);
+}
+```
+
+**`Reflect` 调用的命名与捕捉器的命名完全相同，并且接受相同的参数，它们是以这种方式专门设计的**。
+
+所以 **`return Reflect...` 提供了一个安全的方式，可以轻松地转发操作，并确保不会忘记与此相关的任何内容**。
+
+
+
+**proxy 的局限性**
+
+代理提供的了一种独特的方法，可以在最底层更改或调整现有对象的行为，**但是它并不完美，有局限性**。
+
+
+
+**内建对象：内部插槽（Internal slot）**
+
+许多内建对象，例如 `Map`、`Set`、`Date`、`Promise` 等，都使用了所谓的 **“内部插槽”**。
+
+**它们类似于属性，但仅限于内部使用，仅用于规范目的**，例如，`Map` 将项目（item）存储在了 `[[MapData]]` 中，**内建方法可以直接访问它们，而不通过 `[[Get]]/[[Set]]` 内部方法，所以 `proxy` 无法拦截它们**。
+
+在类似这样的内建对象被代理后，代理对象没有这些内部插槽，所以内建方法将会执行失败：
+
+```js
+let map = new Map();
+
+let proxy = new Proxy(map, {});
+
+proxy.set('test', 1); // Uncaught TypeError: Method Map.prototype.set called on incompatible receiver #<Map>
+```
+
+在内部，**一个 `Map` 将所有数据存储在 `[[MapData]]` 内部插槽中，代理对应没有这样的插槽，内建方法 `Map.prototype.set` 方法试图访问内部属性 `this.[[MapData]]`，但由于 `this=proxy`，在 `proxy` 中无法找到它，只能失败**。
+
+有一种解决办法：
+
+```js
+let map = new Map();
+
+let proxy = new Proxy(map, {
+  get(target, property, receiver) {
+    let value = Reflect.get(...arguments);
+    return typeof value === 'function' ? value.bind(target) : value;
+  }
+});
+
+proxy.set('test', 1);
+alert(proxy.get('test')); // 1
+```
+
+现在它正常工作了，因为 `get` 捕捉器将函数属性（例如 `map.set`）绑定到了目标对象（`map`）本身。
+
+此时 `proxy.set(...)` 时内部 `this` 值并不是 `proxy`，而是原始的 `map`，所以当 `set` 内建方法尝试访问 `this.[[MapData]]` 内部插槽时，它会成功。
+
+**⚠️ 注意：`Array` 没有内部插槽，出于历史原因**，因为它出现于很久以前，所以代理数组不会有这个问题。
+
+
+
+**私有字段**
+
+类的私有字段也会有类似的情况。
+
+例如，`getName()` 方法访问私有的 `#name` 属性，并在代理后中断：
+
+```js
+class User {
+  #name = 'Guest';
+  
+  getName() {
+    return this.#name;
+  }
+}
+
+let user = new User();
+
+user = new Proxy(user, {});
+
+alert(user.getName()); // Uncaught TypeError: Cannot read private member #name from an object whose class did not declare it
+```
+
+出现这个问题的原因是**私有字段是通过内部插槽实现的**，JavaScript 在访问它们时不使用 `[[Get]]/[[Set]]`。
+
+在调用 `getName()` 时，**`this` 的值是代理后的 `user`，它没有带有私有字段的插槽**。
+
+再次使用带有 `bind` 方法的解决方案使他恢复正常：
+
+```js
+class User {
+  #name = 'Guest';
+  
+  getName() {
+    return this.#name;
+  }
+}
+
+let user = new User();
+
+user = new Proxy(user, {
+  get(target, property, receiver) {
+    let value = Reflect.get(...arguments);
+    
+    return typeof value === 'function' ? value.bind(target) : value;
+  }
+});
+
+alert(user.getName()); // Guest
+```
+
+**⚠️ 注意：** 就像前面所说的，**该解决方案存在将原始对象暴露给该方法，可能使其进一步传递并破坏其它代理功能的问题**。
+
+
+
+**proxy !== target**
+
+代理和原始对象是不同的对象，所以**如果使用原生对象作为键，然后对其进行代理，之后就无法找到代理了**。
+
+例如：
+
+```js
+let allUsers = new Set();
+
+class User {
+  constructor(name) {
+    this.name = name;
+    allUsers.add(this);
+  }
+}
+
+let user = new User('CodePencil');
+
+alert(allUsers.has(user)); // true
+
+user = new Proxy(user, {});
+
+alert(allUsers.has(user)); // false
+```
+
+上述代码中，进行代理后，在 `allUsers` 中找不到 `user`，因为代理是一个不同的对象。
+
+**⚠️ 注意：`proxy` 无法拦截严格相等检查 `===`**，`proxy` 可以拦截许多操作符，例如 `new`（使用 `construct`），`in`（使用 `has`），`delete`（使用 `deleteProperty`）等，但是没有办法拦截对于对象的严格相等性检查，**一个对象只严格等于其自身，没有其他值，所以比较对象是否相等的所有操作和内建类都会区分对象和代理，没有透明的替代品**。
+
+
+
+**可撤销的 proxy**
+
+一个**可撤销**的代理是可以被禁用的代理。
+
+假设有一个资源，并且想随时关闭对该资源的访问。
+
+可以将它包装成一个可撤销的代理，没有任何捕捉器，这样的代理会将操作转发给对象，并且可以随时将其禁用。
+
+语法：
+
+```js
+const { proxy, revoke } = Proxy.revocable(target, handler);
+```
+
+该调用返回一个带有 `proxy` 和 `revoke` 函数的对象以将其禁用。
+
+例如：
+
+```js
+let object = {
+  data: 'Valuable data',
+};
+
+const { proxy, revoke } = Proxy.revocable(object, {});
+
+alert(proxy.data); // Valuable data
+
+// 稍后，在代码中取消 proxy
+revoke();
+
+// proxy 不再工作（revoked）
+alert(proxy.data) // Uncaught TypeError: Cannot perform 'get' on a proxy that has been revoked
+```
+
+上述代码中对 `revoke()` 的调用**会从代理中删除对目标对象的所有内部引用**，所以它们之间再无连接。
+
+最初，`revoke` 与 `proxy` 是分开的，因此可以传递 `proxy`，同时将 `revoke` 留在当前范围内。
+
+**也可以通过设置 `proxy.revoke = revoke` 将 `revoke` 绑定到 `proxy`**。
+
+**另一种选择是创建一个 `WeakMap`，其中 `proxy` 作为键，相应的 `revoke` 作为值，这样可以轻松找到 `proxy` 所对应的 `revoke`**：
+
+```js
+let revokes = new WeakMap();
+
+let object = {
+  data: 'Valuable data'
+};
+
+let { proxy, revoke } = Proxy.revocable(object, {});
+
+revokes.set(proxy, revoke);
+
+// 在代码中的其它位置
+revoke = revokes.get(proxy);
+revoke();
+
+alert(proxy.data); // Uncaught TypeError: Cannot perform 'get' on a proxy that has been revoked
+```
+
+**⚠️ 注意：**
+
+- **此处之所以使用 `WeakMap` 而不是 `Map`，因为它不会阻止垃圾回收**，如果一个代理对象变得 “不可访问”（例如，没有变量再引用它），则 `WeakMap` 允许将其与它的 `revoke` 一起从内存中清除
+- 基准测试（benchmark）取决于引擎，但**通常使用最简单的代理访问属性所需的时间也要长几倍**，实际上，这仅对某些 “瓶颈” 对象来说才重要。
