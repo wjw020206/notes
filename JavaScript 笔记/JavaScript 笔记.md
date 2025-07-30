@@ -20372,3 +20372,130 @@ alert( curriedSum(1)(2)(3) ); // 6
 - 根据定义柯里化应该将 `sum(a, b, c)` 转换为 `sum(a)(b)(c)`
 
   但在前面的例子中也支持 `sum(a)(b, c)` 调用，**JavaScript 中大多数的柯里化实现都是高级版本的：使得函数可以被多参数变体调用**
+
+
+
+## Reference Type
+
+一个动态执行的方法调用可能会丢失 `this`。
+
+例如：
+
+```js
+const user = {
+  name: 'CodePencil',
+  hi() {
+    alert(this.name);
+  },
+  bye() {
+    alert('Bye');
+  }
+};
+
+user.hi(); // CodePencil，正常运行
+
+// 现在基于 name 来选择调用 user.hi 或 user.bye
+(user.name === 'CodePencil' ? user.hi : user.bye)(); // Uncaught TypeError: Cannot read properties of undefined (reading 'name')
+```
+
+上述代码中最后一行在当前的情形下的结果是 `user.hi`，接着该方法被调用，但是出错了。
+
+此处调用出现了一个错误，是因为调用中的 `this` 的值变成了 `undefined`。
+
+这样是可以工作的（**对象.方法**）：
+
+```js
+user.hi();
+```
+
+这就无法工作了（**被评估的方法：指方法（函数）先被取出来（被评估），再被调用**）：
+
+```js
+(user.name === 'CodePencil' ? user.hi : user.bye)(); // Uncaught TypeError: Cannot read properties of undefined (reading 'name')
+```
+
+
+
+**Reference type 解读**
+
+仔细看的话，可以注意到 `obj.method()` 语句中的两个操作：
+
+1. **首先点 `.`  取了属性 `obj.method` 的值**
+2. **接着 `()` 执行了它**
+
+如果将这些操作放在不同的行，**`this` 必定是会丢失的**：
+
+```js
+const user = {
+  name: 'CodePencil',
+  hi() {
+    alert(this.name);
+  }
+};
+
+const hi = user.hi;
+hi(); // Uncaught TypeError: Cannot read properties of undefined (reading 'name')
+```
+
+上述代码中 `hi = user.hi` 把函数赋值给了一个变量，然后在最后一行它是完全独立的，所以这里没有 `this`。
+
+**为了确保 `user.hi()` 调用正常运行，JavaScript 玩了一个小把戏 —— 点 `.` 返回的不是一个函数，而是一个特殊的 Reference Type 的值**。
+
+**Reference Type 是 ECMA 中的一个 “规范类型”，不能直接使用它，但它被用在 JavaScript 语言内部**。
+
+**Reference Type 的值是一个三个值的组合 `(base, name, strict)`**，其中：
+
+- `base` 是对象
+- `name` 是属性名
+- `strict` 在 `use strict` 模式下为 `true`
+
+在 `user.hi()` 调用运行时，**对属性 `user.hi` 访问结果不是一个函数，而是一个 Reference Type 的值**，对于 `user.hi`，在严格模式下是：
+
+```js
+// Reference Type 的值
+(user, 'hi', true)
+```
+
+**当 `()` 在 Reference Type 上调用时，它们会接收到关于对象和对象方法的完整信息，然后可以设置正确的 `this`（此处 `=user`）**。
+
+Reference Type 是一个特殊的 “中间人” 内部类型，目的是从 `.` 传递信息给 `()` 调用。
+
+**任何例如赋值 `hi = user.hi` 等其它操作，都会将 Reference Type 作为一个整体丢掉，而会取 `user.hi`（一个函数）的值并继续传递**，所以后续的操作都 “丢失” 了 `this`。
+
+因此，**`this` 的值仅在函数直接被点符号 `obj.method()` 或方括号 `obj['method']()` 语法（此处它们作用相同）调用才会被正确传递**，还有很多解决这个问题的方式，例如 `func.bind()`。
+
+**⚠️ 注意：**
+
+- 如下方式调用 `this` 也是正确的。
+
+  ```js
+  let user = {
+    name: 'CodePencil',
+    go: function() { alert(this.name) }
+  };
+  
+  (user.go)() // CodePencil
+  ```
+
+  上述代码中 **`(user.go)` 外边这层的括号没有任何作用，通常用它们来设置操作的顺序，但在这里点符号 `.` 总是会先执行**，所以并没有什么影响。
+
+- **除了方法调用之外的任何操作（如赋值 `=` 或 `||`），都会把它转换为一个不包含允许设置 `this` 信息的普通值**
+
+  ```js
+  let obj, method;
+  
+  obj = {
+    go: function() { alert(this); }
+  };
+  
+  obj.go();               // [object Object]
+  
+  (obj.go)();             // [object Object]
+  
+  // 除了方法调用之外的任何操作
+  (method = obj.go)();    // undefined
+  
+  (obj.go || obj.stop)(); // undefined
+  ```
+
+  
