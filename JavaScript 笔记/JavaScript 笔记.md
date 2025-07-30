@@ -20222,3 +20222,60 @@ alert(typeof x); // undefined（没有这个变量）
   ```
 
   `new Function` 从字符串创建一个函数，**作用域也是在全局作用域中的，所以它无法访问局部变量**。
+
+
+
+
+
+## 柯里化（Currying）
+
+柯里化是一种关于函数的高阶技术，不仅被用于 JavaScript，还被用于其它语言。
+
+**柯里化是一种函数的转换，是指将一个函数从可调用的 `f(a, b, c)` 转换为可调用的 `f(a)(b)(c)`**。
+
+**柯里化不会调用函数。它只是对函数进行转换**。
+
+例如，创建一个辅助函数 `curry(f)`，该函数将对两个参数的函数 `f` 执行柯里化：
+
+```js
+function curry(f) {
+  return function(a) {
+    return function(b) {
+      return f(a, b);
+    };
+  };
+}
+
+// 用法
+function sum(a, b) {
+  return a + b;
+}
+
+const curriedSum = curry(sum);
+
+alert( curriedSum(1)(2) ); // 3
+```
+
+上述代码实现非常简单：只有两个包装器（wrapper）。
+
+- `curry(func)` 的结果就是一个包装器 `function(a)`
+- 当它被像 `curriedSum(1)` 这样调用时，它的参数会被保存在词法环境中，然后返回一个新的包装器 `function(b)`
+- 然后这个包装器以 `2` 为参数调用，并且它将调用传递给原始的 `sum` 函数
+
+柯里化更高级的实现，例如 loadsh 库的 [_.curry](https://lodash.com/docs#curry)，会返回一个包装器，**该包装器允许函数被正常调用或者以部分应用函数（partial）的方式调用**：
+
+```js
+function sum(a, b) {
+  return a + b;
+}
+
+const curriedSum = _.curry(sum);
+
+alert( curriedSum(1, 2) ); // 3, 仍可正常调用
+alert( curriedSum(1)(2) ); // 3, 以部分应用函数的方式调用
+```
+
+
+
+
+
