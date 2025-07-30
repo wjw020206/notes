@@ -20277,5 +20277,98 @@ alert( curriedSum(1)(2) ); // 3, 以部分应用函数的方式调用
 
 
 
+**柯里化的好处**
+
+例如有一个用于格式化和输出信息的日志（logging）函数 `log(date, importance, message)`，在实际项目中，此类函数具有很多有用的功能，例如通过网络发送日志（log），不过在这仅使用 `alert`：
+
+```js
+function log(date, importance, message) {
+  alert(`[${date.getHours()}:${date.getMinutes()}] [${importance}] ${message}`);
+}
+```
+
+将它柯里化：
+
+```js
+log = _.curry(log);
+```
+
+柯里化之后，`log` 仍正常运行：
+
+```js
+log(new Date(), 'DEBUG', 'some debug'); // log(a, b, c)
+```
+
+也可以以柯里化形式运行：
+
+```js
+log(new Date())('DEBUG')('some debug'); // log(a)(b)(c)
+```
+
+现在可以轻松地为当前日志创建便捷函数：
+
+```js
+let logNow = log(new Date()); // logNow 是带有固定第一个参数的日志的部分应用函数
+
+logNow('INFO', 'message'); // [HH:mm] INFO message
+```
+
+现在 `logNow` 是具有固定第一个参数的 `log`，换句话说就是更简短的 ”部分应用函数（partially applied function）“ 或 ”部分函数（partial）“。
+
+可以更进一步，为当前的调试日志提供便捷函数：
+
+```js
+let debugNow = logNow('DEBUG');
+
+debugNow('message'); // [HH:mm] DEBUG message
+```
+
+所以：
+
+- 柯里化之后，没有丢失任何东西：`log` 依然可以被正常调用
+- 可以轻松地生成部分应用函数，例如用于生成今天的日志的部分应用函数
 
 
+
+**高级柯里化实现**
+
+```js
+// 实现：
+function curry(func) {
+  return function curried(...args) {
+    if(args.length >= func.length) { // (1)
+      return func.apply(this, args);
+    } else {
+      return function(...args2) { // (2)
+        return curried.apply(this, args.concat(args2));
+      };
+    }
+  };
+}
+
+// 用例：
+function sum(a, b, c) {
+  return a + b + c;
+}
+
+const curriedSum = curry(sum);
+
+alert( curriedSum(1, 2, 3) ); // 6
+alert( curriedSum(1)(2, 3) ); // 6
+alert( curriedSum(1)(2)(3) ); // 6
+```
+
+上述代码中运行它有两个 `if` 执行分支：
+
+1. 如果传入的 `args` 长度与原始函数所定义的 `func.length` 相同或者更长，那么只需要使用 `func.apply` 将调用传递给它即可
+2. 否则获取一个部分应用函数：目前还没调用 `func`。取而代之的是，返回另一个包装器，它将重新应用 `curried`，将之前传入的参数与新的参数一起传入。
+
+如果再次调用它，将得到一个新的部分应用函数（如果没有足够的参数），或者最终的结果。
+
+**⚠️ 注意：**
+
+- **只允许确定参数（形参）长度的函数进行柯里化**，柯里化要求**函数具有固定数量的参数**
+
+- 根据定义柯里化应该将 `sum(a, b, c)` 转换为 `sum(a)(b)(c)`
+
+  但在前面的例子中也支持 `sum(a)(b, c)` 调用，**JavaScript 中大多数的柯里化实现都是高级版本的：使得函数可以被多参数变体调用**
