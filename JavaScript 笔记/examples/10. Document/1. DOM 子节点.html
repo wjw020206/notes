@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div>Users:</div>
+    <ul>
+      <li>John</li>
+      <li>Pete</li>
+    </ul>
+
+    <script>
+      // 获取 div DOM 节点
+      document.body.firstElementChild;
+      document.body.children[0];
+      document.body.childNodes[1];
+
+      // 获取 ul DOM 节点
+      document.body.firstElementChild.nextElementSibling;
+      document.body.lastElementChild.previousElementSibling;
+      document.body.children[1];
+      document.body.childNodes[3];
+
+      // 获取第二个li节点（即包含 Pete 的节点）
+      document.body.firstElementChild.nextElementSibling.children[1];
+      document.body.firstElementChild.nextElementSibling.lastElementChild;
+      document.body.lastElementChild.previousElementSibling.lastElementChild;
+    </script>
+  </body>
+</html>
