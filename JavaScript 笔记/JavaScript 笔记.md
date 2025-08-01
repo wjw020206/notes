@@ -21097,7 +21097,7 @@ DOM 结构会变成：
 在工具栏的右侧部分还有以下子选项卡：
 
 - **样式（Style）** —— 可以看到按规则应用于当前元素的 CSS 规则，包括内建规则（灰色），几乎所有内容都可以就地编辑，包括下面的方框的 `dimension/margin/padding`
-- **计算样式（Computed）** —— 按属性查看应用于元素的 CSS：对于每个属性，都可以看到赋予它的规则（包括 CSS 继承等）*
+- **计算样式（Computed）** —— 按属性查看应用于元素的 CSS：对于每个属性，都可以看到赋予它的规则（包括 CSS 继承等）
 - **事件监听器（Event Listeners）** —— 查看附加到 DOM 元素的事件侦听器
 - ......等
 
@@ -21124,3 +21124,312 @@ DOM 结构会变成：
 
 更多 Chrome 开发者工具的知识，可以参考 https://developers.google.cn/web/tools/chrome-devtools。
 
+
+
+## 遍历 DOM
+
+对 DOM 的所有操作都是以 `document` 对象开始的，它是 DOM 的主 “入口点”，可以通过它访问任何节点。
+
+下图描述对象间导航（navigation）链接的图片，通过这些导航链接可以在 DOM 节点之间移动。
+
+![image-20250801070626940](images/image-20250801070626940.png)
+
+
+
+**在最顶层：documentElement 和 body**
+
+最顶层的树节点可以**直接作为 `document` 的属性**来使用：
+
+**`<html> = document.documentElement`**
+
+最顶层的 document 节点是 `document.documentElement`，对应 `<html>` 标签的 DOM 节点。
+
+
+
+**`<body> = document.body`**
+
+另一个被广泛使用的 DOM 节点是 `<body>` 元素 —— `document.body`。
+
+
+
+**`<head> = document.head`**
+
+`<head>` 标签可以通过 `document.head` 来访问。
+
+**⚠️ 注意：`document.body` 的值可能为 `null`**，因为脚本无法访问在运行时不存在的元素，当一个脚本是 `<head>` 标签中时，那么脚本是访问不到 `document.body` 元素的，因为浏览器还没读到它。
+
+例如：
+
+```html
+<html>
+
+<head>
+  <script>
+    alert( 'From HEAD: ' + document.body ); // null，这里目前还没有 <body>
+  </script>
+</head>
+
+<body>
+  <script>
+    alert( 'From BODY: ' + document.body ); // HTMLBodyElement，现在存在了
+  </script>
+</body>
+
+</html>
+```
+
+在 DOM 的世界中，**`null` 就意味着 “不存在” 或者 “没有这个节点”**。
+
+
+
+**子节点：childNodes，firstChild，lastChild**
+
+- **子节点（或者叫作子）** —— 对应的是直系的子元素，例如：`<head>` 和 `<body>` 就是 `<html>` 元素的子元素
+- **子孙元素** —— 嵌套在给定元素中的所有元素，包括子元素，以及子元素的子元素等
+
+例如：
+
+```html
+<html>
+<body>
+  <div>Begin</div>
+  
+  <ul>
+    <li>
+      <b>Information</b>
+    </li>
+  </ul>
+</body>
+</html>
+```
+
+`<body>` 元素的子孙元素不仅包含直接的子元素 `<div>` 和 `<ul>`，还包含像 `<li>`（`<ul>` 的子元素）和 `<b>`（`<li>` 的子元素）这样的元素 —— 整个子树。
+
+**`childNodes` 集合列出了所有子节点，包括文本节点。**
+
+例如：
+
+```html
+<html>
+<body>
+  <div>Begin</div>
+  
+  <ul>
+    <li>Information</li>
+  </ul>
+  
+  <div>End</div>
+  
+  <script>
+    for (let i = 0; i < document.body.childNodes.length; i++) {
+      alert( document.body.childNodes[i] ); // Text, DIV, Text, UL, ..., SCRIPT
+    }
+  </script>
+  ...more stuff...
+</body>
+</html>
+```
+
+**⚠️ 注意：** 上述代码中，所显示的最后一个元素是 `<script>`，但实际上文档下面还有很多东西，**因为这个脚本运行的时候，浏览器还没读到下面的内容，所以脚本就看不到它们**。
+
+**`firstChild` 和 `lastChild` 属性是访问第一个和最后一个子元素的快捷方式。**
+
+它们只是简写，如果元素存在子元素，那么下面的脚本运行结果将是 `true`：
+
+```js
+elem.childNodes[0] === elem.firstChild; // true
+elem.childNodes[elem.childNodes.length - 1] === elem.lastChild; // true
+```
+
+**还有一个特别的函数 `elem.hasChildNodes()` 用于检查节点是否有子节点**。
+
+
+
+**DOM 集合**
+
+`childNodes` 看起来像一个数组，但实际上它**并不是数组**，而是一个**集合** —— **一个类数组的可迭代对象**。
+
+这个性质会导致两个结果：
+
+1. **可以使用 `for..of` 来迭代它**
+
+   ```js
+   for (const node of document.body.childNodes) {
+     alert(node); // 显示集合中的所有节点
+   }
+   ```
+
+   因为集合是可迭代的（提供了所需要的 `Symbol.iterator` 属性）。
+
+2. **无法使用数组的方法**，因为它不是一个数组
+
+   ```js
+   alert( document.body.childNodes.filter ); // undefined
+   ```
+
+   如果想使用数组的方法，可以使用 `Array.from` 方法来从类数组中创建为一个 “真” 数组：
+
+   ```js
+   alert( Array.from(document.body.childNodes).filter ); // function
+   ```
+
+**⚠️ 注意：**
+
+- **DOM 集合是只读的**，不能通过类似 `childNodes[i] = ...` 的操作来替换一个子节点
+
+- **DOM 集合是实时的**，几乎所有的 DOM 集合都是实时的，它们反映了 DOM 的当前状态，如果保留一个对 `elem.childNodes` 的引用，然后向 DOM 中添加/移除节点，那么这些节点的更新会自动出现在集合中
+
+- **不要使用 `for..in` 来遍历集合**，可以使用 `for..of` 对集合进行迭代，但不能使用 `for..in` 来遍历集合，**因为 `for..in` 遍历的是所有可枚举的（enumerable）属性，集合中存在一些 “额外的” 很少被用到的属性，这些属性通常不是所期望得到的**
+
+  ```html
+  <body>
+    <script>
+      // 显示 0，1，length，item，values 及其他
+      for (let prop in document.body.childNodes) alert(prop);
+    </script>
+  </body>
+  ```
+
+
+
+**兄弟节点和父节点**
+
+兄弟节点（sibing）是**指有同一个父节点的节点**。
+
+例如 `<head>` 和 `<body>` 就是兄弟节点：
+
+```html
+<html>
+  <head>...</head><body>...</body>
+</html>
+```
+
+- `<body>` 可以说是 `<head>` 的 “下一个” 或者 “右边” 兄弟节点
+- `<head>` 可以说是 `<body>` 的 “前一个” 或者 “左边” 兄弟节点
+
+**下一个兄弟节点在 `nextSibling` 属性中，上一个是在 `prevSibling` 属性中**。
+
+**可以通过 `parentNode` 来访问父节点**。
+
+例如：
+
+```js
+// <body> 的父节点是 <html>
+alert( document.body.parentNode === document.documentElement ); // true
+
+// <head> 的后一个节点是 <body>
+alert( document.head.nextSibling ); // HTMLBodyElement
+
+// <body> 的前一个节点是 `<head>`
+alert( document.body.prevSibling ); // HTMLHeadElement
+```
+
+
+
+**纯元素导航**
+
+前面列出的导航（navigation）属性引用所有节点，例如，**在 `childNodes` 中可以看到文本节点，元素节点，甚至包括注释节点**。
+
+在实际开发中，可能并不想要文本节点或者注释节点，只希望操作的是代表标签的和形成页面结构的元素节点。
+
+下图中是**只考虑元素节点**的导航链接（navigation link）：
+
+![image-20250801080523316](images/image-20250801080523316.png)
+
+这些链接和之前提过的类似，只是在词中间加了 `Element`：
+
+- **`children`** —— 仅那些作为元素节点的子代的节点
+- **`firstElementChild`，`lastElementChild`** —— 第一个和最后一个子元素
+- **`previousElementSibling`，`nextElementSibling`** —— 兄弟元素
+- **`parentElement`** —— 父元素
+
+**⚠️ 注意：** `parentElement` 属性返回的是 “元素类型” 的父节点，而 `parentNode` 返回的是 “任何类型” 的父节点，这些属性通常来说是一样的：它们都是用于获取父节点。
+
+**唯一例外的是 `document.documentElement`**：
+
+```js
+alert( document.documentElement.parentNode ); // document
+alert( document.documentElement.parentElement); // null
+```
+
+之所以会这样是因为根节点 `document.documentElement` （`<html>`）的父节点是 `document`，但 **`document` 不是一个元素节点**，所以 `parentNode` 返回了 `document`，但 `parentElement` 返回的是 `null`。
+
+当想从任意节点 `elem` 到 `<html>` 而不是到 `document` 时，这个细节很有用：
+
+```js
+while(elem = elem.parentElement) { // 向上，直到 <html>
+  alert(elem);
+}
+```
+
+修改前面的示例，使用 `children` 来替换 `childNodes`，现在它只显示元素：
+
+```html
+<html>
+<body>
+  <div>Begin</div>
+  
+  <ul>
+    <li>Information</li>
+  </ul>
+  
+  <div>End</div>
+  
+  <script>
+    for (const elem of document.body.children) {
+      alert( elem ); // DIV, UL, DIV, SCRIPT
+    }
+  </script>
+  ...
+</body>
+</html>
+```
+
+
+
+**更多链接：表格**
+
+方便起见，某些类型的 DOM 元素可能会提供特定于其类型的其它属性。
+
+**`<table>`** 元素支持（除了前面给出的，之外）以下属性：
+
+- **`table.rows`** —— `<tr>` 元素的集合
+- **`table.caption/tHead/tFoot`** —— 引用元素 `<caption>`、`<thead>`、`<tfoot>`
+- **`table.tBodies`** —— `<tbody>` 元素的集合（根据标准还有很多元素，但是这里至少会有一个 `<tbody>` —— 即使没有被写在 HTML 源文件中，浏览器也会将其放入 DOM 中）
+
+**`<thead>`、`<tfoot>`、`<tbody>`** 元素提供了 `rows` 属性：
+
+- **`tbody.rows`** —— 表格内部 `<tr>` 元素的集合
+
+**`<tr>`：**
+
+- **`tr.cells`** —— 在给定 `<tr>` 中的 `<td>` 和 `<th>` 单元格的集合
+- **`tr.sectionRowIndex`** —— 给定的 `<tr>` 在封闭的 `<thead>/<tbody>/<tfoot>` 中的位置（索引）
+- **`tr.rowIndex`** —— 在整个表格中 `<tr>` 的编号（包括表格的所有行）
+
+**`<td>` 和 `<th>`：**
+
+- **`td.cellIndex`** —— 在封闭的 `<tr>` 中单元格的编号
+
+用法示例：
+
+```html
+<table id="table">
+  <tr>
+    <td>one</td><td>two</td>
+  </tr>
+  <tr>
+    <td>three</td><td>four</td>
+  </tr>
+</table>
+
+<script>
+  // 获取带有 two 的 td（第一行，第二列）
+  let td = table.rows[0].cells[1];
+  td.style.backgroundColor = 'red';
+</script>
+```
+
+![image-20250801083513466](images/image-20250801083513466.png)
+
+关闭表格更多细节可以参考规范：[tabular data](https://html.spec.whatwg.org/multipage/tables.html)。
