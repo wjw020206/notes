@@ -21727,3 +21727,473 @@ const divs = document.getElementsByTagName('div');
 | `getElementsByClassName` | class        | ✔                  | ✔        |
 
 目前为止，最常用的是 `querySelector` 和 `querySelectorAll`，但是 `getElement(s)By*` 可能会偶尔有用，或者可以在旧脚本中找到。
+
+
+
+## 节点属性：type，tag 和 content
+
+
+
+**DOM 节点类**
+
+**不同的 DOM 节点可能有不同的属性**，例如： 标签 `<a>` 相对应的元素节点具有链接相关（link-related）的属性，标签 `<input>` 相对应的元素节点具有与输入相关的属性等，**文本节点与元素节点不同，但是所有这些标签对应的 DOM 节点之间也存在共有的属性和方法**，因为所有类型的 DOM 节点都形成了一个**单一层次的结构（single hierarchy）**。
+
+**每个 DOM 节点都属于相应的内建类**。
+
+**层次结构（hierarchy）的根节点是 `EventTarget`，`Node` 继承它，其它 DOM 节点继承自 `Node`**，具体的如下图：
+
+![image-20250801125625180](images/image-20250801125625180.png)
+
+类如下所示：
+
+- **`EventTarget`** —— 是一切的根 “抽象（abstract）” 类
+
+  该类的对象从未被创建，它作为一个基础，以便**让所有 DOM 节点都支持 “事件（event）”**。
+
+- **`Node`** —— 是一个 “抽象” 类，充当 DOM 节点的基础
+
+  **它提供了树的核心功能：`parentNode`、`nextSibling`、`prevSibling`、`childNodes` 等（它们都是 getter**），`Node` 类的对象从未被创建，但是还有一些继承自它的其它类（因此继承了 `Node` 的功能）。
+
+- **`Document`** —— **表示一个整体的文档，全局变量 `document` 属于这个类，它作为 DOM 的入口**
+
+  由于历史原因通常被 `HTMLDocument` 继承（尽管最新的规范没有规定）。
+
+- **`CharacterData`** —— 是一个 “抽象” 类，被下述类继承：
+
+  - **`Text`** —— 对应于元素内部文本的类，例如 `<p>Hello</p>` 中的 `Hello`
+  - **`Comment`** —— 注释类，它们不会被展示出来，但每个注释都会成为 DOM 中的一员
+
+- **`Element`** —— 是 DOM 元素的基础类
+
+  **它提供了元素级的导航（navigation），如：`nextElementSibling`，`children`，以及搜索方法，如 `getElementsByTagName` 和 `querySelector`**。
+
+  浏览器不仅支持 HTML，还支持 XML 和 SVG，因此 `Element` 类充当的是更具体类的基础：`SVGElement`、`XMLElement` 和 `HTMLElement`。
+
+- **`HTMLElement`** —— 是所有 HTML 元素的基础类，大部分时候会用到它
+
+  它会被更具体的 HTML 元素继承：
+
+  - **`HTMLInputElement`** —— `<input>` 元素的类
+  - **`HTMLBodyElement`** —— `<body>` 元素的类
+  - **`HTMLAnchorElement`** —— `<a>` 元素的类
+  - ......等
+
+因此，给定节点的全部属性和方法都是继承链的结果。
+
+例如，`<input>` 元素的 DOM 对象，它属于 `HTMLInputElement` 类，它获取属性和方法，并将其作为下列类（按继承顺序列出）的叠加：
+
+- `HTMLInputElement` —— 该类提供特定于输入的属性
+- `HTMLElement` —— 该类提供了通用（common）的 HTML 元素方法（以及 getter 和 setter）
+- `Element` —— 该类提供通用（generic）元素方法
+- `Node` —— 该类提供通用 DOM 节点属性
+- `EventTarget` —— 该类为事件（包括事件本身）提供支持
+- 最后，它继承自 `Object`，因为像 `hasOwnProperty` 这样的 “普通对象” 方法也是可用的
+
+可以通过回调来查看 DOM 节点的类名，因为对象通常都具有 `constructor` 属性。
+
+```js
+alert( document.body.constructor.name ); // HTMLBodyElement
+```
+
+或者可以对其使用 `toString` 方法：
+
+```js
+alert( document.body ); // [object HTMLBodyElement]
+```
+
+也可以使用 `instanceof` 来检查继承：
+
+```js
+alert( document.body instanceof HTMLBodyElement ); // true
+alert( document.body instanceof HTMLElement ); // true
+alert( document.body instanceof Element ); // true
+alert( document.body instanceof Node ); // true
+alert( document.body instanceof EventTarget ); // true
+```
+
+DOM 节点是常规的 JavaScript 对象，**它们使用基于原型的类进行继承**。
+
+在浏览器中，可以使用 `console.dir(elem)` 来查看元素对应的 DOM 对象。
+
+**⚠️ 注意：**
+
+- **`console.log(elem)` 与 `console.dir(elem)`**
+
+  大多数浏览器在其开发者工具中都支持这两个命令，它们将参数输出到控制台中，对于 JavaScript 对象，这些命令通常做的是相同的事情。
+
+  **但对于 DOM 元素，它们是不同的**：
+
+  - `console.log(elem)` 显示元素的 DOM 树
+  - `console.dir(elem)` 将元素显示为 DOM 对象，非常适合探索其属性
+
+- **规范中的 IDL**
+
+  在规范中，DOM 类不是使用 JavaScript 来描述的，而是一种特殊的接口描述语言（Interface description language），简写为 IDL，它通常很容易理解。
+
+  在 IDL 中，所有属性以其类型开头，例如：`DOMString` 和 `boolean` 等。
+
+  例如：
+
+  ```idl
+  // 定义 HTMLInputElement
+  // 冒号 ":" 表示 HTMLInputElement 继承自 HTMLElement
+  interface HTMLInputElement: HTMLElement {
+    // 接下来是 <input> 元素的属性和方法
+  
+    // "DOMString" 表示属性的值是字符串
+    attribute DOMString accept;
+    attribute DOMString alt;
+    attribute DOMString autocomplete;
+    attribute DOMString value;
+  
+    // 布尔值属性（true/false）
+    attribute boolean autofocus;
+    ...
+    // 现在方法："void" 表示方法没有返回值
+    void select();
+    ...
+  }
+  ```
+
+
+
+**nodeType 属性**
+
+`nodeType` 属性提供了另一种 **“过时的”** 用来获取 DOM 节点类型的方法。
+
+它是一个数值类型的值：
+
+- **对于元素节点 `elem.nodeType === 1`**
+- **对于文本节点 `elem.nodeType === 3`**
+- **对于 `document` 对象 `elem.nodeType === 9`**
+- 在[规范](https://dom.spec.whatwg.org/#node)中还有一些其它值
+
+例如：
+
+```html
+<body>
+  <script>
+    let elem = document.body;
+
+    // body 的节点类型
+    alert(elem.nodeType); // 1 => element
+
+    // 它的第一个子节点的类型
+    alert(elem.firstChild.nodeType); // 3 => text
+
+    // 对于 document 对象，类型是 9
+    alert( document.nodeType ); // 9
+  </script>
+</body>
+```
+
+**在现代脚本中，推荐使用 `instanceof` 和其它类的检查方法来查看节点的类型**，但有时 `nodeType` 可能更简单。
+
+**⚠️ 注意：`nodeType` 是只读的，无法修改**。
+
+
+
+**标签：nodeName 和 tagName**
+
+可以**从 `ndoeName` 或者 `tagName` 属性中读取 DOM 节点的标签名**。
+
+例如：
+
+```js
+alert( document.body.nodeName ); // BODY
+alert( document.body.tagName ); // BODY
+```
+
+`tagName` 和 `nodeName` 的区别：
+
+- **`tagName` 属性仅适用于 `Element` 节点**
+- **`nodeName` 是为任意 `Node` 定义的**：
+  - 对于元素，它的意义与 `tagName` 相同
+  - 对于其它节点类型（text，comment 等），它拥有一个对应的节点类的字符串
+
+简单来说，**`tagName` 仅受元素节点支持（因为它起源于 `Element` 类）**，而 `nodeName` 可以说明其它节点类型。
+
+例如：
+
+```html
+<body><!-- comment -->
+
+  <script>
+    // 对于注释节点
+    alert( document.body.firstChild.tagName ); // undefined（不是一个元素）
+    alert( document.body.firstChild.nodeName ); // #comment
+
+    // 对于 document 节点
+    alert( document.tagName ); // undefined（不是一个元素）
+    alert( document.nodeName ); // #document
+  </script>
+</body>
+```
+
+如果只处理元素，那么 `tagName` 和 `nodeName` 两种方法没有区别，都可以使用。
+
+**⚠️ 注意：标签名始终是大写的，除非是在 XML 模式下**，浏览器有两种处理文档（document）的模式：HTML 和 XML，通常，HTML 模型用于网页，只有浏览器接收到 `Content-Type: application/xml+xhtml` header 的 XML-document 时，XML 模式才会被启用。
+
+**在 HTML 模式下，`tagName/nodeName` 始终是大写的**：它是 `BODY`，而不是 `<body>` 或 `<BoDy>`，**在 XML 模式下，大小写保持为 “原样”**，如今 XML 模式很少被使用。
+
+
+
+**innerHTML：内容**
+
+`innerHTML` 属性**允许将元素中的 HTML 获取为字符串形式**。
+
+也可以修改它，这是更改页面最有效的方式之一。
+
+例如：
+
+```html
+<body>
+  <p>A paragraph</p>
+  <div>A div</div>
+  
+  <script>
+    alert( document.body.innerHTML ); // 读取当前内容
+    document.body.innerHTML = 'The new BODY!'; // 替换它
+  </script>
+</body>
+```
+
+![image-20250801135520741](images/image-20250801135520741.png)
+
+也可以尝试插入无效的 HTML，浏览器会修复错误：
+
+```html
+<body>
+
+  <script>
+    document.body.innerHTML = '<b>test'; // 忘记闭合标签
+    alert( document.body.innerHTML ); // <b>test</b>（被修复了）
+  </script>
+
+</body>
+```
+
+![image-20250801135508439](images/image-20250801135508439.png)
+
+**⚠️ 注意：** 如果使用 `innerHTML` 将一个 `<script>` 标签插入到 document 中，**它会成为 HTML 的一部分，但是不会执行**。
+
+
+
+**小心：innerHTML += 会进行完全重写**
+
+可以使用 `elem.innerHTML += 'more html'` 将 HTML 附加到元素上。
+
+例如：
+
+```js
+chatDiv.innerHTML += '<div>Hello<img src="smile.gif"/> !</div>';
+chatDiv.innerHTML += 'How goes?';
+```
+
+**必须非常谨慎的使用它，因为所做的不是附加内容，而是完全地重写**。
+
+从技术上来说，下面两行代码的作用相同：
+
+```js
+elem.innerHTML += '...';
+elem.innerHTML = elem.innerHTML + '...';
+```
+
+简单来说，`innerHTML+=` 做以下工作：
+
+1. **移除旧的内容**
+2. **然后写入新的 `innerHTML`（新旧结合）**
+
+**因为内容已 “归零” 并从头开始写，因此所有的图片和其它资源都将被重新加载**。
+
+当有许多文本和图片时，重新加载会耗费更多的时间，所以很容易看到页面重载的过程，影响用户体验。
+
+并且还会有其它的副作用，例如：如果现有的文本被用鼠标选中了，那么大多数浏览器都会在重写 `innerHTML` 时删除选定状态，如果有一个带有用户输入的文本的 `<input>`，那么这个被输入的文本将会被移除，诸如此类。
+
+不过除了 `innerHTML`，还有其它可以添加 HTML 的方法。
+
+
+
+**outerHTML：元素的完整 HTML**
+
+`outerHTML` 属性包含了元素的完整 HTML，**就像 `innerHTML` 加上元素本身一样**。
+
+例如：
+
+```html
+<div id="elem">Hello <b>World</b></div>
+
+<script>
+  alert(elem.outerHTML); // <div id="elem">Hello <b>World</b></div>
+  alert(elem.innerHTML); // Hello <b>World</b>
+</script>
+```
+
+**⚠️ 注意：与 `innerHTML` 不同，写入 `outerHTML` 不会改变元素，而是在 DOM 中替换它**，例如：
+
+```html
+<div>Hello, world!</div>
+
+<script>
+  let div = document.querySelector('div');
+  
+  div.outerHTML = '<p>A new element</p>'; // (*)
+  
+  alert(div.outerHTML); // <div>Hello, world!</div> (**)
+</script>
+```
+
+上述代码中，在 `(*)` 行，使用 `<p>A new element</p>` 替换 `div`，**在外部文档（DOM）中可以看到的是新内容**而不是 `<div>`，但在 `(**)` 行所看到的，**旧的 `div` 变量并没有改变**。
+
+**`outerHTML` 赋值不会修改 DOM 元素（在这个例子中是被 ‘div’ 引用的对象），而是将其从外部文档中删除并在其位置插入新的 HTML**。
+
+所以在 `div.outerHTML=...` 中发生的事情是：
+
+1. `div` 被从文档（document）中移除
+2. 另一个 HTML 片段 `<p>A new element</p>` 被插入到其位置上
+3. `div` 仍拥有其旧的值，新的 HTML 没有被赋值给任何变量
+
+**这个行为与 `div.innerHTML` 不一样，`div.innerHTML` 赋值新的 HTML 之后，变量 `div` 将拥有新的值**。
+
+所以向 `elem.outerHTML` 写入内容，需要记住它不会改变我们所写的元素，而是将新的 HTML 放在其位置上，**还需要通过 DOM 查询来获取对新元素的引用**。
+
+
+
+**nodeValue/data：文本节点内容**
+
+**`innerHTML` 属性仅对元素节点有效**。
+
+其它节点，如：文本节点、注释节点等具有它们的对应项：`nodeValue` 和 `data` 属性，**这两者在实际使用上几乎相同，只有细微规范上的差异，所以将使用 `data`，因为它更短**。
+
+例如：
+
+```html
+<body>
+  Hello
+  <!-- Comment -->
+  <script>
+    let text = document.body.firstChild;
+    alert(text.data); // Hello
+
+    let comment = text.nextSibling;
+    alert(comment.data); // Comment
+  </script>
+</body>
+```
+
+在实际开发中，很少会读取或修改文本节点，但对于注释节点，有时候开发者会将信息或模版说明嵌入到 HTML 中的注释中，例如：
+
+```html
+<!-- if isAdmin -->
+  <div>Welcome, Admin!</div>
+<!-- /if -->
+```
+
+然后 JavaScript 可以从 `data` 属性中读取它，并处理嵌入的指令。
+
+
+
+**textCotent：纯文本**
+
+`textContent` 提供了对元素内的**文本**的访问权限：**仅文本，去掉所有 `<tags>`**。
+
+例如：
+
+```html
+<div id="news">
+  <h1>Headline!</h1>
+  <p>Martians attack people!</p>
+</div>
+
+<script>
+  alert(news.textContent);
+  // Headline! 
+  // Martians attack people!
+</script>
+```
+
+上述代码只返回文本，就像所有 `<tags>` 都被裁剪掉一样。
+
+在实际开发中，用到这样的文本读取的场景非常少。
+
+**写入 `textContent` 要有用的多，因为它允许以 “安全方式” 写入文本**。
+
+假设有一个用户输入的任意字符串，希望将其显示出来。
+
+- **使用 `innerHTML`，将其作为 “作为 HTML” 插入，带有所有 HTML 标签**
+- **使用 `textContent`，将其 “作为纯文本” 插入，所有符号（symbol）均按字面意义处理**
+
+例如：
+
+```html
+<div id="elem1"></div>
+<div id="elem2"></div>
+
+<script>
+  let name = prompt(`What's your name?`, '<b>Winnie-the-Pooh!</b>');
+  
+  elem1.innerHTML = name;
+  elem2.textContent = name;
+</script>
+```
+
+![image-20250801203120455](images/image-20250801203120455.png)
+
+1. 第一个 `<div>` 获取 `name` **“作为 HTML”**：所有标签都变成标签，所以可以看到粗体的 `name`
+1. 第二个 `<div>` 获取 name **“作为文本”**，因此可以从字面上看到 `<b>Winnie-the-Pooh!</b>`
+
+在大多数情况下，**期望来自用户的文本视为文本对待，不希望在网站中出现意料不到的 HTML，对 `textContent` 的赋值正好可以做到这一点**。
+
+
+
+**hidden 属性**
+
+**`hidden` 特性（attribute）和 DOM 属性（property） 指定元素是否可见**。
+
+可以在 HTML 中使用它，或者使用 JavaScript 对其进行赋值，例如：
+
+```html
+<div>Both divs below are hidden</div>
+
+<div hidden>With the attribute "hidden"</div>
+
+<div id="elem">JavaScript assigned the property "hidden"</div>
+
+<script>
+  elem.hidden = true;
+</script>
+```
+
+![image-20250801203920233](images/image-20250801203920233.png)
+
+**⚠️ 注意：** 从技术上讲，**`hidden` 与 `style="display: none"` 做的是相同的事情**，但 `hidden` 写法更简洁。
+
+
+
+**更多属性**
+
+DOM 元素还有其它属性，特别是那些依赖于所对应的 JavaScript 类的属性：
+
+- **`value`** —— `<input>`，`<select>` 和 `<textarea>`（`HTMLInputElement`，`HTMLSelectElement`……）的 `value`
+- **`href`** —— `<a href="...">`（`HTMLAnchorElement`）的 `href`
+- **`id`** —— 所有 HTML 元素（`HTMLElement`）的 “id” 特性（attribute）的值
+- ......更多其它内容......
+
+例如：
+
+```html
+<input type="text" id="elem" value="value">
+
+<script>
+  alert(elem.type); // text
+  alert(elem.id); // elem
+  alert(elem.value); // value
+</script>
+```
+
+大多数标准 HTML 特性（attribute）都具有相应的 DOM 属性，可以像上述代码一样直接访问它。
+
+如果想知道给定类受支持属性的完整列表，可以在规范中找到它们，例如，在 https://html.spec.whatwg.org/#htmlinputelement 中记录了 `HTMLInputElement`。
+
+或者也可以使用 `console.dir(elem)` 输出元素并读取其属性，或者在浏览器的开发者工具的元素（Elements）标签页中探索 “DOM 属性”。
+
