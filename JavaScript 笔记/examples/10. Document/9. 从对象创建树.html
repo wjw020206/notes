@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="tree"></div>
+
+    <script>
+      let data = {
+        Fish: {
+          trout: {},
+          salmon: {},
+        },
+
+        Tree: {
+          Huge: {
+            sequoia: {},
+            oak: {},
+          },
+          Flowering: {
+            'apple tree': {},
+            magnolia: {},
+          },
+        },
+      };
+
+      let container = document.getElementById('tree');
+      createTree(container, data); // 将树创建在 container 中
+
+      // innerHTML
+      // function createTree(container, obj) {
+      //   container.innerHTML = createTreeText(obj);
+      // }
+
+      // function createTreeText(obj) {
+      //   let li = '';
+      //   let ul;
+
+      //   for (const key in obj) {
+      //     li += `<li>${key}${createTreeText(obj[key])}</li>`;
+      //   }
+
+      //   if (li) {
+      //     ul = `<ul>${li}</ul>`;
+      //   }
+
+      //   return ul || '';
+      // }
+
+      // 使用 DOM 的解决方案
+      function createTree(container, obj) {
+        container.append(createTreeElement(obj));
+      }
+
+      function createTreeElement(obj) {
+        if (!Object.keys(obj).length) return;
+
+        const ul = document.createElement('ul');
+
+        for (const key in obj) {
+          const li = document.createElement('li');
+          li.innerHTML = key;
+
+          const childrenUl = createTreeElement(obj[key]);
+
+          if (childrenUl) {
+            li.append(childrenUl);
+          }
+
+          ul.append(li);
+        }
+
+        return ul;
+      }
+    </script>
+  </body>
+</html>

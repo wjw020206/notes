@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <h1>Create a list</h1>
+    <script>
+      const ul = document.createElement('ul');
+      document.body.append(ul);
+
+      while (true) {
+        const value = prompt('Enter the text for the list item', '');
+
+        // if (value === null || value.trim() === '') break;
+        if (!value) break;
+
+        const li = document.createElement('li');
+        li.textContent = value;
+        ul.append(li);
+      }
+    </script>
+  </body>
+</html>

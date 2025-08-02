@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      table {
+        border-collapse: collapse;
+      }
+
+      td,
+      th {
+        border: 1px solid black;
+        padding: 3px;
+        text-align: center;
+      }
+
+      th {
+        font-weight: bold;
+        background-color: #e6e6e6;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="calendar"></div>
+
+    <script>
+      function createCalendar(elem, year, month) {
+        let mon = month - 1;
+        const d = new Date(year, mon);
+
+        let table = `<table><tr><th>MO</th><th>TU</th><th>WE</th><th>TH</th><th>FR</th><th>SA</th><th>SU</th></tr><tr>`;
+
+        // 前面的空白单元格
+        for (let i = 0; i < getDay(d); i++) {
+          table += `<td></td>`;
+        }
+
+        // 实际的日期单元格
+        while (d.getMonth() === mon) {
+          table += `<td>${d.getDate()}</td>`;
+
+          if (getDay(d) === 6) {
+            table += `</tr><tr>`;
+          }
+
+          d.setDate(d.getDate() + 1);
+        }
+
+        // 后面的空白单元格
+        if (getDay(d) !== 0) {
+          for (let i = getDay(d); i < 7; i++) {
+            table += `<td></td>`;
+          }
+        }
+
+        table += `</tr></table>`;
+        elem.innerHTML = table;
+      }
+
+      function getDay(d) {
+        let day = d.getDay();
+
+        if (day === 0) day = 7;
+
+        return day - 1;
+      }
+
+      createCalendar(calendar, 2025, 8);
+    </script>
+  </body>
+</html>
