@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      #field {
+        width: 200px;
+        border: 10px groove black;
+        background-color: #00ff00;
+        position: relative;
+      }
+
+      #ball {
+        position: absolute;
+        width: 40px;
+        height: 40px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="field">
+      <img src="https://en.js.cx/clipart/ball.svg" id="ball" /> . . . . . . . .
+      . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+      . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+      . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+      . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+      . . . . . . . . . . . . . . . . . . .
+    </div>
+
+    <script>
+      const field = document.querySelector('#field');
+      const ball = document.querySelector('#ball');
+
+      ball.style.left =
+        Math.round(field.clientWidth / 2 - ball.offsetWidth / 2) + 'px';
+      ball.style.top =
+        Math.round(field.clientHeight / 2 - ball.offsetHeight / 2) + 'px';
+    </script>
+  </body>
+</html>
