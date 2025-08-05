@@ -23066,3 +23066,267 @@ div.innerHTML = `<strong>Hi there!</strong> You've read an important message.`;
 **⚠️ 注意：** 使用它有一个好处，当浏览器正在读取（解析）传入的 HTML 时调用 `document.write` 方法写入一些东西时，**浏览器会像它本来就在 HTML 文本中那样使用它，所以它运行起来出奇的快**，因为它**不涉及 DOM 修改**，它会直接写入到页面文本中，而此时 DOM 尚未构建。
 
 **当需要向 HTML 动态添加大量文本，并且正处于页面加载阶段，并且速度很重要，使用它可能会有帮助**，但实际上这些要求很少同时出现。
+
+
+
+## 样式和类
+
+通常有两种设置元素样式的方式：
+
+1. 在 CSS 中创建一个类，并添加它：`<div class="...">`
+2. 将属性直接写入 `style`：`<div style="...">`
+
+**JavaScript 既可以修改类，也可以修改 `style` 属性**。
+
+相较于将样式写入 `style` 属性，**应该首选通过 CSS 类的方式来添加样式**，只有当 CSS 类 “无法处理” 时，才选择使用 `style` 属性的方式。
+
+例如，**如果动态计算元素的坐标，并通过 JavaScript 来设置它们，那么使用 `style` 是可以接受的**。
+
+```js
+let top = /* 复杂的计算 */;
+let left = /* 复杂的计算 */;
+
+elem.style.left = left; // 例如 '123px'，在运行时计算出的
+elem.style.top = top; // 例如 '456px'
+```
+
+对于其它情况，例如：将文本设为红色，添加一个背景图标等，可以在 CSS 中对这些样式进行描述，然后添加类（使用 JavaScript 可以实现），这样更灵活也更易于支持。
+
+
+
+**className 和 classList**
+
+更改元素的 CSS 类是最常见的操作之一。
+
+在很久之前，JavaScript 中有一个限制，像 `class` 这样的保留字不能用作对象的属性（现在这一限制已经不存在了），所以当时不能存在像 `elem.class` 这样的 `class` 属性。
+
+因此对于类，引入了看起来类似的属性 `className`：**`elem.className` 对应于 `class` 特性（attribute）**。
+
+例如：
+
+```html
+<body class="main page">
+  <script>
+    alert(document.body.className); // main page
+  </script>
+</body>
+```
+
+**如果对 `elem.className` 进行赋值，将替换类中整个字符串**，但通常需要的是添加/删除单个类。
+
+这时可以使用另一个属性：`elem.classList`。
+
+**`elem.classList` 是一个特殊的对象，它具有 `add/remove/toggle` 单个方法**。
+
+例如：
+
+```html
+<body class="main page">
+  <script>
+    document.body.classList.add('article');
+    
+    alert(document.body.className); // main page article
+  </script>
+</body>
+```
+
+所以既可以使用 `className` 对完整的类字符串进行操作，也可以使用 `classList` 对单个类进行操作。
+
+`classList` 的方法：
+
+- **`elem.classList.add/remove(class)`** —— 添加/移除类
+- **`elem.classList.toggle(class)`** —— 如果类不存在就添加类，存在就移除它
+- **`elem.classList.contains(class)`** —— 检查给定类，返回 `true/false`
+
+**⚠️ 注意：`classList` 是可迭代的**，所以可以像下面这样列出所有类：
+
+```html
+<body class="main page">
+  <script>
+    for(let name of document.body.classList) {
+      alert(name); // 先是 main，然后是 page
+    }
+  </script>
+</body>
+```
+
+
+
+**元素样式**
+
+**`elem.style` 属性是一个对象，它对应于 `style` 特性（attribute）中所写的内容**。
+
+**对于多词（multi-word）属性，使用驼峰式 camelCase**：
+
+```tex
+background-color  => elem.style.backgroundColor
+z-index           => elem.style.zIndex
+border-left-width => elem.style.borderLeftWidth
+```
+
+例如：
+
+```js
+document.body.style.backgroundColor = prompt('background color?', 'green');
+```
+
+**⚠️ 注意：** 对于像 `-moz-border-radius` 和 `-webkit-border-radius` 这样的浏览器前缀属性，也遵循同样的规则：连字符 `-` 表示大写。
+
+例如：
+
+```js
+button.style.MozBorderRadius = '5px';
+button.style.WebkitBorderRadius = '5px';
+```
+
+
+
+**重置样式属性**
+
+为了隐藏一个属性，可以设置 `elem.style.display = 'none'`。
+
+如果想要移除 `style.display` 属性，就像它没有被设置一样，这里**不应该使用 `delete elem.style.display`，而是使用 `elem.style.display = ''` 将其赋值为空字符串**。
+
+例如：
+
+```js
+document.body.style.display = 'none'; // 隐藏
+
+setTimeout(() => document.body.style.display = '', 1000); // 一秒后恢复显示
+```
+
+上述代码中**将 `style.display` 设置为空字符串，浏览器通常会应用 CSS 类以及内建样式，就好像没有 `style.display` 属性一样**。
+
+**也可以使用 `elem.style.removeProperty('style property')` 删除 `style` 中的属性**：
+
+```js
+document.body.style.background = 'red'; // 设置红色背景
+
+setTimeout(() => document.body.style.removeProperty('background'), 1000); // 一秒后移除红色背景
+```
+
+**⚠️ 注意：** 使用 `style.*` 只能对各个样式属性进行赋值，**不能像这样 `div.style="color: red; width: 100px"` 设置完整的属性，因为 `div.style` 是一个对象，并它是只读的**。
+
+想要**以字符串的形式来设置完整的样式，可以使用特殊属性 `style.cssText`**：
+
+```html
+<div id="div">Button</div>
+
+<script>
+  div.style.cssText = `color: red !important;
+    background-color: yellow;
+    width: 100px;
+    text-align: center;`;
+  
+  alert(div.style.cssText); // background-color: yellow; width: 100px; text-align: center; color: red !important;
+</script>
+```
+
+很少使用这个属性，**因为这样的赋值会删除所有现有的样式**，它不是进行添加，而是替换它们，只有当知道不会删除现有样式时，可以将其安全地用于新元素。
+
+也**可以通过设置一个特性（attribute）来实现相同的效果：`div.setAttribute('style', 'color: red...')`**。
+
+
+
+**注意单位**
+
+**不要忘记将 CSS 单位添加到值上**。
+
+例如，不应该将 `elem.style.top` 设置为 `10`，而是应该将其设置为 `10px`，否则设置会无效：
+
+```html
+<body>
+  <script>
+    document.body.style.margin = 20; // 无效
+    alert(document.body.style.margin); // ''（空字符串，赋值被忽略了）
+    
+    document.body.style.margin = '20px'; // 添加了 CSS 单位（px）生效了
+    alert(document.body.style.margin); // 20px
+    
+    alert(document.body.style.marginTop); // 20px
+    alert(document.body.style.marginLeft); // 20px
+  </script>
+</body>
+```
+
+computedStyle上述代码中**浏览器在最后几行代码中对属性 `style.margin` 进行了 “解包”，并从中推断出 `style.marginLeft` 和 `style.marginTop`**。
+
+
+
+**计算样式：getComputedStyle**
+
+**`style` 属性只对 `style` 特性（attribute）值起作用，没有任何 CSS 级联（cascade）**。
+
+所以**无法使用 `elem.style` 属性读来自 CSS 类的任何内容**。
+
+例如：
+
+````html
+<head>
+  <style> body { color: red; margin: 5px } </style>
+</head>
+<body>
+  The red text
+  <script>
+    alert(document.body.style.color); // 空的
+    alert(document.body.style.marginTop); // 空的
+  </script>
+</body>
+````
+
+如果需要将 `margin` 增加到 `20px` 或者需要获取 `margin` 当前的值，**可以使用另一个方法：`getComputedStyle`**。
+
+语法：
+
+```js
+getComputedStyle(elem, [pseudo]);
+```
+
+- **`element`** —— 需要被读取样式的元素
+- **`pseudo`** —— 伪元素（如果需要），例如 `'::before'`，**空字符串或者无参数意味着元素本身**
+
+返回的结果是一个具有样式属性的对象，类似于 `elem.style`，对于所有的 CSS 类来说都如此。
+
+例如：
+
+```html
+<head>
+  <style> body { color: red; margin: 5px } </style>
+</head>
+<body>
+  <script>
+    const computedStyle = getComputedStyle(document.body);
+    
+    alert(computedStyle.marginTop); // 5px
+    alert(compuredStyle.color); // rgb(255, 0, 0)
+  </script>
+</body>
+```
+
+**⚠️ 注意：**
+
+- 在 CSS 中有以下两个概念：
+
+  1. **计算值（computed）样式值：** 所有 CSS 规则和 CSS 继承都应用后的值，这是 CSS 级联（cascade）的结果，看起来像 `height: 1em` 或者 `font-size: 125%`
+  2. **解析（resolved）样式值：** 最终应用于元素的样式值，诸如 `1em` 或 `125%` 这样的值都是相对的，浏览器将使用计算（computed）值，并使所有单位均为固定的，且为绝对单位，例如：`height:20px` 或 `font-size:16px`，对于几何属性，解析（resolved）值可能具有浮点，例如：`width: 50.5px`
+
+  在很久之前，`getComputedStyle` 返回的是计算（computed）值，但事实证明解析（resolved）值要方便得多，标准也因此发生了变化，所以**现在 `getComputedStyle` 实际上返回属性值是解析（resolved）值**。
+
+  
+
+- **`getComputedStyle` 需要完整的属性名**
+
+  应该**总是使用确切的属性**，例如：`paddingLeft`、`marginTop` 或 `borderTopWidth`等，否则不能保证正确的结果。
+
+  例如，如果有 `paddingLeft/paddingTop` 属性，那么对于 `getComputedStyle(elem).padding` 会得到什么？可能什么都没有，也可能是从已知的 `padding` 中 “生成” 的值，这里**没有标准的规则**。
+
+  
+
+- **应用于 `:visited` 链接的样式被隐藏了**
+
+  可以使用 CSS 伪类 `:visited` 对被访问过的链接进行着色，**但 `getComputedStyle` 没有给出访问该颜色的方式，因为如何允许的话任何页面都允许在页面上创建它，并通过检查样式来确定用户是否访问了该链接**。
+  
+  JavaScript 看不到 `:visited` 所应用的样式，**此外 CSS 中也有一个限制：禁止在 `:visited` 中应用更改几何形状的样式**，这是为了确保一个不好的页面无法检测链接是否被访问。
+  
+  
+  
