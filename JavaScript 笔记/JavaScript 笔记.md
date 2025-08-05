@@ -1,3 +1,5 @@
+
+
 # JavaScript 笔记
 
 
@@ -23327,6 +23329,239 @@ getComputedStyle(elem, [pseudo]);
   可以使用 CSS 伪类 `:visited` 对被访问过的链接进行着色，**但 `getComputedStyle` 没有给出访问该颜色的方式，因为如何允许的话任何页面都允许在页面上创建它，并通过检查样式来确定用户是否访问了该链接**。
   
   JavaScript 看不到 `:visited` 所应用的样式，**此外 CSS 中也有一个限制：禁止在 `:visited` 中应用更改几何形状的样式**，这是为了确保一个不好的页面无法检测链接是否被访问。
-  
-  
-  
+
+
+
+## 元素大小和滚动
+
+JavaScript 中有许多属性可以读取元素的宽度、高度和其它几何特征信息。  
+
+例如有下面这样的元素：
+
+```html
+<div id="example">
+  ...Text...
+</div>
+<style>
+  #example {
+    width: 300px;
+    height: 200px;
+    border: 25px solid #E8C48F;
+    padding: 20px;
+    overflow: auto;
+  }
+</style>
+```
+
+它有边框（border），内边距（padding）和滚动（scrolling）等全套功能，但没有外边距（margin），**因为外边距不是元素本身的一部分，并且它们没有什么特殊的属性**。
+
+这个元素看起来像下面这样：
+
+![image-20250805142205542](images/image-20250805142205542.png)
+
+**⚠️ 注意：**
+
+- 上图中的演示元素具有滚动条，**如果没有滚动条，内容宽度将是 `300 px`，如果滚动条的宽度是 `16px`（不同的设备和浏览器，滚动条的宽度可能有所不同），那么还剩下 `300 - 16 = 284px`**
+
+- **文本可能会溢出到 `padding-bottom` 中**
+
+  如果元素中有很多文本，并且溢出了，**浏览器会在 `padding-bottom` 处显示溢出文本，这是正常现象**
+
+  ![image-20250805142923420](images/image-20250805142923420.png)
+
+
+
+**几何**
+
+下面是带有几何属性的整体图片：
+
+![image-20250805143038851](images/image-20250805143038851.png)
+
+**⚠️ 注意：** 这些属性的值在技术上是数字，但这些数字其实是 “像素（pixel）”，因为它们是**像素测量值**。
+
+
+
+**offsetParent，offsetLeft/Top**
+
+这些属性很少使用，但它们仍然是 “最外面” 的几何属性。
+
+**`offsetParent` 是最接近的祖先（ancestor）**，在浏览器渲染期间，它被用于计算坐标。
+
+最近的祖先为下列之一：
+
+1. CSS 定位的（`position` 为 `absolute`、`relative`、`fixed` 或 `sticky`）
+2. `<td>`、`th`、`<table>`
+3. `<body>`
+
+**属性 `offsetLeft/offsetTop` 提供了相对于 `offsetParent` 左上角的 x/y 坐标**。
+
+例如：
+
+```html
+<main style="position: relative" id="main">
+  <article>
+    <div id="example" style="position: absolute; left: 180px; top: 180px">...</div>
+  </article>
+</main>
+<script>
+  alert(example.offsetParent.id); // main
+  alert(example.offsetLeft); // 180（注意：这是一个数字，不是字符串 "180px"）
+  alert(example.offsetTop); // 180
+</script>
+```
+
+![image-20250805143929408](images/image-20250805143929408.png)
+
+**⚠️ 注意：** 有以下几种情况下，`offsetParent` 的值为 `null`：
+
+1. **对于未显示的元素（`display:none` 或者不在文档中）**
+2. **对于 `<body>` 与 `<html>`**
+3. **对于带有 `position:fixed` 的元素**
+
+
+
+**offsetWidth/Height**
+
+它们提供了元素的 “外部” `width/height`，简单来说就是**它的完整大小（包括边框）**。
+
+![image-20250805144256581](images/image-20250805144256581.png)
+
+对于示例元素：
+
+- `offsetWidth = 390` —— 外部宽度（width），可以计算为内部 CSS-width（`300px`）加上 `padding`（`2 * 20px `）和 `border`（`2 * 25px`）
+- `offsetHeight = 290` —— 外部高度（height）
+
+**⚠️ 注意：对于未显示的元素，几何属性为 0/null**，如果一个元素（或其任何祖先）具有 `display: none` 或不在文档中，则所有几何属性均为零（或 `offsetParent` 为 `null`）。
+
+例如创建了一个元素，但尚未将它插入文档中，或者它（或它的祖先）具有 `display: none` 时，**`offsetParent` 为 `null`，并且 `offsetWidth` 和 `offsetHeight` 为 `0`**。
+
+可以利用它来检查一个元素是否被隐藏，像这样：
+
+```js
+function isHidden(elem) {
+  return !elem.offsetWidth && !elem.offsetheight;
+}
+```
+
+**⚠️ 注意：对于展示在屏幕上，但大小为零的元素，它们的 `isHidden` 也返回 `true`**。
+
+
+
+**clientTop/left**
+
+要测量元素内部的边框（border），可以使用 `clientTop` 和 `clientLeft`。
+
+在示例中：
+
+- `clientLeft = 25` —— 左边框宽度
+- `clientTop = 25` —— 上边框宽度
+
+![image-20250805145950966](images/image-20250805145950966.png)
+
+这些属性不是边框的 `width/height`，**而是内侧与外侧的相对坐标**。
+
+当文档从右到左显示（操作系统为阿拉伯语或希伯来语）时，**此时滚动条不在右边，而是在左边，此时 `clientLeft` 则包含了滚动条的宽度**。
+
+在这种情况下，`clientLeft` 的值将不是 `25`，而是加上滚动条的宽度（如果滚动调的宽度是 `16px`） `25 + 16 = 41`。
+
+下面是希伯来语的例子：
+
+![image-20250805150306933](images/image-20250805150306933.png)
+
+**clientWidth/Height**
+
+这些属性提供了元素边框内区域的大小。
+
+它们包括了 `content width` 和 `padding`，**但不包括滚动条宽度（scrollbar）**：
+
+![image-20250805150610804](images/image-20250805150610804.png)
+
+在上图中，因为没有水平滚动条，所以 `clientHeight` 恰好是 `border` 内的总和：CSS-height `200px` 加上顶部和底部的 `padding`（`2 * 20px`），总计 `240px`。
+
+而 `clientWidth` —— 这里的 `content width` 不是 `300px`，而是 `284px`，因为被滚动条占用了 `16px`，所以加起来就是 `284px` 加上左侧和右侧的 `padding`，总计 `324px`。
+
+**如果没有 `padding`，那么 `clientWidth/Height` 代表的就是内容区域，即 `border` 和 `scrollbar`（如果有）内的区域**。
+
+![image-20250805151309807](images/image-20250805151309807.png)
+
+因此，**当没有 `padding` 时，可以使用 `clientWidth/clientHeight` 来获取内容区域的大小**。
+
+
+
+**scrollWidth/Height**
+
+这些属性就像是 `clientWidth/clientHeight`，但它们还包括滚动出（隐藏）的部分：
+
+![image-20250805151550266](images/image-20250805151550266.png)
+
+在上图中：
+
+- `scrollHeight = 723` —— 是内容区域的完整内部高度，包括滚动出的部分
+- `scrollWidth = 324` —— 是完整的内部宽度，这里因为没有水平滚动，因此它等于 `clientWidth`
+
+可以使用这些属性将元素展开（expand）到整个 `width/height`。
+
+像下面这样：
+
+```js
+// 将元素展开（expand）到完整的内容高度
+element.style.height = `${element.scrollHeight}px`;
+```
+
+
+
+**scrollLeft/scrollTop**
+
+属性 `scrollLeft/scrollTop` 是元素的隐藏、滚动部分的 `width/height`。
+
+在下图中，可以看到带有垂直滚动块的 `scrollHeight` 和 `scrollTop`。
+
+![image-20250805152059209](images/image-20250805152059209.png)
+
+简单来说，**`scrollTop` 就是 “已经滚动了多少”**。
+
+**⚠️ 注意：大多数几何属性都是只读的，但是 `scrollLeft/scrollTop` 是可修改的**，并且浏览器会滚动这些元素。
+
+例如：执行代码 `elem.scrollTop += 10`，会使元素内容向下滚动 `10px`。
+
+**也可以将 `scrollTop` 设置为 `0` 或者一个大的值，例如 `1e9`，会使元素滚动到顶部/底部**。
+
+
+
+**不要从 CSS 中获取 width/height**
+
+**不要使用 `getComputedStyle` 来读取 CSS-width 和 height，而是应该使用几何属性**。
+
+例如：
+
+```js
+const elem = document.body;
+
+alert(getComputedStyle(elem).width); // 显示 elem 的 CSS width
+```
+
+为什么应该使用几何属性，有以下几个原因：
+
+1. CSS `width/height` 取决于另一个属性：`box-sizing`，**它定义了 “什么是” CSS 宽度和高度，出于 CSS 的目的而对 `box-sizing` 进行的更改可能会破坏此类 JavaScript 操作**
+
+2. **CSS 的 `width/height` 可能是 `auto`**，例如内联（inline）元素：
+
+   ```html
+   <span id="elem">Hello!</span>
+   
+   <script>
+     alert(getComputedStyle(elem).width); // auto
+   </script>
+   ```
+
+   从 CSS 观点来看，`width: auto` 是完全正常的，但在 JavaScript 中，需要一个确切的 `px` 大小，以便在计算中使用它，所以这里的 CSS `auto` 宽度没什么用
+
+3. **`getComputedStyle` 在没有滚动条的代码下工作正常，当出现滚动条时，就会出现问题**
+
+   因为在某些浏览器中，滚动条会占用内容的空间，所以内容的实际宽度小于 CSS 宽度，而使用几何属性 `clientWidth/clientHeight` 则会考虑到这一点。
+
+   但使用 `getComputedStyle(elem).width` 时，情况就不同了，**某些浏览器（例如 Chrome）返回的是实际内部宽度减去滚动条宽度，而某些浏览器（例如 Firefox）返回的是 CSS 宽度（忽略的滚动条的宽度），这种跨浏览器的差异是不使用的 `getComputedStyle` 而依赖几何属性的原因**。
+
+4. **几何属性返回的都是数值，而 `getComputedStyle` 返回的大多数值都是一个以 `px` 作为后缀的字符串**
+
+   
