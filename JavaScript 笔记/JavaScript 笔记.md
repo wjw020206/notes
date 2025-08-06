@@ -23683,3 +23683,193 @@ alert('当前已从左侧滚动：' + window.pageXOffset);
 
 
 
+## 坐标
+
+大多数 JavaScript 方法处理的是以下两个坐标系中的一个：
+
+- **相对于窗口** —— 类似于 `position: fixed`，从窗口的顶部/左侧边缘计算得出
+  - **在事件属性中将这些坐标系表示为 `clientX/clientY`**
+- **相对于文档** —— 与文档根（document root）中的 `position: absolute` 类似，从文档的顶部/左侧边缘计算得出
+  - **在事件属性中将这些坐标系表示为 `pageX/pageY`**
+
+**当页面滚动到最开始时，此时窗口的左上角恰好是文档的左上角，它们的坐标彼此相等**，但是当文档移动之后，元素的窗口相对坐标会发生变化，因为元素在窗口中移动，而元素在文档中的相对坐标保持不变。
+
+下图就是在文档中取一点，演示了它滚动之前（左）和之后（右）的坐标：
+
+![image-20250806133810594](images/image-20250806133810594.png)
+
+当文档滚动了：
+
+- `pageY` —— 元素在文档中的相对坐标保持不变，从文档顶部（现在已滚动出去）开始计算
+- `clientY` —— 窗口相对坐标确实发生了变化（箭头变短了），因为同一个点越来越靠近窗口顶部
+
+
+
+**元素坐标：getBoundingClientRect**
+
+方法 `getBoundingClientRect()` **返回最小矩形的窗口坐标**，该矩形将 `elem` 作为**内建 `DOMRect` 类**的对象。
+
+主要的 `DOMRect` 属性：
+
+- **`x/y`** —— 矩形原点相对于窗口的 X/Y 坐标
+- **`width/height`** —— 矩形的 width/height（可以为负数）
+
+此外还有派生（derived）属性：
+
+- **`top/bottom`** —— 顶部/底部矩形边缘的 Y 坐标
+- **`left/right`** —— 左/右矩形边缘的 X 坐标
+
+下面是 `elem.getBoundingClientRect()` 的输出示意图：
+
+![image-20250806135346347](images/image-20250806135346347.png)
+
+正如上图所示，`x/y` 和 `width/height` 对矩形进行了完整的描述，所以很容易从它们计算出派生（derived）属性：
+
+- `left = x`
+- `top = y`
+- `right = x + width`
+- `bottom = y + height`
+
+**⚠️ 注意：**
+
+- **坐标可能是小数**，例如：`10.5`，这是正常的，因为浏览器内部使用小数进行计算，在设置 `style.left/top` 时，**不是必须对它们进行舍入**
+
+- **坐标可能是负数**，例如滚动页面，使 `elem` 位于窗口的上方，则 `elem.getBoundingClientRect().top` 为负数
+
+- **负的 `width/height` 值表示矩形从其右下角开始，然后向左上方 “增长”**
+
+  从数学上讲，一个矩形是使用其起点 `(x,y)` 和方向向量 `(width,height)` 唯一定义的，所以其它派生类是为了方便起见。
+
+  在技术上讲，`width/height` 可能为负数，从而允许 **“定向（directed）” 矩形**，例如代表带有正确标记的开始和结束的鼠标选择。
+
+  下图中是一个矩形，**其 `width` 和 `height` 均为负数（例如 `width = -200`，`height = -100`）**：
+
+  ![image-20250806140111315](images/image-20250806140111315.png)
+
+  正如上图所示，在这个例子中，**`left/top` 与 `x/y` 不相等**，但实际上 `elem.getBoundingClientRect()` 总是返回正数的 `width/height`。
+  
+- **IE 浏览器不支持 `x/y`**，由于历史原因，IE 浏览器不支持 `x/y` 属性。
+  
+  可以写一个 polyfill（在 `DomRect.property` 中添加一个 getter：
+  
+  ```js
+  if (!('x' in DOMRect.prototype)) {
+    Object.defineProperty(DOMRect.prototype, 'x', {
+      get() { return this.left; }
+    });
+  }
+  
+  if (!('y' in DOMRect.prototype)) {
+    Object.defineProperty(DOMRect.prototype, 'y', {
+      get() { return this.top; }
+    });
+  }
+  ```
+  
+  **如果盒子宽高都是正数（即没有被 transform 缩放、旋转等奇怪变换），也可以只使用 `top/left`**，此时它们和 `x/y` 的值相同。
+  
+  **不是所有 `DOMRect` 或坐标对象都有一定 `x/y === left/top`**，但 `getBoundingClientRect()` 方法的返回值在绝大多数情况下（即宽高为正，没有奇怪变换），**`x` 就是 `left`，`y` 就是 `top`**。
+  
+- **坐标的 `right/bottom` 与 CSS position 属性不同**
+  
+  在 CSS 定位中，`right` 属性表示距右边缘的距离，而 `bottom` 属性表示距下边缘的距离，**但在 JavaScript 中并非如此，窗口的所有坐标都是从左上角开始计数，包括坐标**。
+
+
+
+**elementFromPoint(x, y)**
+
+对 `document.elementFromPoint(x, y)` 调用**会返回在窗口坐标 `(x, y)` 处嵌套最多（the most nested）的元素**。
+
+语法：
+
+```js
+const elem = document.elementFromPoint(x, y);
+```
+
+例如，下面的代码会高亮显示并输出现在位于窗口中间的元素标签：
+
+```js
+const centerX = document.documentElement.clientWidth / 2;
+const centerY = document.documentElement.clientHeight / 2;
+
+const elem = document.elementFromPoint(centerX, centerY);
+
+elem.style.background = 'red';
+alert(elem.tagName);
+```
+
+上述代码因为使用的是窗口坐标，所以元素可能会因为当前滚动位置而有所不同。
+
+**⚠️ 注意：对于在窗口之外的坐标，`elementFromPoint` 返回 `null`**。
+
+方法 `document.elementFromPoint(x, y)` **只对可见区域内的坐标 `(x, y)` 起作用，如果任何坐标为负或者超过了窗口的 `width/height`，那么该方法就会返回 `null`**。
+
+
+
+**用于 fixed 定位**
+
+大多数时候，需要使用坐标来确定某些内容的位置。
+
+在某些元素附加展示内容，可以使用 `getBoundingClientRect` 来获取这个元素的坐标，然后使用 CSS `position` 以及 `left/top`（或 `right/bottom`）。
+
+例如：
+
+```js
+let elem = document.getElementById('coords-show-mark');
+
+function createMessageUnder(elem, html) {
+  // 创建 message 元素
+  let message = document.createElement('div');
+  // 这里最好使用 CSS class 来定义样式
+  message.style.cssText = 'position:fixed; color: red';
+
+  // 分配坐标，不要忘记 px
+  let coords = elem.getBoundingClientRect();
+
+  message.style.left = coords.left + 'px';
+  message.style.top = coords.bottom + 'px';
+
+  message.innerHTML = html;
+
+  return message;
+}
+
+// 用法：
+// 在文档中添加 message 保持 5 秒
+let message = createMessageUnder(elem, 'Hello, world!');
+document.body.append(message);
+setTimeout(() => message.remove(), 5000);
+```
+
+**⚠️ 注意：滚动页面时，消息会从按钮中流出**，因为 `message` 元素依赖于 `position: fixed`，所以当页面滚动时，它仍处于窗口的同一位置，**要改变这一点，需要使用基于文档（document）的坐标和 `position: absolute` 样式**。
+
+
+
+**文档坐标**
+
+文档相对坐标是**从文档的左上角开始计算，而不是窗口**。
+
+在 CSS 中，**窗口坐标对应于 `position: fixed`，而文档坐标与顶部的 `position: absolute` 类似**。
+
+可以使用 `position: absolute` 和 `top/left` 来把某些内容放在文档中的某个位置，以便在页面滚动时，元素仍能保留在该位置。
+
+没有标准方法来获取元素的文档坐标，但是实现起来很容易：
+
+- **`pageY` =  ` clientY` + 文档的垂直滚动出的部分的高度**
+- **`pageX` = `clientX` + 文档的水平滚动出的部分的宽度**
+
+可以实现获取文档坐标的 `getCoords(elem)` 函数：
+
+```js
+function getCoords(elem) {
+  const box = elem.getBoundingClientRect();
+  
+  return {
+    top: box.top + window.pageYOffset,
+    left: box.left + window.pageXOffset,
+    right: box.right + window.pageXOffset,
+    bottom: box.bottom + window.pageYOffset,
+  }
+}
+```
+
