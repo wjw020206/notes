@@ -23564,4 +23564,119 @@ alert(getComputedStyle(elem).width); // 显示 elem 的 CSS width
 
 4. **几何属性返回的都是数值，而 `getComputedStyle` 返回的大多数值都是一个以 `px` 作为后缀的字符串**
 
-   
+
+
+## Window 大小和滚动
+
+要获取浏览器窗口的宽度和高度，以及滚动部分在内完整宽度和高度等信息，可以使用与 `<html>` 标签对应的 `document.docuemntElement`，但是还有其它方法和特性需要考虑。
+
+
+
+**窗口的 width/height**
+
+为了获取创建的宽度和高度，**可以使用 `document.documentElement` 的 `clientWidth/clientHeight`**：
+
+![image-20250806080538047](images/image-20250806080538047.png)
+
+
+**⚠️ 注意：**
+
+- **不是 `window.innerWidth/innerHeight`**，浏览器也支持像 `window.innerWidth/innerHeight` 这样的属性，但如果这里存在一个滚动条，并且滚动条占用了一些空间，**那么返回的 `window.innerWidth/innerHeight` 包含了滚动条的宽度**，而 `clientWidth/clientHeight` 返回的是没有滚动条（减去它）的 `width/height`，例如：
+
+  ```js
+  alert(window.innerWidth); // 整个浏览器的宽度
+  alert(document.documentElement.clientWidth); // 减去滚动条宽度后的窗口宽度
+  ```
+
+  在大多数情况下，需要**可用**的窗口宽度来绘制或放置某些东西，**所以如果窗口有滚动条，应该使用 `document.clientWidth/clientHeight`**。
+
+- **`<!DOCTYPE HTML>` 很重要**，当 HTML 中没有 `<!DOCTYPE HTML>` 时，顶层级（top-level） 属性的工作方式可能就会所有不同，可能会出现一些稀奇古怪的情况，**在现代 HTML 中，我们始终都应该写 `<!DOCTYPE HTML>`**
+
+
+
+**文档的 width/height**
+
+理论上，根文档元素是 `document.documentElement`，并且它包围了所有内容，因此可以通过使用 `documentElement.scrollWidth/scrollHeight` 来测量文档的完整大小。
+
+**但在该元素上，对于整个文档，这些属性均无法正常工作**，在 Chrome/Safari/Opera 中，**如果没有滚动条，`documentElement.scrollHeight` 甚至可能小于 `documentElement.clientHeight`**。
+
+为了可靠地获取完整的文档高度，**应该使用以下这些属性中的最大值**：
+
+```js
+const scrollHeight = Math.max(
+  document.body.scrollHeight, document.documentElement.scrollHeight,
+  document.body.offsetHeight, document.documentElement.offsetHeight,
+  document.body.clientHeight, document.documentElement.clientHeight,
+);
+
+alert('完整文档高度，包含滚动出的部分：' + scrollHeight);
+```
+
+**⚠️ 注意：之所以会这样，是因为这些不一致来源于远古时代**。
+
+
+
+**获得当前滚动**
+
+DOM 元素的当前滚动状态在其 `scrollLeft/scrollTop` 属性中。
+
+**对于文档滚动，在大多数浏览器中，可以使用 `document.documentElement.scrollLeft/scrollTop`，但在较旧的基于 Webkit 的浏览器中则不行**，例如在 Safari（bug [5991](https://bugs.webkit.org/show_bug.cgi?id=5991)）中应该使用 `document.body` 而不是 `document.documentElement`。
+
+**幸运的是，根本不必记住这些特性，因为可以从 `window.pageXOffset/pageYOffset` 中获取页面当前滚动信息**：
+
+```js
+alert('当前已从顶部滚动：' + window.pageYOffset);
+alert('当前已从左侧滚动：' + window.pageXOffset);
+```
+
+**⚠️ 注意：**
+
+- **这些属性都是只读的**
+- **也可以从 `window` 的 `scrollX` 和 `scrollY` 属性中获取滚动信息**，由于历史原因，存在了这两种属性，但是它们一样：
+  - **`window.pageXOffset` 是 `window.scrollX` 的别名**
+  - **`window.pageYOffset` 是 `window.scrollY` 的别名**
+
+
+
+**滚动：scrollTop，scrollBy，scrollInotView**
+
+**⚠️ 注意：必须在 DOM 完全构建好之后才能通过 JavaScript 滚动页面**，例如如果尝试通过 `<head>` 中的脚步滚动页面，它将无法正常工作。
+
+**通过使用 `scrollTop/scrollLeft` 来滚动常规元素**。
+
+**通过使用 `document.documentElement.scrollTop/scrollLeft` 来对页面进行相同的操作（Safari 除外，而应该使用 `document.body.scrollTop/Left` 代替）**。
+
+还有一个更简单的通用解决方案：**使用特殊方法 `window.scrollBy(x, y)` 和 `window.scrollTo(pageX, pageY)`**。
+
+- **`scrollBy(x,y)`** —— 将页面滚动至**相对于当前位置的 `(x, y)` 位置**，例如：`scrollBy(0, 10)` 会将页面向下滚动 `10px`
+
+- **`scrollTo(pageX, pageY)`** —— 将页面滚动至**绝对坐标**，**使得可见部分的左上角具有相对于文档左上角的坐标 `(pageX, pageY)`**，就像设置了 `scrollLeft/scrollTop` 一样
+
+  要滚动到最开始，可以使用 `scrollTo(0, 0)`。
+
+这些方法适用于所有浏览器。
+
+
+
+**scrollIntoView**
+
+对 `elem.scrollIntoView(top)` 的调用将滚动页面以使 `elem` 可见，它有一个参数：
+
+- 如果 `top = true`（**默认值**），页面滚动，**使 `elem` 出现在窗口的顶部，元素的上边缘将与窗口顶部对齐**
+- 如果 `top = false`，页面滚动，**使 `elem` 出现在窗口底部，元素的底部边缘将与窗口底部对齐**
+
+
+
+**禁止滚动**
+
+有时候需要使文档 “不可滚动”，例如：需要用一条立即引起注意的大消息来覆盖文档时，这时希望访问者与消息而不是文档进行互动。
+
+**要使页面不可滚动，只需要设置 `document.body.style.overflow = 'hidden'`，该页面将 “冻结” 滚动在其当前滚动位置上**。
+
+**如果要使页面从不可滚动恢复到可滚动，可以设置 `document.body.style.overflow = ''`**。
+
+也可以使用相同的技术来 “冻结” 其它元素的滚动，而不仅仅是 `document.body`。
+
+**⚠️ 注意：这个方法的缺点是会使滚动条消失**，如果滚动条占用了一些空间，它原本占用的空间就会空出来，那么内容就会 “跳” 进行以填充它。
+
+如果要解决这个问题，**可以对比 “冻结” 前后的 `clientWidth`，如果它增加了（滚动条消失后），那么可以在 `doucment.body` 的滚动条原来的位置添加 `padding` 来替代滚动条**，保持了滚动条 “冻结” 前后文档内容宽度相同。

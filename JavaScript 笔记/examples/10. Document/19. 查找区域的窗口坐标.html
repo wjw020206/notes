@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      body {
+        padding: 20px 0 0 20px;
+        cursor: pointer;
+      }
+
+      #field {
+        overflow: hidden;
+        width: 200px;
+        height: 150px;
+        border-top: 10px solid black;
+        border-right: 10px solid gray;
+        border-bottom: 10px solid gray;
+        border-left: 10px solid black;
+        background-color: #00ff00;
+        font: 10px/1.2 monospace;
+      }
+
+      .triangle-right {
+        position: relative;
+        width: 0;
+        height: 0;
+        border-top: 6px solid transparent;
+        border-bottom: 6px solid transparent;
+        border-left: 20px solid red;
+        text-indent: -20px;
+        font: 12px/1 monospace;
+      }
+    </style>
+    <script>
+      document.onclick = function (e) {
+        coords.innerHTML = e.clientX + ':' + e.clientY;
+      };
+    </script>
+  </head>
+  <body>
+    Click anywhere to get window coordinates.
+    <br />
+    That's for testing, to check the result you get by JavaScript.
+    <br />
+    <div id="coords">(click coordinates show up here)</div>
+
+    <div id="field">
+      . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+      . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+      . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+      . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+      . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+      . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+      .
+    </div>
+
+    <div class="triangle-right" style="left: -20px; top: -176px">1</div>
+    <div class="triangle-right" style="left: -10px; top: -178px">3</div>
+    <div class="triangle-right" style="left: 190px; top: -40px">4</div>
+    <div class="triangle-right" style="left: 200px; top: -42px">2</div>
+
+    <script>
+      const field = document.querySelector('#field');
+
+      const coords = field.getBoundingClientRect();
+
+      // 左上的外角
+      alert(`${coords.left}:${coords.top}`);
+
+      // 右下的外角
+      alert(`${coords.right}:${coords.bottom}`);
+
+      // 左上的内角
+      alert(
+        `${coords.left + field.clientLeft}:${coords.top + field.clientTop}`
+      );
+
+      // 右下的内角
+      // alert(
+      //   `${coords.right - parseInt(getComputedStyle(field).borderRightWidth)}:${
+      //     coords.bottom - parseInt(getComputedStyle(field).borderBottomWidth)
+      //   }`
+      // );
+
+      alert(
+        `${coords.left + field.clientLeft + field.clientWidth}:${
+          coords.top + field.clientTop + field.clientHeight
+        }`
+      );
+    </script>
+  </body>
+</html>

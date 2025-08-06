@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      .note {
+        position: fixed;
+        z-index: 1000;
+        padding: 5px;
+        border: 1px solid black;
+        background: white;
+        text-align: center;
+        font: italic 14px serif;
+      }
+
+      blockquote {
+        background: #f9f9f9;
+        border-left: 10px solid #ccc;
+        margin: 0 0 0 100px;
+        padding: 0.5em 10px;
+        quotes: '\201C''\201D''\2018''\2019';
+        display: inline-block;
+        white-space: pre;
+      }
+
+      blockquote:before {
+        color: #ccc;
+        content: open-quote;
+        font-size: 4em;
+        line-height: 0.1em;
+        margin-right: 0.25em;
+        vertical-align: -0.4em;
+      }
+    </style>
+  </head>
+  <body>
+    <p>
+      Lorem ipsum dolor sit amet, consectetur adipisicing elit. Reprehenderit
+      sint atque dolorum fuga ad incidunt voluptatum error fugiat animi amet!
+      Odio temporibus nulla id unde quaerat dignissimos enim nisi rem provident
+      molestias sit tempore omnis recusandae esse sequi officia sapiente.
+    </p>
+
+    <blockquote>
+      Teacher: Why are you late? Student: There was a man who lost a hundred
+      dollar bill. Teacher: That's nice. Were you helping him look for it?
+      Student: No. I was standing on it.
+    </blockquote>
+
+    <p>
+      Lorem ipsum dolor sit amet, consectetur adipisicing elit. Reprehenderit
+      sint atque dolorum fuga ad incidunt voluptatum error fugiat animi amet!
+      Odio temporibus nulla id unde quaerat dignissimos enim nisi rem provident
+      molestias sit tempore omnis recusandae esse sequi officia sapiente.
+    </p>
+
+    <script>
+      /**
+       * Positions elem relative to anchor as said in position.
+       *
+       * @param {Node} anchor     Anchor element for positioning
+       * @param {string} position One of: top/right/bottom
+       * @param {Node} elem       Element to position
+       *
+       * Both elements: elem and anchor must be in the document
+       */
+      function positionAt(anchor, position, elem) {
+        const coords = anchor.getBoundingClientRect();
+
+        switch (position) {
+          case 'top':
+            elem.style.left = coords.left + 'px';
+            elem.style.top = coords.top - elem.offsetHeight + 'px';
+            break;
+          case 'right':
+            elem.style.left = coords.right + 'px';
+            elem.style.top = coords.top + 'px';
+            break;
+          case 'bottom':
+            elem.style.left = coords.left + 'px';
+            elem.style.top = coords.bottom + 'px';
+            break;
+        }
+      }
+
+      /**
+       * Shows a note with the given html at the given position
+       * relative to the anchor element.
+       */
+      function showNote(anchor, position, html) {
+        const note = document.createElement('div');
+        note.innerHTML = html;
+        note.className = 'note';
+
+        document.body.append(note);
+
+        positionAt(anchor, position, note);
+      }
+
+      // test it
+      let blockquote = document.querySelector('blockquote');
+
+      showNote(blockquote, 'top', 'note above');
+      showNote(blockquote, 'right', 'note at the right');
+      showNote(blockquote, 'bottom', 'note below');
+    </script>
+  </body>
+</html>
