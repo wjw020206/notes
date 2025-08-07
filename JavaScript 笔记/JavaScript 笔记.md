@@ -24284,3 +24284,191 @@ document.addEventListener("DOMContentLoaded", function() {
 ```
 
 现在事件处理程序已经明确地分离了出来，这样更容易进行代码编写和后续维护。
+
+
+
+## 冒泡和捕获
+
+
+
+**冒泡（bubbling）**
+
+当一个事件发生在一个元素上，**它会首先运行在该元素上的处理程序，然后运行其父元素上的处理程序，然后一直向上到其它祖先上的处理程序**。
+
+假设有 3 层嵌套 `FORM > DIV > P`，它们各自拥有一个处理程序：
+
+```html
+<style>
+  body * {
+    margin: 10px;
+    border: 1px solid blue;
+  }
+</style>
+
+<form onclick="alert('form')">FORM
+  <div onclick="alert('div')">DIV
+    <p onclick="alert('p')">P</p>
+  </div>
+</form>
+```
+
+![image-20250807092820139](images/image-20250807092820139.png)
+
+点击内部的 `<p>` 首先会运行 `onclick`：
+
+1. 在该 `<p>` 上
+2. 然后是外部 `<div>` 上
+3. 然后是外部 `<form>` 上
+4. 以此类推，直到最后的 `document` 对象
+
+![image-20250807093106636](images/image-20250807093106636.png)
+
+所以如果点击了 `<p>`，将会看到 3 个 `alert`：`p` → `div` → `form`。
+
+这个过程被称为 **“冒泡（bubbling）”，因为事件从内部元素 “冒泡” 到所有父级，就像在水里的气泡一样**。
+
+**⚠️ 注意：几乎所有事件都会冒泡**，而 `focus` 等事件是例外，它们不会冒泡。
+
+
+
+**event.target**
+
+父元素上的处理程序始终可以获取事件实际发生位置的详细信息。
+
+**引发事件的那个嵌套层级最深的元素被称为目标元素，可以通过 `event.target` 访问**。
+
+**⚠️ 注意：`this`（`=event.currentTarget`）之间的区别：**
+
+- `event.target` —— 是引发事件的 “目标” 元素，它**在冒泡过程中不会发生变化**
+- `this` —— 是 “当前” 元素，其中有一个当前正在运行的处理程序
+
+如果有一个处理程序 `form.onclick`，那么它可以 “捕获” 表单内所有点击，无论点击发生在哪里，它都会冒泡到 `<form>` 并运行处理程序。
+
+在 `form.onclick` 处理程序中：
+
+- `this`（`=event.currentTarget`）是 `<form>` 元素，因为处理程序在它上面运行
+- `event.target` 是表单中**实际被点击的元素**
+
+**`event.target` 可能会等于 `this`** —— 当点击事件发生在 `<form>` 元素上时，就会发生这种情况。
+
+
+
+**停止冒泡**
+
+冒泡事件从目标元素开始向上冒泡，**通常会一直上升到 `<html>`，然后再到 `document` 对象**，有些事件甚至会到达 `window`，它们会调用路径上所有的处理程序。
+
+**但任意处理程序都是可以决定事件已经被完全处理，并停止冒泡，用于停止冒泡的方法是 `event.stopPropagation()`**。
+
+例如，如果点击 `<button>`，这里的 `body.onclick` 不会工作：
+
+```html
+<body onclick="alert(`the bubbling doesn't reach here`)">
+  <button onclick="event.stopPropagation()">Click me</button>
+</body>
+```
+
+**⚠️ 注意：**
+
+- **如果一个元素在一个事件上有多个处理程序，即使其中一个停止冒泡，其它处理程序仍会运行**，话句话说，`event.stopPropagation()` 停止向上冒泡，但是当前元素上的其他处理程序都会继续运行。
+
+  有一个 `event.stopImmediatePropagation()` 方法，可以用于停止冒泡，并阻止当前元素上的处理程序运行，使用了该方法后，其它处理程序就不会被执行了。
+
+- **不要在没有需要的情况下停止冒泡**
+
+  冒泡很方便，不要在没有真实需求时阻止它，因为有时 `event.stopPropagation()` 会产生隐藏的陷阱，以后可能会成为问题，例如：
+
+  1. 创建了一个嵌套菜单，每个子菜单各自处理对自己的元素的点击事件，并调用 `stopPropagation`，以便不会触发外部菜单
+  2. 决定捕获在整个窗口上的点击，以追踪用户的行为（用户点击的位置），有些分析系统会这样做，代码会使用 `document.addEventListener('click'…)` 来捕获所有的点击，但这样的分析不适用于被 `stopPropagation` 所阻止点击的区域
+
+  **通常没有真正的必要去阻止冒泡，一项看似需要阻止冒泡的任务，可以通过其它方法解决**，其中之一就是使用自定义事件，也还可以将数据写入一个处理程序中的 `event` 对象，并在另一个处理程序中读取该数据，这样就可以像父处理程序传递有关下层处理程序的信息。
+
+
+
+**捕获（capturing）**
+
+事件处理的另一个阶段被称为 “捕获”，它很少被用在实际开发中，但有时是有用的。
+
+[DOM 事件](http://www.w3.org/TR/DOM-Level-3-Events/)标准描述了事件传播的 3 个阶段：
+
+1. **捕获阶段（Capturing phase）**—— 事件（从 Window）向下走近元素
+2. **目标阶段（Target phase）**—— 事件到达目标元素
+3. **冒泡阶段（Bubbling phase）**—— 事件从元素上开始冒泡
+
+下面是在表格中点击 `<td>` 的图片，摘自规范：
+
+![image-20250807100517425](images/image-20250807100517425.png)
+
+也就是说：点击 `<td>`，事件首先通过祖先链向下到达元素（捕获阶段），然后到达目标（目标阶段），最后上升（冒泡阶段），在途中调用处理程序。
+
+**使用 `on<event>` 属性或者使用 HTML 特性（attribute）或使用两个参数的 `addEventListener(event, handler)` 添加的处理程序，对捕获一无所知，仅在第二个阶段和第三个阶段运行**。
+
+为了在捕获阶段捕获事件，需要将处理程序的 `capture` 选项设置为 `true`：
+
+```js
+elem.addEventListener(..., { capture: true })
+// 或者，用 { capture: true } 的别名 true
+elem.addEventListener(..., true)
+```
+
+`capture` 选项有两个可能的值：
+
+- 如果为 `false`（默认值），则在冒泡阶段设置处理程序
+- 如果为 `true`，则在捕获阶段设置处理程序
+
+**⚠️ 注意：虽然形式上有 3 个阶段，但是第 2 个阶段（“目标阶段”: 事件到达元素）没有被单独处理：捕获阶段和冒泡阶段的处理程序都在该阶段被触发**，例如：
+
+```html
+<style>
+  body * {
+    margin: 10px;
+    border: 1px solid blue;
+  }
+</style>
+
+<form>FORM
+  <div>DIV
+    <p>P</p>
+  </div>
+</form>
+
+<script>
+  for(let elem of document.querySelectorAll('*')) {
+    elem.addEventListener('click', e => alert(`Capturing: ${elem.tagName}`), true);
+    elem.addEventListener('click', e => alert(`Bubbling: ${elem.tagName}`));
+  }
+</script>
+```
+
+![image-20250807101535976](images/image-20250807101535976.png)
+
+上面这段代码为文档中**每个**元素都设置了点击处理程序，以查看哪些元素上的点击事件处理程序生效了。
+
+如果点击了 `<p>`，那么顺序是：
+
+1. `HTML` → `BODY` → `FORM` → `DIV`（捕获阶段第一个监听器）
+2. `P`（目标阶段，**触发两次，因为设置了两个监听器：捕获和冒泡**）
+3. `DIV` → `FORM` → `BODY` → `HTML`（冒泡阶段，第二个监听器）
+
+有一个属性 `event.eventPhase`，它返回捕获事件的阶段数，但它很少被使用，因为通常是从处理程序中了解到它。
+
+**⚠️ 注意：**
+
+- **要移除处理程序，`removeEventListener` 需要同一阶段**
+
+  如果 `addEventListener(..., true)`，那么应该在 `removeEventListener(..., true)` 中**提到同一阶段**，才能正确删除处理程序
+
+- **同一元素的同一阶段的监听器按其设置顺序运行**
+
+  如果在同一个阶段有多个事件处理程序，并通过 `addEventListener` 分配给相同的元素，则**它们的运行顺序与创建顺序相同**：
+
+  ```js
+  elem.addEventListener('click', e => alert(1)); // 会先被触发
+  elem.addEventListener('click', e => alert(2));
+  ```
+
+  
+
+## 事件委托
+
+捕获和
+
