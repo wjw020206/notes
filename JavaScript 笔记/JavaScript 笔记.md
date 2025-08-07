@@ -23873,3 +23873,414 @@ function getCoords(elem) {
 }
 ```
 
+
+
+## 浏览器事件简介
+
+**事件**是某事发生的信号，所有 DOM 节点都会生成这样的信号（但**事件不仅限于 DOM**）。
+
+常见的 DOM 事件列表如下：
+
+**鼠标事件：**
+
+- `click` —— 当鼠标点击一个元素时（触摸屏设备会在点击时生成）
+- `contextmenu` —— 当鼠标右键点击一个元素时
+- `mouseover` / `mouseout` —— 当鼠标指针移入/离开一个元素时
+- `mousedown` / `mouseup` —— 当在元素上按下/释放鼠标按钮时
+- `mousemove` —— 当鼠标移动时
+
+**键盘事件**：
+
+- `keydown` 和 `keyup` —— 当按下和松开一个按键时
+
+**表单（form）元素事件**：
+
+- `submit` —— 当访问者提交了一个 `<form>` 时
+- `focus` —— 当访问者聚焦于一个元素时，例如聚焦于一个 `<input>`
+
+**Document 事件**：
+
+- `DOMContentLoaded` —— 当 HTML 的加载和处理均完成，DOM 被完全构建完成时
+
+**CSS 事件**：
+
+- `transitionend` —— 当一个 CSS 动画完成时
+
+
+
+**事件处理程序**
+
+为了对事件作出响应，可以分配一个**处理程序（handler）**—— 一个在事件发生时运行的函数。
+
+**处理程序是发生在用户行为（action）时运行 JavaScript 代码的一种方式**。
+
+
+
+**HTML 特性**
+
+处理程序**可以设置在 HTML 中名为 `on<event>` 的特性（attribute）中**。
+
+例如，要为一个 `<input>` 分配一个 `click` 处理程序，可以使用 `onclick`：
+
+```html
+<input value="点我" onclick="alert('click')" type="button" />
+```
+
+上述代码中在鼠标点击按钮时，`onclick` 中的代码就会运行。
+
+**⚠️ 注意：**
+
+- **在 `onclick` 内容中使用单引号，因为特性本身使用的是双引号**，如果写成这样：`onclick="alert("Click!")"`，那么它就无法正确运行
+
+- **HTML 特性不是编写大量代码的好地方**，所以最好创建一个 JavaScript 函数，然后在 HTML 特性中调用这个函数
+
+  例如：
+
+  ```html
+  <script>
+    function countRabbits() {
+      for(let i = 1; i < 3; i++) {
+        alert('Rabbit number ' + i);
+      }
+    }
+  </script>
+  
+  <input type="button" onclick="countRabbits()" value="Count rabbits!">
+  ```
+
+  **⚠️ 注意：HTML 特性是大小写不敏感的**，所以 `ONCLICK` 和 `onClick` 以及 `onCLICK` 都一样可以运行，**但是特性通常是小写的：`onclick`**。
+
+
+
+**DOM 属性**
+
+可以使用 DOM 属性（property）`on<event>` 来分配处理程序。
+
+例如 `elem.onclick`：
+
+```html
+<input id="elem" type="button" value="Click me">
+<script>
+  elem.onclick = function() {
+    alert('Thank you');
+  };
+</script>
+```
+
+**如果一个处理程序是通过 HTML 特性（attribute）分配的，那么随后浏览器读取它，并从特性的内容创建一个新函数，并将这个函数写入 DOM 属性（property）**。
+
+所以，这种方法实际上与前一种方法相同。
+
+这两段代码工作相同：
+
+1. 只有 HTML：
+
+   ```html
+   <input type="button" onclick="alert('Click!')" value="Button">
+   ```
+
+2. HTML + JS：
+
+   ```html
+   <input type="button" id="button" value="Button">
+   <script>
+     button.onclick = function() {
+       alert('Click!');
+     };
+   </script>
+   ```
+
+在第一个例子中，`button.onclick` 是通过 HTML 特性（attribute）初始化的，而第二个例子中是通过脚本初始化的，这是它们唯一的不同之处。
+
+**⚠️ 注意：因为这里只有一个 `onclick` 属性，所以无法分配更多事件处理程序**，例如：
+
+```html
+<input type="button" id="elem" onclick="alert('Before')" value="Click me">
+<script>
+  elem.onclick = function() { // 覆盖了现有的处理程序
+    alert('After'); // 只会显示此内容
+  };
+</script>
+```
+
+**要移除一个处理程序 —— 赋值 `elem.onclick = null`**。
+
+
+
+**访问元素：this**
+
+**处理程序中的 `this` 的值是对应的元素，就是处理程序所在的那个元素**。
+
+下面这行代码中的 `<button>` 使用 `this.innerHTML` 来显示它的内容：
+
+```html
+<button onclick="alert(this.innerHTML)">Click me</button>
+```
+
+
+
+**可能出现的错误**
+
+可以将一个现存的函数用作处理程序：
+
+```js
+function sayThanks() {
+  alert('Thanks!');
+}
+
+elem.onclick = sayThanks;
+```
+
+**⚠️ 注意：函数应该是以 `sayThanks` 的形式进行赋值，而不是 `sayThanks()` **。
+
+```js
+// 正确
+button.onclick = sayThanks;
+
+// 错误
+button.onclick = sayThanks();
+```
+
+如果添加了括号，那么 `sayThanks()` 就变成了一个函数调用，所以最后一行代码实际上获得的是函数执行的**结果**，即 `undefined`（因为这个函数没有返回值），此代码不会工作。
+
+但在 HTML 特性中（attribute），确实需要括号：
+
+```html
+<input type="button" id="button" onclick="sayThanks()">
+```
+
+因为浏览器在读取 HTML 特性时，浏览器会使用**特性中的内容**创建一个处理程序，所以会生成下面这个属性：
+
+```js
+button.onclick = function() {
+  sayThanks(); // 特性（attribute）中的内容变到了这里
+}
+```
+
+**⚠️ 注意：**
+
+- **不要对处理程序使用 `setAttribute`**，这样的调用会失效：
+
+  ```js
+  // 点击 <body> 将产生 error，
+  // 因为特性总是字符串的，函数变成了一个字符串
+  document.body.setAttribute('onclick', function() { alert(1) }); // Uncaught SyntaxError: Function statements require a function name
+  ```
+
+- **DOM 属性是大小写敏感的**
+
+  将处理程序分配给 `elem.onclick`，而不是 `elem.ONCLICK`，因为 DOM 属性是大小写敏感的。
+
+
+
+**addEventListener**
+
+当想为某个事件分配多个处理程序时，使用 DOM 属性赋值**会导致新的 DOM 属性将覆盖现有的 DOM 属性**：
+
+```js
+input.onclick = function() { alert(1); }
+// ...
+input.onclick = function() { alert(2); } // 替换了前一个处理程序
+```
+
+Web 标准的开发者很早就想到了这一点，并提出**使用一种特殊方法 `addEventListener` 和 `removeEventListener` 来管理处理程序的替代方法，它们没有这样的问题**。
+
+语法：
+
+```js
+element.addEventListener(event, handler[, options]);
+```
+
+- **`event`** —— 事件名，例如：`'click'`
+- **`handler`** —— 处理程序
+- **`options`** —— 具有以下属性的附加可选对象：
+  - `once` —— 如果为 `true`，会在被触发后自动删除监听器
+  - `capture` —— 事件处理的阶段，由于历史原因，`options` 也可以是 `false/true`，它与 `{capture: false/true}` 相同
+  - `passive` —— 如果为 `true`，那么处理程序将不会调用 `preventDefault()`
+
+要移除处理程序，可以使用 `removeEventListener`：
+
+```js
+element.removeEventListener(event, handler[, options]);
+```
+
+**⚠️ 注意：要移除监听事件，需要传入与分配的函数完全相同的函数**。
+
+以下代码不起作用：
+
+```js
+elem.addEventListener("click", () => alert('Thanks!'));
+// ....
+elem.removeEventListener("click", () => alert('Thanks!'));
+```
+
+上述代码中，**处理程序不会被移除，因为 `removeEventListener` 获取了另一个函数 —— 虽然使用相同的代码，但这并不起作用，因为它是一个不同的函数对象**。
+
+下面是正确方法：
+
+```js
+function handler() {
+  alert('Thanks!');
+}
+
+input.addEventListener('click', handler);
+// ....
+input.removeEventListener('click', handler);
+```
+
+**⚠️ 注意：如果不将处理程序存储在一个变量中，那么就无法移除它**，由 `addEventListener` 分配的处理程序将无法被 “读回”。
+
+多次调用 `addEventListener` 允许添加多个处理程序，例如：
+
+```html
+<input id="elem" type="button" value="Click me" />
+
+<script>
+  function handler1() {
+    alert('Thanks!');
+  };
+
+  function handler2() {
+    alert('Thanks again!');
+  }
+
+  elem.onclick = () => alert("Hello");
+  elem.addEventListener("click", handler1); // Thanks!
+  elem.addEventListener("click", handler2); // Thanks again!
+</script>
+```
+
+**可以同时使用 DOM 属性和 `addEventListener` 来设置处理程序，但通常只使用其中一种方式**。
+
+**⚠️ 注意：对于某些事件，只能通过 `addEventListener` 设置处理程序**，例如：`DOMContentLoaded` 和 `transtionend` 事件，该事件在文档加载完成并 DOM 构建完成时触发。
+
+```js
+// 永远不会运行
+document.onDOMContentLoaded = function() {
+  alert('DOM built');
+};
+```
+
+```js
+// 这种方式可以运行
+document.addEventListener("DOMContentLoaded", function() {
+  alert('DOM built');
+});
+```
+
+**所以 `addEventListener` 更通用**，这样的事件是特例而不是规则。
+
+
+
+**事件对象**
+
+当事件发生时，浏览器会创建一个 **`event` 对象**，将详细信息放入其中，并将其作为参数传递给处理程序。
+
+下面是从一个 `event` 对象获取鼠标指针的坐标的示例：
+
+```html
+<input type="button" value="Click me" id="elem">
+
+<script>
+  elem.onclick = function(event) {
+    // 显示事件类型、元素和点击的坐标
+    alert(event.type + ' at ' + event.currentTarget); // click at [object HTMLInputElement]
+    alert('Coordinates: ' + event.clientX + ':' + event.clientY); // Coordinates: 56:24
+  };
+</script>
+```
+
+`event` 对象的一些属性：
+
+- **`event.type`** —— 事件类型，这里是 `'click'`
+- **`event.currentTarget`** —— 处理事件的元素，这与 `this` 相同，除非处理程序是一个箭头函数，或者它的 `this` 被绑定到了其它东西上，之后可以从 `event.currentTarget` 获取元素了
+- **`event.clientX / event.clientY`** —— 指针事件，指针与窗口的相对坐标
+
+还有很多属性，其中很多都取决于事件类型：键盘事件具有一组属性，指针事件具有另一组属性。
+
+**⚠️ 注意：`event` 对象在 HTML 处理程序中也可用**，像下面这样：
+
+```html
+<input type="button" onclick="alert(event.type)" value="Event type">
+```
+
+因为当浏览器读取特性（attribute）时，会创建像这样的处理程序：`function(event) { alert(event.type) }`，也就是说：它的第一个参数是 `event`，而主体取自于该特性。
+
+
+
+**对象处理程序：handleEvent**
+
+不仅可以分配函数，还可以使用 `addEventListener` 将一个对象分配为事件处理程序，当事件发生时，就会调用该对象的 `handleEvent` 方法。
+
+例如：
+
+```html
+<button id="elem">Click me</button>
+
+<script>
+  let obj = {
+    handleEvent(event) {
+      alert(event.type + ' at ' + event.currentTarget);
+    }
+  };
+
+  elem.addEventListener('click', obj); // click at [object HTMLButtonElement]
+</script>
+```
+
+也可以对此使用一个类：
+
+```html
+<button id="elem">Click me</button>
+
+<script>
+  class Menu {
+    handleEvent(event) {
+      switch(event.type) {
+        case 'mousedown':
+          elem.innerHTML = 'Mouse button pressed';
+          break;
+        case 'mouseup':
+          elem.innerHTML += '...and released.';
+          break;
+      }
+    }
+  }
+
+  const menu = new Menu();
+  elem.addEventListener('mousedown', menu);
+  elem.addEventListener('mouseup', menu);
+</script>
+```
+
+**⚠️ 注意：** 这里同一个对象处理两个事件，**所以需要使用 `addEventListener` 来显式设置事件，以指明要监听的事件**。
+
+**`handleEvent` 方法不必通过自身完成所有的工作**，它可以调用其它特定于事件的方法，例如：
+
+```html
+<button id="elem">Click me</button>
+
+<script>
+  class Menu {
+    handleEvent(event) {
+      // mousedown -> onMousedown
+      let method = 'on' + event.type[0].toUpperCase() + event.type.slice(1);
+      this[method](event);
+    }
+
+    onMousedown() {
+      elem.innerHTML = 'Mouse button pressed';
+    }
+
+    onMouseup() {
+      elem.innerHTML += '...and released.';
+    }
+  }
+
+  let menu = new Menu();
+  elem.addEventListener('mousedown', menu);
+  elem.addEventListener('mouseup', menu);
+</script>
+```
+
+现在事件处理程序已经明确地分离了出来，这样更容易进行代码编写和后续维护。
