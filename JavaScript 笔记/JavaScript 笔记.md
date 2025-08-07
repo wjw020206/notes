@@ -24699,3 +24699,201 @@ One more counter: <input type="button" value="2" data-counter>
 
 - **事件必须冒泡，而有些事件不会冒泡**，此外，低级别的处理程序不应该使用 `event.stopPropagation()`
 - **委托可能会增加 CPU 负载，因为容器级别的处理程序会对容器中任意位置的事件做出反应，而不管我们是否对该事件感兴趣**，但是，通常负载可以忽略不计，所以我们不考虑它
+
+
+
+## 浏览器的默认行为
+
+许多事件会自动触发浏览器执行某些行为。
+
+例如：
+
+- 点击一个链接 —— 触发导航（navigation）到该 URL
+- 点击表单的提交按钮 —— 触发提交到服务器的行为
+- 在文本上按下鼠标按钮并移动 —— 选中文本
+
+如果使用 JavaScript 处理一个事件，那么通常不希望发生相应的浏览器行为，而是想要实现其它行为进行替代。
+
+
+
+**阻止浏览器行为**
+
+有两种方式可以告诉浏览器不希望它执行默认行为：
+
+- **主流的方式是使用 `event` 对象，有一个 `event.preventDefault()` 方法**
+- **如果处理程序是使用 `on<event>`（而不是 `addEventListener`）分配的，那返回 `false` 也同样有效**
+
+例如，在下面的示例中，**点击链接不会触发导航（navigation），浏览器不会执行任何操作**：
+
+```html
+<a href="/" onclick="return false">点击这里</a>
+or
+<a href="/" onclick="event.preventDefault()">点击这里</a>
+```
+
+**⚠️ 注意：从处理程序中返回 `false` 是一个例外**，事件处理程序的返回值通常会被忽略，**唯一例外的是从使用 `on<event>` 分配的处理程序中返回 `return false`**，在其它情况下，`return` 值都会被忽略，**并且返回 `true` 没有意义**。
+
+
+
+**示例：菜单**
+
+```html
+<ul id="menu" class="menu">
+  <li><a href="/html">HTML</a></li>
+  <li><a href="/javascript">JavaScript</a></li>
+  <li><a href="/css">CSS</a></li>
+</ul>
+```
+
+下面是经过 CSS 渲染的外观：
+
+![image-20250808064725199](images/image-20250808064725199.png)
+
+上述代码中菜单项是使用 HTML 链接 `<a>` 实现的，而不是使用按钮 `<button>`，这样做有以下几个原因：
+
+- 许多人喜欢使用 “右键单击” —— “在新窗口打开链接”，如果使用 `<button>` 或 `<span>`，这个效果就无法实现
+- 搜索引擎在建立索引时遵循 `<a href="...">` 链接
+
+如果在标记（markup）中使用了 `<a>`，通常会处理 JavaScript 中的点击，所以应该阻止浏览器默认行为。
+
+例如：
+
+```js
+menu.onclick = function(event) {
+  if(event.target.nodeName !== 'A') return;
+  
+  const href = event.target.getAttribute('href');
+  alert(href); // 可以从服务器加载，UI 生成等
+  
+  return false; // 阻止浏览器默认行为（不导航到该 URL）
+}
+```
+
+上述代码中如果省略 `return false`，那么在代码执行完毕后，浏览器将执行它的 “默认行为” —— 导航至在 `href` 中的 URL。
+
+这里使用事件委托会使菜单更加灵活。
+
+**⚠️ 注意：某些事件会相互转化，如果阻止了第一个事件，那么就没有第二个事件了**，例如：在 `<input>` 字段上的 `mousedown` 会导致在其上的获得焦点，以及 `focus` 事件，如果阻止了 `mousedown` 事件，在这就没有焦点了。
+
+```html
+<input value="Focus works" onfocus="this.value=''">
+<input onmousedown="return false" onfocus="this.value=''" value="Click me">
+```
+
+上述代码中点击第一个 `<input>` —— 会发生 `focus` 事件，但是如果点击第二个，则没有聚焦。
+
+这是**因为浏览器行为在 `mousedown` 上被取消**，如果用另一种方式进行输入，则仍然可以进行聚焦，例如可以使用 Tab 键从第一个输入切换到第二个输入，但鼠标点击则不行。
+
+
+
+**处理程序选项 “passive”**
+
+`addEventListener` 的可选项 `passive: true` 向浏览器发出信号，**表明处理程序将不会调用 `preventDefault()`**。
+
+之所以会这样，是因为移动设备上会发生一些事件，例如：`touchmove`（当用户在屏幕上移动手指时），**默认情况下会导致滚动，但可以使用处理程序的 `preventDefault()` 来阻止滚动**。
+
+因此浏览器检测到此类事件时，**它必须首先处理所有处理程序，然后如果没有任何地方调用 `preventDefault()`，则页面可以继续滚动，但这可能导致  UI 中不必要的延迟和 “抖动”**。
+
+**`passive: true` 选项告诉浏览器处理程序不会取消滚动，然后浏览器立即滚动页面以提供最大程度的流程体验**，并通过某种方式处理事件。
+
+**⚠️ 注意：**
+
+- **对于某些浏览器（Firefox，Chrome），默认情况下 `touchstart` 和 `touchmove` 事件的 `passive` 为 `true`**
+
+- 如果设置了 `passive: true` 选项，**再使用 `preventDefault()` 会报错**
+
+  ```js
+  document.addEventListener(
+    'click',
+    (event) => {
+      event.preventDefault();
+    },
+    {
+      passive: true,
+    }
+  ); // Unable to preventDefault inside passive event listener invocation.
+  ```
+
+
+
+**event.defaultPrevented**
+
+**如果默认行为被阻止，那么 `event.defaultPrevented` 属性为 `true`**，否则为 `false`。
+
+可以使用 `event.defaultPrevented` 来代替停止冒泡，来通知其它事件处理程序，该事件已经被处理。
+
+例如，实现了元素的上下文菜单外，还实现了文档范围的上下文菜单：
+
+```html
+<p>Right-click here for the document context menu</p>
+<button id="elem">Right-click here for the button context menu</button>
+
+<script>
+  elem.oncontextmenu = function(event) {
+    event.preventDefault();
+    alert("Button context menu");
+  };
+
+  document.oncontextmenu = function(event) {
+    event.preventDefault();
+    alert("Document context menu");
+  };
+</script>
+```
+
+此时右键点击 `elem` 时，会得到两个菜单：按钮级和文档级（事件冒泡）的菜单。
+
+**其中一个解决方案是在 `elem` 右键菜单处理程序中阻止其冒泡**，例如；
+
+```html
+<p>Right-click for the document menu</p>
+<button id="elem">Right-click for the button menu (fixed with event.stopPropagation)</button>
+
+<script>
+  elem.oncontextmenu = function(event) {
+    event.preventDefault();
+    event.stopPropagation(); // 停止冒泡
+    alert("Button context menu");
+  };
+
+  document.oncontextmenu = function(event) {
+    event.preventDefault();
+    alert("Document context menu");
+  };
+</script>
+```
+
+现在按钮菜单如期工作，**但是代价太大了，拒绝了任何外部代码对右键点击信息的访问，包括收集统计信息的计数器等**。
+
+另一个替代方案是，**在 `document` 处理程序中检查是否已经阻止了浏览器的默认行为**，如果阻止了，那么该事件已经得到了处理，我们无需再对此事件做出反应：
+
+```html
+<p>Right-click for the document menu (added a check for event.defaultPrevented)</p>
+<button id="elem">Right-click for the button menu</button>
+
+<script>
+  elem.oncontextmenu = function(event) {
+    event.preventDefault();
+    alert("Button context menu");
+  };
+
+  document.oncontextmenu = function(event) {
+    if (event.defaultPrevented) return; // 判断是否已经阻止了浏览器默认行为
+
+    event.preventDefault();
+    alert("Document context menu");
+  };
+</script>
+```
+
+现在一切都可以正常工作了，如果有嵌套的元素，并且每个元素都有自己的上下文菜单，那这也是可以运行的，只需确保检查每个 `contextmenu` 处理程序中的 `event.defaultPrevented`。
+
+**⚠️ 注意：**
+
+- **`event.stopPropagation()` 和 `event.preventDefault()` 是两个不同的东西，它们之间毫无关联**
+
+- **还有其它实现嵌套上下文菜单的方式，其中之一是拥有一个具有 `document.oncontextmenu` 处理程序的全局对象，以及能够在其中存储其他处理程序的方法**
+
+  该对象将捕获任何右键单击，浏览存储的处理程序并运行适当的处理程序。
+
+  **但是每段需要上下文菜单的代码都应该了解该对象，并使用它的帮助，而不是使用自己的 `contextmenu` 处理程序**。
