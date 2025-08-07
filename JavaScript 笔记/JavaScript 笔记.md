@@ -24470,5 +24470,232 @@ elem.addEventListener(..., true)
 
 ## 事件委托
 
-捕获和
+捕获和冒泡允许实现最强大的事件处理模式之一，即**事件委托**模式。
 
+这个想法是：如果有许多类似方式处理的元素，**不必为每个元素分配一个处理程序，而是将单个处理程序放在它们共同的祖先上，在处理程序中，通过获取 `event.target` 来查看事件实际发生的位置并进行处理**。
+
+例如：
+
+![image-20250807140616533](images/image-20250807140616533.png)
+
+其 HTML 代码如下：
+
+```html
+<table>
+  <tr>
+    <th colspan="3"><em>Bagua</em> Chart: Direction, Element, Color, Meaning</th>
+  </tr>
+  <tr>
+    <td class="nw"><strong>Northwest</strong><br>Metal<br>Silver<br>Elders</td>
+    <td class="n">...</td>
+    <td class="ne">...</td>
+  </tr>
+  <tr>...2 more lines of this kind...</tr>
+  <tr>...2 more lines of this kind...</tr>
+</table>
+```
+
+该表格有 9 个单元格（cell），但可以有 99 个或 999 个单元格，这都不重要。
+
+因为**与其为每个 `<td>`（可能有很多）分配一个 `onclick` 处理程序，不如在 `<table>` 元素上设置一个 “捕获所有” 的处理程序**。
+
+代码如下：
+
+```js
+let selectedTd;
+
+table.onclick = function(event) {
+  let target = event.target; // 在哪里点击的
+
+  if (target.tagName != 'TD') return; // 如果不在 TD 上则忽略
+
+  highlight(target); // 高亮显示它
+};
+
+function highlight(td) {
+  if (selectedTd) { // 移除现有的高亮显示，如果有的话
+    selectedTd.classList.remove('highlight');
+  }
+  selectedTd = td;
+  selectedTd.classList.add('highlight'); // 高亮显示新的 td
+}
+```
+
+上述代码不需要关心在表格中有多少个单元格，可以随时添加/移除 `<td>`，高亮显示仍然有效。
+
+尽管如此，但还是存在缺陷，**因为点击可能不是发生在 `<td>` 上，而是发生在其内部**。
+
+在前面的例子中，可以看到 `<td>` 的内部还有嵌套的标签，例如：`<strong>`：
+
+```html
+<td>
+  <strong>Northwest</strong>
+  ...
+</td>
+```
+
+自然地，如果在该 `<strong>` 上点击，那么它将成为 `event.target` 的值。
+
+![image-20250807141317433](images/image-20250807141317433.png)
+
+在处理程序 `table.onclick` 中，应该接受这样的 `event.target`，并确定该点击是否在 `<td>` 内。
+
+以下是改进后的代码：
+
+```js
+table.onclick = function(event) {
+  const td = event.target.closest('td'); // (1)
+  
+  if (!td) return; // (2)
+
+  if (!table.contains(td)) return; // (3)
+  
+  highlight(td); // (4)
+}
+```
+
+解释：
+
+1. `elem.closest(selector)` 方法返回与 `selector` 匹配最近的祖先，在前面的例子中，从源元素开始向上寻找 `<td>`
+2. 如果 `event.target` 不在任何 `<td>` 中，那么调用将立即返回
+3. 对于嵌套的表格，`event.target` 可能是一个 `<td>`，但位于当前表格之外。因此我们需要检查它是否是**当前表格中的`<td>`**
+4. 如果是的话，就高亮显示它
+
+
+
+**标记中的行为**
+
+事件委托还有其它用途。
+
+如果要编写一个有 “保存”、“加载” 和 “搜索” 等按钮的菜单，并且这里有一个具有 `save`、`load` 和 `search` 等方法的对象，可以使用如下方法匹配它们。
+
+1. **为整个菜单添加一个处理程序，并为具有方法调用的按钮添加 `data-action` 特性（attribute）**：
+
+   ```html
+   <button data-action="save">Click to Save</button>
+   ```
+
+2. 处理程序读取特性（attribute）并执行该方法，完整代码如下：
+
+   ```html
+   <div id="menu">
+     <button data-action="save">Save</button>
+     <button data-action="load">Load</button>
+     <button data-action="search">Search</button>
+   </div>
+   
+   <script>
+     class Menu {
+       constructor(elem) {
+         this._elem = elem;
+         elem.onclick = this.onClick.bind(this); // (*)
+       }
+         
+       save() {
+         alert('saving');
+       }
+       
+       load() {
+         alert('loading');
+       }
+       
+       search() {
+         alert('searching');
+       }
+       
+       onClick(event) {
+         const action = event.target.dataset.action;
+         if(action) {
+           this[action]();
+         }
+       }
+     }
+     
+     new Menu(menu);
+   </script>
+   ```
+
+   **⚠️ 注意：`this.onClick` 在 `(*)` 行中被绑定到了 `this`**，这很重要，否则内部的 `this` 将引用 DOM 元素（`elem`），而不是 `Menu` 对象，**那么 `this[action]()` 将不是所需要的**。
+
+这里的委托带来以下两点好处：
+
+1. 不需要编写代码来为每个按钮分配一个处理程序，只需要创建一个方法并将其放入标记（markup）中即可
+2. HTML 结构非常灵活，可以随时添加/移除按钮
+
+也可以使用 `.action-save`，`.action-load` 类，**但 `data-action` 特性（attribute）在语义上更好**，也可以在 CSS 规则中使用它。
+
+
+
+**行为模式**
+
+还可以使用事件委托将 “行为” 以**声明方式**添加到具有特殊特性（attribute）和类的元素中。
+
+行为模式分为两个部分：
+
+1. **将自定义特性添加到描述其行为的元素**
+2. **用文档范围级的处理程序追踪事件**，如果事件发生在具有特定特性的元素上，则执行行为（action）
+
+
+
+例如，使用特性 `data-counter` 给按钮添加了一个 “点击增加” 的行为。
+
+```html
+Counter: <input type="button" value="1" data-counter>
+One more counter: <input type="button" value="2" data-counter>
+
+<script>
+  document.addEventListener('click', function(event) {
+    if(event.target.dataset.counter !== undefined) {
+      event.target.value++;
+    }
+  });
+</script>
+```
+
+当点击按钮时，它的值就会增加，可以根据需要随时向 HTML 添加新的特性 `data-counter`。
+
+**⚠️ 注意：对于文档级的处理程序，始终使用的是 `addEventListener`**，当将事件处理程序分配给 `document` 对象时，应该始终使用 `addEventListener`，而不是 `document.on<event>`，因为后者会引起冲突：新的处理程序会覆盖旧的处理程序。
+
+对于实际项目来说。在 `document` 上有许多由代码的不同部分设置的处理程序，这是很正常的。
+
+
+
+再看一个例子，实现点击一个具有 `data-toggle-id` 特性的元素将显示/隐藏具有给定 `id` 的元素：
+
+```html
+<button data-toggle-id="subscribe-mail">
+  Show the subscription form
+</button>
+
+<form id="subscribe-mail" hidden>
+  Your mail: <input type="email">
+</form>
+
+<script>
+  document.addEventListener('click', function(event) {
+    const id = event.target.dataset.toggleId;
+    if(!id) return;
+    
+    const elem = document.getElementById(id);
+    
+    elem.hidden = !elem.hidden;
+  });
+</script>
+```
+
+现在要向元素添加切换功能，无需使用者了解 JavaScript，只需要使用特性 `data-toggle-id` 即可。
+
+
+
+**事件委托的优缺点**
+
+好处：
+
+- **简化初始化并节省内存**：无需添加许多处理程序
+- **更少的代码**：添加或移除元素时，无需添加/移除处理程序
+- **方便 DOM 修改**：可以使用 `innerHTML` 等，来批量添加/移除元素
+
+缺点：
+
+- **事件必须冒泡，而有些事件不会冒泡**，此外，低级别的处理程序不应该使用 `event.stopPropagation()`
+- **委托可能会增加 CPU 负载，因为容器级别的处理程序会对容器中任意位置的事件做出反应，而不管我们是否对该事件感兴趣**，但是，通常负载可以忽略不计，所以我们不考虑它
