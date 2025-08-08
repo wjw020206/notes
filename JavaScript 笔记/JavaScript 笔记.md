@@ -25353,3 +25353,345 @@ Before...
 上述代码中，当试图在 `<div>` 中复制一段文本，这是行不通的，因为**默认行为 `oncopy` 被阻止了**。
 
 但用户可以访问页面的 HTML 源码，并且可以从那里获取内容，但并不是每个人都知道如何做到这一点。
+
+
+
+## 移动鼠标：mouseover/out，mouseenter/leave
+
+
+
+**事件 mouseover/mouseout，relatedTarget**
+
+当鼠标指针移动到某个元素上时，`mouseover` 事件就会发生，当鼠标离开该元素时，`mouseout` 事件就会发生。
+
+![image-20250808134200721](images/image-20250808134200721.png)
+
+**这些事件很特别，因为它们具有 `relatedTarget` 属性，此属性是对 `target` 的补充**，当鼠标从一个元素离开并去往另一个元素时，其中一个元素就变成了 `target`，另一个就变成了 `relatedTarget`。
+
+对于 `mouseover`：
+
+- `event.target` —— 是鼠标移过的元素
+- `event.relatedTarget` —— 是鼠标来自的那个元素（`relatedTarget` → `target`）
+
+`mouseout` 则与之相反：
+
+- `event.target` —— 是鼠标离开的元素
+- `event.relatedTarget` —— 是鼠标移动到的，当前指针位置下的元素（`target` → `relatedTarget`）
+
+**⚠️ 注意：`relatedTarget` 属性可以为 `null`**，这是正常现象，仅仅**意味着鼠标不是来自于另一个元素，而是来自窗口之外，或者它离开了窗口**。
+
+在代码中使用 `event.relatedTarget` 时，**应该牢记这种可能**，否则访问 `event.relatedTarget.tagName` 时可能会出现错误。
+
+
+
+**跳过元素**
+
+当鼠标移动时，就会触发 `mouseover` 事件，但这**并不意味着每个像素都会导致一个事件**。
+
+浏览器会一直检查鼠标的位置，如果发了变化，就会触发事件。
+
+这意味，如果访问者非常快地移动鼠标，那么某些 DOM 元素就可能被跳过：
+
+![image-20250808135344778](images/image-20250808135344778.png)
+
+如上图所示，鼠标从 `#FROM` 元素快速移动到 `#TO` 元素，**则中间的 `<div>`（或其中的一些）元素可能会被跳过**。
+
+**`mouseout` 事件可能会在 `#FROM` 上被触发，然后立即在 `#TO` 上触发 `mouseover` 事件**。
+
+**这对性能很有好处**，因为可能有很多中间元素，但并不真想要处理每一个移入和离开的过程。
+
+另一方面，**应该记住鼠标指针不会 “访问” 所有元素，它可以 “跳过” 一些元素**。
+
+特别是，鼠标指针可能会从窗口外跳到页面的中间，在这种情况下，`relatedTarget` 为 `null`：
+
+![image-20250808140056632](images/image-20250808140056632.png)
+
+**⚠️ 注意：如果 `mouseover` 被触发了，则必须有 `mouseout`**，在鼠标快速移动的情况下，中间元素可能会被忽略，但是可以确定一件事情：如果鼠标指针 “正式地” 进入了一个元素（生成了 `mouseover` 事件），那么一旦它离开，就会得到 `mouseout` 事件。
+
+
+
+**当移动到一个子元素时 mouseout**
+
+`mouseout` 的一个重要功能 —— **当鼠标指针从元素移动到其后代时触发**，例如在下面这个 HTML 中，从 `#parent` 到 `#child`：
+
+```html
+<div id="parent">
+  <div id="child">...</div>
+</div>
+```
+
+**如果在 `#parent` 上，将鼠标指针更深入地移入 `#child`，在 `#parent` 上会得到 `mouseout`**。
+
+![image-20250808140954759](images/image-20250808140954759.png)
+
+之所以会这样，是因为**根据浏览器的逻辑，鼠标指针随时可能位于单个元素上 —— 嵌套最多的那个元素（`z-index` 最大的那个）**。
+
+因此，**如果它转到另一个元素（甚至是一个后代），那么它将离开前一个元素**。
+
+**后代的 `mouseover/out` 事件会冒泡**，因此，如果 `#parent` 具有 `mouseover/out` 处理程序，它将被触发：
+
+![image-20250808142803859](images/image-20250808142803859.png)
+
+例如：
+
+```html
+<div id="parent" onmouseover="mouselog(event)" onmouseout="mouselog(event)">parent
+  <div id="child">child</div>
+</div>
+
+<textarea id="text"></textarea>
+<input type="button" onclick="text.value=''" value="Clear">
+
+<script>
+  function mouselog(event) {
+    let d = new Date();
+    text.value += `${d.getHours()}:${d.getMinutes()}:${d.getSeconds()} | ${event.type} [target: ${event.target.id}]\n`.replace(/(:|^)(\d\D)/, '$10$2');
+    text.scrollTop = text.scrollHeight;
+}
+</script>
+```
+
+如上例所示，当鼠标指针从 `#parent` 元素移动到 `#child` 时，会在父元素上触发两个处理程序：`mouseout` 和 `mouseout`：
+
+```js
+parent.onmouseout = function(event) {
+  /* event.target: parent element */
+};
+
+parent.onmouseover = function(event) {
+  /* event.target: child element (bubbled) */
+};
+```
+
+**如果不检查处理程序中的 `event.target`，那么就像是鼠标指针离开了 `#parent` 元素，然后立即回到了它上面**。
+
+但事实并非如此，鼠标指针仍然位于父元素上，它只是更深入地移入了子元素。
+
+**为了避免这种行为，可以在处理程序中检查 `event.relatedTarget`，鼠标指针仍在元素内，则忽略此类事件，也可以使用其它事件：`mouseenter` 和 `mouseleave`，它们没有此类问题**。
+
+
+
+**事件 mouseenter 和 mouseleave**
+
+事件 `mouseenter/mouseleave` 类似于 `mouseover/mouseout`，它们在鼠标指针进入/离开元素时触发。
+
+但是有两个重要的区别：
+
+1. **元素内部与后代之间的转换不会产生影响**
+2. **事件 `mouseenter/mouseleave` 不会冒泡**
+
+这些事件非常简单，当鼠标指针进入一个元素时，会触发 `mouseenter`，而**鼠标指针在元素或其后代中的确切位置无关紧要**。
+
+当鼠标指针离开该元素时，事件 `mouseleave` 才会触发。
+
+调整前面的例子：
+
+```html
+<div id="parent" onmouseenter="mouselog(event)" onmouseleave="mouselog(event)">parent
+  <div id="child">child</div>
+</div>
+
+<textarea id="text"></textarea>
+<input type="button" onclick="text.value=''" value="Clear">
+
+<script>
+  function mouselog(event) {
+    let d = new Date();
+    text.value += `${d.getHours()}:${d.getMinutes()}:${d.getSeconds()} | ${event.type} [target: ${event.target.id}]\n`.replace(/(:|^)(\d\D)/, '$10$2');
+    text.scrollTop = text.scrollHeight;
+}
+</script>
+```
+
+上述代码中，**唯一生成的事件是与将鼠标指针移入或移出顶部元素有关的事件**，当鼠标指针进入 `#child` 并返回时什么也没发生，在后代之间的移动会被忽略。
+
+
+
+**事件委托**
+
+事件 `mouseenter/leave` 非常简单其易用，但它们不会冒泡，因此**不能使用它们来进行事件委托**。
+
+假设要处理表格的单元格的鼠标进入/离开，并且这里有数百个单元格。
+
+通用的解决方案是 —— 在 `<table>` 中设置处理程序，并在那里处理事件，**但 `mouseenter/leave` 不会冒泡，因此，如果类似的事件发生在 `<td>` 上，那么只有 `<td>` 上的处理程序才能捕获到它**。
+
+`<table>` 上的 `mouseenter/leave` 的处理程序**仅在鼠标指针进入/离开整个表格时才触发**，无法获取有关其内部移动的任何信息。
+
+因此，需要使用 `mouseover/mouseout`。
+
+先从高亮鼠标指针先的元素的简单处理程序开始：
+
+```js
+// 高亮显示鼠标指针下的元素
+table.onmouseover = function(event) {
+  let target = event.target;
+  target.style.background = 'pink';
+};
+
+table.onmouseout = function(event) {
+  let target = event.target;
+  target.style.background = '';
+};
+```
+
+这时鼠标在表格的各个元素上移动时，当前位于鼠标指针下的元素会被高亮显示，完整的代码如下：
+
+- html
+
+  ```html
+  <table id="table">
+    <tr>
+      <th colspan="3"><em>Bagua</em> Chart: Direction, Element, Color, Meaning</th>
+    </tr>
+    <tr>
+      <td class="nw"><strong>Northwest</strong>
+        <br>Metal
+        <br>Silver
+        <br>Elders
+      </td>
+      <td class="n"><strong>North</strong>
+        <br>Water
+        <br>Blue
+        <br>Change
+      </td>
+      <td class="ne"><strong>Northeast</strong>
+        <br>Earth
+        <br>Yellow
+        <br>Direction
+      </td>
+    </tr>
+    <tr>
+      <td class="w"><strong>West</strong>
+        <br>Metal
+        <br>Gold
+        <br>Youth
+      </td>
+      <td class="c"><strong>Center</strong>
+        <br>All
+        <br>Purple
+        <br>Harmony
+      </td>
+      <td class="e"><strong>East</strong>
+        <br>Wood
+        <br>Blue
+        <br>Future
+      </td>
+    </tr>
+    <tr>
+      <td class="sw"><strong>Southwest</strong>
+        <br>Earth
+        <br>Brown
+        <br>Tranquility
+      </td>
+      <td class="s"><strong>South</strong>
+        <br>Fire
+        <br>Orange
+        <br>Fame
+      </td>
+      <td class="se"><strong>Southeast</strong>
+        <br>Wood
+        <br>Green
+        <br>Romance
+      </td>
+    </tr>
+  
+  </table>
+  
+  <textarea id="text"></textarea>
+  
+  <input type="button" onclick="text.value=''" value="Clear">
+  
+  <script src="script.js"></script>
+  ```
+
+- script.js
+
+  ```js
+  table.onmouseover = function(event) {
+    let target = event.target;
+    target.style.background = 'pink';
+  
+    text.value += `over -> ${target.tagName}\n`;
+    text.scrollTop = text.scrollHeight;
+  };
+  
+  table.onmouseout = function(event) {
+    let target = event.target;
+    target.style.background = '';
+  
+    text.value += `out <- ${target.tagName}\n`;
+    text.scrollTop = text.scrollHeight;
+  };
+  ```
+
+在上述代码中，想要处理表格的单元格 `<td>` 之间的移动：进入一个单元格并离开它，**对其它内部子元素的移动并不感兴趣，将它们过滤掉**。
+
+可以像下面这样做：
+
+- 在变量中记住当前被高亮显示的 `<td>`，称它为 `currentElem`
+- `mouseover` —— 如果仍然在当前的 `<td>` 中，则忽略该事件
+- `mouseout` —— 如果没有离开当前的 `<td>`，则忽略
+
+调整后的代码如下：
+
+```js
+// 现在位于鼠标下方的 <td>（如果有）
+let currentElem = null;
+
+table.onmouseover = function(event) {
+  // 在进入一个新的元素前，鼠标总是会先离开前一个元素
+  // 如果设置了 currentElem，那么就表示没有鼠标悬停在的前一个 <td>
+  // 忽略此事件
+  if (currentElem) return;
+  
+  const target = event.target.closest('td');
+  
+  // 移动到的不是一个 <td> —— 忽略
+  if(!target) return;
+  
+  // 现在移动到了 <td> 上，但在处于表格的外部（可能因为是嵌套的表格）—— 忽略
+  if(!table.contains(target)) return;
+  
+  // 进入了一个新的 <td>
+  currentElem = target;
+  onEnter(currentElem);
+}
+
+table.onmouseout = function(event) {
+  // 如果现在处于所有 <td> 的外部，则忽略此事件
+  // 这可能是一个表格内的移动，但是在 <td> 外
+  // 例如从一个 <tr> 到另一个 <tr>
+  if (!currentElem) return;
+  
+  let relatedTarget = event.relatedTarget;
+  
+  while(relatedTarget) {
+    if(relatedTarget === currentElem) return;
+
+    relatedTarget = relatedTarget.parentNode;
+  }
+  
+  // 离开了 <td>
+  onLeave(currentElem);
+  currentElem = null;
+}
+
+// 任何处理进入/离开一个元素的函数
+function onEnter(elem) {
+  elem.style.background = 'pink';
+
+  // 在文本区域显示它
+  text.value += `over -> ${currentElem.tagName}.${currentElem.className}\n`;
+  text.scrollTop = 1e6;
+}
+
+function onLeave(elem) {
+  elem.style.background = '';
+
+  // 在文本区域显示它
+  text.value += `out <- ${elem.tagName}.${elem.className}\n`;
+  text.scrollTop = 1e6;
+}
+```
+
+现在只有 `<td>` 被作为一个整体高亮显示。

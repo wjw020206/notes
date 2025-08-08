@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      .hours {
+        color: red;
+      }
+
+      body {
+        margin: 0;
+      }
+
+      .minutes {
+        color: green;
+      }
+
+      .seconds {
+        color: blue;
+      }
+
+      .clock {
+        border: 1px dashed black;
+        padding: 5px;
+        display: inline-block;
+        background: yellow;
+        position: absolute;
+        left: 0;
+        top: 0;
+      }
+
+      #tooltip {
+        position: absolute;
+        padding: 10px 20px;
+        border: 1px solid #b3c9ce;
+        border-radius: 4px;
+        text-align: center;
+        font: italic 14px/1.3 arial, sans-serif;
+        color: #333;
+        background: #fff;
+        z-index: 100000;
+        box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.3);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="elem" class="clock">
+      <span class="hours">12</span> : <span class="minutes">30</span> :
+      <span class="seconds">00</span>
+    </div>
+
+    <div id="tooltip" hidden>Tooltip</div>
+
+    <script>
+      class HoverIntent {
+        constructor({
+          sensitivity = 0.1, // 速度小于 0.1px/ms 意味着 “悬停在元素上”
+          interval = 100, // 每 100 毫秒测量一次鼠标速度：计算前一个点和下一个点之间的距离
+          elem,
+          over,
+          out,
+        }) {
+          this.sensitivity = sensitivity;
+          this.interval = interval;
+          this.elem = elem;
+          this.over = over;
+          this.out = out;
+
+          // 确保“this”是事件处理程序中的对象
+          this.onMouseMove = this.onMouseMove.bind(this);
+          this.onMouseOver = this.onMouseOver.bind(this);
+          this.onMouseOut = this.onMouseOut.bind(this);
+          this.trackSpeed = this.trackSpeed.bind(this);
+
+          // 分配处理程序
+          elem.addEventListener('mouseover', this.onMouseOver);
+          elem.addEventListener('mouseout', this.onMouseOut);
+        }
+
+        onMouseOver(event) {
+          // 判断是否在元素上
+          if (this.isOverElement) return;
+
+          this.isOverElement = true;
+
+          this.prevX = event.pageX;
+          this.prevY = event.pageY;
+          this.prevTime = Date.now();
+
+          elem.addEventListener('mousemove', this.onMouseMove);
+          this.checkSpeedInterval = setInterval(this.trackSpeed, this.interval);
+        }
+
+        onMouseOut(event) {
+          if (!event.relatedTarget || !elem.contains(event.relatedTarget)) {
+            this.isOverElement = false;
+            elem.removeEventListener('mousemove', this.onMouseMove);
+            clearInterval(this.checkSpeedInterval);
+
+            if (this.isHover) {
+              this.out.call(this.elem, event);
+              this.isHover = false;
+            }
+          }
+        }
+
+        onMouseMove(event) {
+          this.lastX = event.pageX;
+          this.lastY = event.pageY;
+          this.lastTime = Date.now();
+        }
+
+        trackSpeed() {
+          let speed;
+
+          if (!this.lastTime || this.lastTime === this.prevTime) {
+            // 鼠标没有移动
+            speed = 0;
+          } else {
+            speed =
+              Math.sqrt(
+                Math.pow(this.prevX - this.lastX, 2) +
+                  Math.pow(this.prevY - this.lastY, 2)
+              ) /
+              (this.lastTime - this.prevTime);
+          }
+
+          // 判断是否悬停在元素上
+          if (speed < this.sensitivity) {
+            clearInterval(this.checkSpeedInterval);
+            this.isHover = true;
+            this.over.call(this.elem);
+          } else {
+            // 速度快，记住新的坐标和之前的坐标
+            this.prevX = this.lastX;
+            this.prevY = this.lastY;
+            this.prevTime = this.lastTime;
+          }
+        }
+
+        destroy() {
+          elem.removeEventListener('mousemove', this.onMouseMove);
+          /* 您的代码“禁用”该功能，删除所有处理程序 */
+          elem.removeEventListener('mouseover', this.onMouseOver);
+          elem.removeEventListener('mouseover', this.onMouseOut);
+        }
+      }
+
+      // 该对象将跟踪鼠标，并调用 over/out
+      new HoverIntent({
+        elem,
+        over() {
+          tooltip.style.left = elem.getBoundingClientRect().left + 'px';
+          tooltip.style.top = elem.getBoundingClientRect().bottom + 5 + 'px';
+          tooltip.hidden = false;
+        },
+        out() {
+          tooltip.hidden = true;
+        },
+      });
+    </script>
+  </body>
+</html>
