@@ -25181,3 +25181,175 @@ input.addEventListener('focus', () => alert('focus'););
 - **尽管技术上可以生成像 `click` 或 `keydown` 这样的浏览器事件，但还是应谨慎使用它们**
 - **不应该生成浏览器事件，因为这是运行处理程序的一种怪异（hacky）方式**，大多数时候，这都是糟糕的架构
 - **使用我们自己的名称的自定义事件通常是出于架构的目的而创建的**，以指示发生在菜单（menu），滑块（slider），轮播（carousel）等内部发生了什么
+
+
+
+## 鼠标事件
+
+**⚠️ 注意：此类事件不仅可能来自于 “鼠标设备”**，还可能来自于对此类操作进行了模拟以实现兼容性的其它设备，例如手机和平板电脑。
+
+
+
+**鼠标事件类型**
+
+- **`mousedown/mouseup`** —— 在元素上点击/释放鼠标按钮
+- **`mouseover/mouseout`** —— 鼠标指针从一个元素上移入/移出
+- **`mousemove`** —— 鼠标在元素上的每个移动都会触发此事件
+- **`click`** —— 如果使用的是鼠标**左键**，**则在同一个元素上的 `mousedown` 及 `mouseup` 相继触发，触发该事件**
+- **`dblclick`** —— 在**短时间内双击**同一元素后触发，如今已经很少使用了
+- **`contextmenu`** —— 在鼠标**右键**被按下时触发，还有其它打开上下文菜单的方式，例如使用特殊的键盘按键，在这种情况下它也会被触发，**因此它并不完全是鼠标事件**
+- ...还有其它几种事件
+
+
+
+**事件顺序**
+
+一个用户操作可能会触发多个事件。
+
+例如：点击鼠标左键，在鼠标左键被按下时，会首先触发 `mousedown`，然后当鼠标左键被释放时，会触发 `mouseup` 和 `click`。
+
+**在单个动作触发多个事件时，事件的顺序是固定的**，也就是说，会遵循 `mousedown` → `mouseup` → `click` 的顺序调用处理程序。
+
+
+
+**鼠标按钮**
+
+**与点击相关的事件始终具有 `button` 属性，该属性允许获取确切的鼠标按钮**。
+
+通常不在 `click` 和 `contextmenu` 事件中使用这一属性，因为前者只在单击鼠标左键时触发，后者只在单击鼠标右键时触发。
+
+不过**在 `mousedown` 和 `mouseup` 事件中则可能需要用到 `event.button`，因为这两个事件在任何按键上都会触发，所以可以使用 `button` 属性来区分是左键单击还是右键单击**。
+
+`event.button` 的所有可能值如下：
+
+| 鼠标按键状态     | `event.button` |
+| :--------------- | :------------- |
+| 左键 (主要按键)  | 0              |
+| 中键 (辅助按键)  | 1              |
+| 右键 (次要按键)  | 2              |
+| X1 键 (后退按键) | 3              |
+| X2 键 (前进按键) | 4              |
+
+大多数鼠标设备只有左键和右键，对应的值就是 `0` 和 `2`，**触屏设备中的点按操作也会触发类似的事件**。
+
+另外还有一个 `event.buttons` 属性，其中以整数的形式存储着当前所有按下的鼠标按键，每个按钮一个比特位，在实际开发中，很少会用到这个属性，如果有需要的话，可以在 [MDN](https://developer.mozilla.org/zh/docs/Web/api/MouseEvent/buttons) 中找到更多细节。
+
+**⚠️ 注意：一些老代码可能会使用 `event.which` 属性来获取按下的键**，这是一个古老的非标准的方式，具有以下可能值：
+
+- `event.which === 1` —— 鼠标左键
+- `event.which === 2` —— 鼠标中键
+- `event.which === 3` —— 鼠标右键
+
+**现在，`event.which` 已经被弃用了，不应再使用它**。
+
+
+
+**组合键：shift、alt、ctrl、meta**
+
+所有的鼠标事件都包含有关按下的组合键的信息。
+
+事件属性：
+
+- `shiftKey`：Shift
+- `altKey`：Alt（或对于 Mac 是 Option）
+- `ctrlKey`：Ctrl
+- `metaKey`：对于 Mac 是 Command
+
+**如果在事件期间按下相应的键，则它们为 `true`**，例如：
+
+```html
+<button id="button">Alt+Shift+Click on me!</button>
+
+<script>
+  button.onclick = function(event) {
+    if (event.altKey && event.shiftKey) {
+      alert('Hooray!');
+    }
+  };
+</script>
+```
+
+上述代码的按钮仅在 Alt+Shift+ `click` 时才有效。
+
+**⚠️ 注意：**
+
+- **在 Mac 上通常使用 `Command` 代替 `Ctrl`**
+
+  在 Windows 和 Linux 上有 Alt，Shift 和 Ctrl，在 Mac 上还有：Command，它对应于属性 `metaKey`。
+
+  **在大多数情况下，当在 Windows/linux 上使用 Ctrl 时，在 Mac 是使用 Command**。
+
+  也就是说：当 Windows 用户按下 Ctrl + Enter 或 Ctrl + A 时，Mac 用户会按下 Command + Enter 或 Command + A，以此类推。
+
+  因此，如果我们想支持 Ctrl + `click`，那么对于 Mac 应该使用 Command + `click`，对于 Mac 用户而言，这更舒适。
+
+  即使想强制 Mac 用户使用 Ctrl + `click` —— 这非常困难，问题是：**在 Mac 上左键单击和 Ctrl 一起使用会被解释为右键单击，并且会生成 `contextmenu` 事件，而不是像 Windows/Linux 中的 `click` 事件**。
+
+  因此，如果想让所有操作系统的用户都感到舒适，**应该将 `ctrlKey` 与 `metaKey` 一起进行检查**，对于 JS 代码，这意味着应该检查 `if(event.ctrlKey || event.metaKey)`。
+
+- **键盘组合是工作流的一个补充，如果访客使用键盘操作 —— 它们就会起作用，如果访客的设备没有键盘（移动设备） —— 那么应该提供另一种不使用键盘也能做到这一点的方式**
+
+
+
+**坐标：clientX/Y，pageX/Y**
+
+所有鼠标事件都提供了两种形式的坐标：
+
+1. **相对于窗口的坐标：**`clientX` 和 `clientY`
+2. **相对于文档的坐标：**`pageX` 和 `pageY`
+
+简而言之， `pageX/Y` 相对于文档的左上角为参照物，并且**同一位置的坐标不随页面的滚动而改变**，而 `clientX/Y` 相对于窗口的左上角为参照物，**并且同一位置的坐标会随着页面的滚动而改变**。
+
+例如，有一个大小为 500x500 的窗口，并且鼠标在窗口的左上角，那么 `clientX` 和 `clientY` 均为 `0`，无论页面如何滚动，如果鼠标位于中间，那么 `clientX` 和 `clientY` 均为 `250`，这与它在文档中的位置无关，在这方面，它们类似于 `position: fixed`。
+
+将鼠标移动到输入字段上，可以看到 `clientX/clientY`：
+
+```html
+<input onmousemove="this.value=event.clientX+':'+event.clientY" value="Mouse over me" />
+```
+
+
+
+**防止在鼠标按下时的选择**
+
+双击鼠标会有副作用，**在某些界面中可能会出现干扰：它会选择文本**。
+
+例如，双击下面的文本，除了执行处理程序外，还会选择文本：
+
+```html
+<span ondblclick="alert('dblclick')">双击我</span>
+```
+
+如果按下鼠标左键，并在不松开的情况下移动鼠标，这也会常常造成不必要的选择。
+
+有多种防止选择的方法，在这种情况下，最合理的方式是防止浏览器对 `mousedown` 进行操作，这样能够阻止刚刚提到的两种选择：
+
+```html
+Before...
+<b ondblclick="alert('Click!')" onmousedown="return false">
+  Double-click me
+</b>
+...After
+```
+
+**现在双击时，粗体元素不会被选中，并且在粗体元素上按下鼠标左键也不会开始选择**。
+
+**⚠️ 注意：其中的文本仍然是可以选择的，但选择不应该开始于该文本本身，而应该在该文本之前或之后开始**，通常这对用户来说挺好的。
+
+
+
+**防止复制**
+
+如果**想禁用选择以保护页面的内容不被复制粘贴**，那可以使用另一个事件：**`oncopy`**。
+
+```html
+<div oncopy="alert('禁止复制!');return false">
+  Dear user,
+  The copying is forbidden for you.
+  If you know JS or HTML, then you can get everything from the page source though.
+</div>
+```
+
+上述代码中，当试图在 `<div>` 中复制一段文本，这是行不通的，因为**默认行为 `oncopy` 被阻止了**。
+
+但用户可以访问页面的 HTML 源码，并且可以从那里获取内容，但并不是每个人都知道如何做到这一点。
