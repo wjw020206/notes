@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      runOnKeys(() => alert('Hello!'), 'KeyQ', 'KeyW');
+
+      function runOnKeys(func, ...codes) {
+        const pressed = new Set();
+
+        document.addEventListener('keydown', function (event) {
+          pressed.add(event.code);
+
+          const isShot = codes.every((code) => pressed.has(code));
+
+          if (isShot) {
+            pressed.clear();
+            func();
+          }
+        });
+
+        document.addEventListener('keyup', function (event) {
+          pressed.delete(event.code);
+        });
+      }
+    </script>
+  </body>
+</html>
