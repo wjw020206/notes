@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=`, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <h1>Scroll me</h1>
+
+    <script>
+      function populate() {
+        while (true) {
+          // 文档末端
+          const windowRelativeBottom =
+            document.documentElement.getBoundingClientRect().bottom;
+
+          // 如果用户将页面滚动的距离不够远（文档末端距窗口底部 >100px）
+          if (
+            windowRelativeBottom >
+            document.documentElement.clientHeight + 100
+          )
+            break;
+
+          document.body.insertAdjacentHTML(
+            'beforeend',
+            `<p>Date: ${new Date()}</p>`
+          );
+        }
+      }
+      window.addEventListener('scroll', populate);
+
+      populate();
+    </script>
+  </body>
+</html>

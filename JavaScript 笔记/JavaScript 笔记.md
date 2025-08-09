@@ -26440,3 +26440,43 @@ function checkPhoneKey(key) {
 当使用虚拟/移动端键盘时，更正式一点的名字叫做 IME（Input-Method Editor），W3C 标准规定 KeyboardEvent 的 [`event.keyCode` 应该为 `229`](https://www.w3.org/TR/uievents/#determine-keydown-keyup-keyCode)，并且 [`event.key` 应该为 `'Unidentified'`](https://www.w3.org/TR/uievents-key/#key-attr-values)。
 
 当按下某些按键（例如箭头或退格键）时，**虽然其中一些键盘仍然使用正确的值来表示 `e.key`、`e.code`、`e.keyCode`...，但并不能保证所有情况下都能对应正确的值，所以键盘逻辑可能并不能保证适用于移动设备**。
+
+
+
+## 滚动
+
+`scroll` 事件允许对页面或元素滚动做出反应。
+
+例如：
+
+- 根据用户在文档中的位置显示/隐藏其它控件或信息
+- 当用户向下滚动到页面末端时加载更多数据
+
+例如，一个显示当前滚动的小函数：
+
+```js
+window.addEventListener('scroll', function() {
+  document.getElementById('showScroll').innerHTML = window.pageYOffset + 'px';
+});
+```
+
+**`scroll` 事件在 `window` 和可滚动元素上都可以运行**。
+
+
+
+**防止滚动**
+
+不能通过在 `onscroll` 监听器中使用 `event.preventDefault()` 来阻止滚动，因为**它会在滚动发生之后才触发**。
+
+但可以**在导致触发的事件上**，例如在 pageUp 和 pageDown 的 `keydown` 事件上，使用 `event.preventDefault()` 来阻止滚动。
+
+如果**向这些事件添加事件处理程序，并向其中添加 `event.preventDefault()`，那么滚动就不会开始**。
+
+**启动滚动的方式有很多，使用 CSS 的 `overflow` 属性更加可靠**。
+
+
+
+**滚动的两个重要特性**
+
+1. **滚动是弹性的**，在某些浏览器/设备中，可以在文档的顶端或末端稍微多滚动出一点（**超出部分显示的是空白区域，然后文档将自动 “弹回” 到正常状态**）
+2. **滚动并不精确**，当滚动到页面末端时，**实际上可能距真实的文档末端约 `0~50px`**

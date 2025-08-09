@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      body,
+      html {
+        height: 100%;
+        width: 100%;
+        padding: 0;
+        margin: 0;
+      }
+
+      #matrix {
+        width: 400px;
+        margin: auto;
+        overflow: auto;
+        text-align: justify;
+      }
+
+      #arrowTop {
+        height: 9px;
+        width: 14px;
+        color: green;
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        cursor: pointer;
+      }
+
+      #arrowTop::before {
+        content: '▲';
+      }
+    </style>
+  </head>
+  <body>
+    <div id="matrix">
+      <script>
+        for (let i = 0; i < 2000; i++) document.writeln(i);
+      </script>
+    </div>
+
+    <div id="arrowTop"></div>
+
+    <script>
+      const arrowTop = document.querySelector('#arrowTop');
+
+      window.addEventListener('scroll', onScroll);
+
+      function onScroll() {
+        arrowTop.hidden =
+          window.pageYOffset <= document.documentElement.clientHeight;
+      }
+
+      arrowTop.addEventListener('click', function () {
+        // scrollTo 之后会有一个“scroll”事件，所以箭头会自动隐藏
+        window.scrollTo(window.pageXOffset, 0);
+      });
+
+      onScroll();
+    </script>
+  </body>
+</html>
