@@ -25695,3 +25695,342 @@ function onLeave(elem) {
 ```
 
 现在只有 `<td>` 被作为一个整体高亮显示。
+
+
+
+## 鼠标拖放事件
+
+拖放（Drag‘n Drop）是一个很赞的界面解决方案，取某样东西并将其拖放是执行许多东西的一种简单明了的方式，从复制和移动文档（如在文件管理器中）到订购（将物品放入购物车）。
+
+**在现代 HTML 标准中有一个[关于拖放的部分](https://html.spec.whatwg.org/multipage/interaction.html#dnd)，其中包含了例如 `dragstart` 和 `dragend` 等特殊事件**。
+
+**这些事件能够支持特殊类型的拖放**，例如处理从 OS 文件管理器中拖动文件，并将其拖放到浏览器窗口中，之后，JavaScript 便可以访问此类文件中的内容。
+
+但是，**原生的拖放事件也有其局限性**，例如：无法阻止从特定区域的拖动，并且无法将拖动变成 “水平” 或 “竖直” 的，还有很多使用它们无法完成的拖放任务，并且，移动设备对此类事件的支持非常有限。
+
+所以**通常还是使用鼠标事件来实现拖放**。
+
+
+
+**拖放算法**
+
+基础的拖放算法如下：
+
+1. 在 `mousedown` 上**根据需要准备要移动的元素（也许创建一个它的副本，向其中添加一个类或其它任何东西）**
+2. 在 `mousemove` 上**通过更改 `position: absolute` 情况下的 `left/top` 来移动它**
+3. 在 `mouseup` 上**执行与完成拖放相关的所有行为**
+
+下面是实现拖放一个球的代码：
+
+```js
+ball.onmousedown = function(event) {
+  // 准备移动，确保 absolute 并通过设置 z-index 以确保球在最顶部
+  ball.style.position = 'absolute';
+  ball.style.zIndex = 1000;
+  
+  // 将其从当前父元素中直接移动到 body 中
+  document.body.append(ball);
+  
+  function moveAt(pageX, pageY) {
+    ball.style.left = pageX - ball.offsetWidth / 2 + 'px';
+    ball.style.top = pageY - ball.offsetHeight / 2 + 'px';
+  }
+  
+  // 将球移动到指针的下方
+  moveAt(event.pageX, event.paegY);
+  
+ function onMouseMove(event) {
+   moveAt(event.pageX, event.pageY);
+ }
+  
+  // 在 mousemove 事件上移动球
+  document.addEventListener('mousemove', onMouseMove);
+  
+  // 放下球，并移除不需要的处理程序
+  ball.onmouseup = function() {
+    document.removeEventListener('mousemove', onMouseMove);
+    ball.onmouseup = null;
+  }
+}
+```
+
+运行这段代码，会发现一些奇怪的事情，在拖放的一开始，**球 “分叉” 了：开始拖动它的 “克隆”**，例如：
+
+![image-20250809065800523](images/image-20250809065800523.png)
+
+当尝试使用鼠标进行拖放，就会看到这种奇怪的行为。
+
+之所以会这样，是**因为浏览器有自己对图片和一些其它元素的拖放处理，它会在进行拖放操作时自动运行，并与拖放处理产生冲突**。
+
+可以使用以下代码禁用它：
+
+```js
+ball.ondragstart = function() {
+  return false;
+}
+```
+
+现在一切都正常了。
+
+**⚠️ 注意：前面的代码中，是在 `document` 上监听 `mousemove`，而不是在 `ball` 上**，之所以这样设置是因为快速移动鼠标时，鼠标指针可能会从球上跳转至文档中间的某个位置（甚至跳转至窗口外），所以**应该监听 `document` 以捕获它**。
+
+
+
+**修正定位**
+
+在上述例子中，球在移动的时候，球的中心始终位于鼠标指针的下方：
+
+```js
+ball.style.left = pageX - ball.offsetWidth / 2 + 'px';
+ball.style.top = pageY - ball.offsetHeight / 2 + 'px';
+```
+
+这样做存在副作用，要启用拖放，可以在球上的任意位置 `mousedown`，但是**如果从球的边缘 “抓住” 球，那么球会突然 “跳转” 以使球的中心位于鼠标指针的下方**。
+
+例如，在按住球的边缘处开始拖动，那么拖动时，**鼠标指针应该保持在一开始所按住边缘位置上**。
+
+![image-20250809071031348](images/image-20250809071031348.png)
+
+需要更新一下算法：
+
+1. 当访问者按下按钮（`mousedown`）时，可以在变量 `shiftX/shiftY` 中记住鼠标指针到球左上角的距离，在拖动时保持这个距离
+
+   通过坐标相减来获取这个偏移：
+
+   ```js
+   // onmousedown
+   const shiftX = event.clientX - ball.getBoundingClientRect().left;
+   const shiftY = event.clientY - ball.getBoundingClientRect().top;
+   ```
+
+2. 然后在拖动球时，将鼠标指针相对于球的这个偏移也考虑在内，像下面这样：
+
+   ```js
+   // onmousemove
+   ball.style.left = event.pageY - shiftX + 'px';
+   ball.style.top = event.pageY - shiftY + 'px';
+   ```
+
+最终的代码：
+
+```js
+ball.onmousedown = function(event) {
+
+  const shiftX = event.clientX - ball.getBoundingClientRect().left;
+  const shiftY = event.clientY - ball.getBoundingClientRect().top;
+
+  ball.style.position = 'absolute';
+  ball.style.zIndex = 1000;
+  document.body.append(ball);
+
+  moveAt(event.pageX, event.pageY);
+
+  // 移动现在位于坐标 (pageX, pageY) 上的球
+  // 将初始的偏移考虑在内
+  function moveAt(pageX, pageY) {
+    ball.style.left = pageX - shiftX + 'px';
+    ball.style.top = pageY - shiftY + 'px';
+  }
+
+  function onMouseMove(event) {
+    moveAt(event.pageX, event.pageY);
+  }
+
+  // 在 mousemove 事件上移动球
+  document.addEventListener('mousemove', onMouseMove);
+
+  // 放下球，并移除不需要的处理程序
+  ball.onmouseup = function() {
+    document.removeEventListener('mousemove', onMouseMove);
+    ball.onmouseup = null;
+  };
+
+};
+
+ball.ondragstart = function() {
+  return false;
+};
+```
+
+
+
+**潜在的放置目标**
+
+前面的示例中，球可以被放置（drop）到 “任何地方”，在实际开发中，通常是将一个元素放到另一个元素上，例如：将一个 “文件” 放置到一个 “文件夹” 或其它地方。
+
+简单来说，**就是取一个 “可拖动” 的元素，并将其放在 “可拖放” 的元素上**。
+
+需要知道：
+
+- **在拖放结束时，所拖动的元素要放在哪里执行相应的行为**
+- **最好知道所拖动到的 “可拖放” 的元素的位置，并高亮显示 “可拖放” 的元素**
+
+这个解决方案有些麻烦，第一个想法可能是将 `onmouseover/mouseup` 处理程序放在潜在的 “可拖放” 的元素上？
+
+但这行不通。
+
+问题在于，**当拖动时，可拖动元素一直是位于其它元素上的，而鼠标事件只发生在顶部元素上，而不是发生在那些下面的元素**。
+
+例如：下面有两个 `<div>` 元素，红色的在蓝色的上面（完全覆盖），这里蓝色的 `<div>` 中没有办法来捕获事件，因为红色的 `<div>` 在它上面：
+
+```html
+<style>
+  div {
+    width: 50px;
+    height: 50px;
+    position: absolute;
+    top: 0
+  }
+</style>
+<div style="background: blue" onmouseover="alert('never works')"></div>
+<div style="background: red" onmouseover="alert('over red!')"></div>
+```
+
+上述代码**只会触发 `alert('over red!')`**。
+
+与拖放的元素相同，**球始终位于其它元素之上，所以事件也只会发生在球上，无论在较低的元素上设置什么处理程序，它们都不会起作用**。
+
+有一个叫做 `document.elementFromPoint(clientX, clientY)` 的方法，**它会返回在给定的窗口相对坐标处的嵌套最深的元素（如果给定的坐标在窗口外，则返回 `null`）**，如果同一坐标上**有多个重叠的元素，则返回最上面的元素**。
+
+可以在任何鼠标事件处理程序中使用它，以检测鼠标指针下的潜在的 “可拖放” 的元素，像下面这样：
+
+```js
+// 在一个鼠标事件处理程序中
+ball.hidden = true; // 隐藏我们拖动的元素
+
+const elemBelow = document.elementFromPoint(event.clientX, event.clientY); // elemBelow 是球下方的元素，可能是可拖放的元素
+
+ball.hidden = false;
+```
+
+**⚠️ 注意：需要在调用 `document.elementFromPoint` 之前隐藏拖动的元素，否则这些坐标始终是拖动元素，因为它是在鼠标指针下的最顶部的元素**。
+
+可以用该代码检查正在 “飞过” 的元素是什么，并在放置（drop）时，对放置进行处理。
+
+基于 `onMouseMove` 扩展的代码，用于查找 “可拖放” 的元素：
+
+```js
+// 当前飞过的潜在可拖放元素
+let currentDroppable = null;
+
+function onMouseMove(event) {
+  moveAt(event.pageX, event.pageY);
+  
+  ball.hidden = true;
+  const elemBelow = document.elementFromPoint(event.clientX, event.clientY);
+  ball.hidden = false;
+  
+  // mousemove 事件可能会在窗口外被触发（当球被拖出屏幕时）
+  // 如果 clientX/clientY 在窗口外，那么 elementFromPoint 会返回 null
+  if (!elemBelow) return;
+  
+  // 潜在的 droppable 的元素被使用 droppable 类进行标记（也可以是其它逻辑）
+  const droppableBelow = elemBelow.closest('.droppable');
+  
+  if(currentDroppable !== droppableBelow) {
+    // 正在飞入或飞出
+    // 注意：它们两个的值都可能为 null
+    // currentDroppable=null —— 如果在此事件之前，鼠标指针不是在一个 droppable 的元素上（例如空白处）
+    // droppableBelow=null —— 如果现在，在当前事件中，我们的鼠标指针不是在一个 droppable 的元素上
+    if(currentDroppable) {
+      // 处理 “飞出” 可拖放的元素时的处理逻辑（移除高亮）
+      leaveDroppable(currentDroppable);
+    }
+    
+    currentDroppable = droppableBelow;
+    
+    if(currentDroppable) {
+      // 处理 “飞入” 可拖放的元素时的逻辑（添加高亮）
+      enterDroppable(currentDroppable);
+    }
+  }
+}
+```
+
+完整的代码如下：
+
+```html
+<style>
+  #gate {
+    cursor: pointer;
+    margin-bottom: 100px;
+    width: 83px;
+    height: 46px;
+  }
+
+  #ball {
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+  }
+</style>
+
+<script>
+  let currentDroppable = null;
+
+  ball.onmousedown = function(event) {
+
+    let shiftX = event.clientX - ball.getBoundingClientRect().left;
+    let shiftY = event.clientY - ball.getBoundingClientRect().top;
+
+    ball.style.position = 'absolute';
+    ball.style.zIndex = 1000;
+    document.body.append(ball);
+
+    moveAt(event.pageX, event.pageY);
+
+    function moveAt(pageX, pageY) {
+      ball.style.left = pageX - shiftX + 'px';
+      ball.style.top = pageY - shiftY + 'px';
+    }
+
+    function onMouseMove(event) {
+      moveAt(event.pageX, event.pageY);
+
+      ball.hidden = true;
+      let elemBelow = document.elementFromPoint(event.clientX, event.clientY);
+      ball.hidden = false;
+
+      if (!elemBelow) return;
+
+      const droppableBelow = elemBelow.closest('.droppable');
+      
+      if (currentDroppable != droppableBelow) {
+        if (currentDroppable) { // 当在此事件之前未超过可拖放对象时，为空
+          leaveDroppable(currentDroppable);
+        }
+        currentDroppable = droppableBelow;
+        if (currentDroppable) { // 如果现在不经过可放置对象，则返回 null
+          // (也许只是留下了可放下的)
+          enterDroppable(currentDroppable);
+        }
+      }
+    }
+
+    document.addEventListener('mousemove', onMouseMove);
+
+    ball.onmouseup = function() {
+      document.removeEventListener('mousemove', onMouseMove);
+      ball.onmouseup = null;
+    };
+
+  };
+
+  function enterDroppable(elem) {
+    elem.style.background = 'pink';
+  }
+
+  function leaveDroppable(elem) {
+    elem.style.background = '';
+  }
+
+  ball.ondragstart = function() {
+    return false;
+  };
+</script>
+```
+
+上述代码在球拖动到球门上时，球门会被高亮显示。
+
+![image-20250809083216462](images/image-20250809083216462.png)
+

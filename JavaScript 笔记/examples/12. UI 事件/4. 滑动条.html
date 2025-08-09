@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      .slider {
+        border-radius: 5px;
+        background: #e0e0e0;
+        background: linear-gradient(left top, #e0e0e0, #eeeeee);
+        width: 310px;
+        height: 15px;
+        margin: 5px;
+      }
+
+      .thumb {
+        width: 10px;
+        height: 25px;
+        border-radius: 3px;
+        position: relative;
+        left: 10px;
+        top: -5px;
+        background: blue;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="slider" class="slider">
+      <div class="thumb"></div>
+    </div>
+    21312'21'3 213 123123
+
+    <script>
+      const slider = document.querySelector('#slider');
+      const thumb = slider.firstElementChild;
+
+      thumb.ondragstart = function () {
+        return false;
+      };
+
+      thumb.addEventListener('mousedown', function (event) {
+        // 滑动时阻止选中文本
+        document.body.style.userSelect = 'none';
+        const shiftX = event.clientX - thumb.getBoundingClientRect().left;
+
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+
+        function onMouseMove(event) {
+          let left = event.pageX - slider.getBoundingClientRect().left - shiftX;
+
+          if (left < 0) left = 0;
+
+          if (left > slider.getBoundingClientRect().width - thumb.offsetWidth) {
+            left = slider.getBoundingClientRect().width - thumb.offsetWidth;
+          }
+
+          thumb.style.left = left + 'px';
+        }
+
+        function onMouseUp() {
+          document.removeEventListener('mousemove', onMouseMove);
+          document.removeEventListener('mouseup', onMouseUp);
+          // 恢复可以选中文本
+          document.body.style.userSelect = '';
+        }
+      });
+    </script>
+  </body>
+</html>
