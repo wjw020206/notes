@@ -26269,4 +26269,174 @@ thumb.onpointerdown = function(event) {
 
 
 
-   
+## 键盘：keydown 和 keyup
+
+**⚠️ 注意：在现代设备上，还有其它 “输入内容” 的方法，例如使用语音识别（尤其是在移动端设备上）或用鼠标复制/粘贴**。
+
+因此，**如果想要跟踪 `<input>` 字段中的所有输入，那么键盘事件是不够的，无论如何还需要一个名为 `input` 的事件来跟踪 `<input>` 字段中的更改**，对于这样的任务来说，这可能是一个更好的选择。
+
+要想处理键盘行为时，应该使用键盘事件（虚拟键盘也算），例如：对方向键 Up 和 Down 或热键（包括按键的组合）作出反应。
+
+
+
+**keydown 和 keyup**
+
+当一个按键被按下时，会触发 `keydown` 事件，而当按键被释放时，会触发 `keyup` 事件。
+
+
+
+**event.code 和 evet.key**
+
+事件对象的 **`key` 属性允许获取字符**，而 **`code` 属性则允许获取 “物理按键代码”**。
+
+例如：同一个按键 Z，可以与或不与 `Shift` 一起按下，**会得到两个不同的字符：小写的 `z` 和大写的 `Z`**。
+
+**`event.key` 正是这个字符，并且它将是不同的，但是`event.code` 是相同的**：
+
+| Key       | `event.key` | `event.code` |
+| :-------- | :---------- | :----------- |
+| Z         | `z`（小写） | `KeyZ`       |
+| Shift + Z | `Z`（大写） | `KeyZ`       |
+
+如果用户使用不同的语言，那么切换到另一种语言将产生完全不同的字符，而不是 `'Z'`，它将成为 `event.key` 的值，**而 `event.code` 则始终都是一样的：`'KeyZ'`**。
+
+**⚠️ 注意：**
+
+- **每个按键的 `event.code` 都取决于该按键在键盘上的位置**，[UI 事件代码规范](https://www.w3.org/TR/uievents-code/)中描述了按键代码
+
+  例如：
+
+  - 字符键的代码为：`'Key<letter>'`：`'KeyA'`，`'KeyB'` 等
+  - 数字键的代码为：`'Digit<number>'`：`'Digit0'`，`'Digit1'` 等
+  - 特殊按键的代码为按键的名字：`'Enter'`，`'Backspace'`，`'Tab'` 等
+
+  有几种广泛应用的键盘布局，该规范给出了每种布局的按键代码。
+  
+  更多按键代码，可以参考[规范的字母数字部分](https://www.w3.org/TR/uievents-code/#key-alphanumeric-section)。
+  
+- **大小写敏感：`'KeyZ'` 而不是 `'keyZ'`**，`'Key'` 的首字母必须大写
+
+- **如果按键没有给出任何字符**，例如：Shift 或 F1 或其它，对于这些按键，**它们的 `event.key` 与 `event.code` 大致相同**，例如：
+
+  | Key       | `event.key` | `event.code`                |
+  | :-------- | :---------- | :-------------------------- |
+  | F1        | `F1`        | `F1`                        |
+  | Backspace | `Backspace` | `Backspace`                 |
+  | Shift     | `Shift`     | `ShiftRight` 或 `ShiftLeft` |
+
+  **⚠️ 注意：`event.code` 准确地标明了哪个键被按下了**，例如：大多数键盘有两个 Shift 键，一个在左边，一个在右边，`event.code` 会准确地返回按下了哪个键，而 `event.key` 对按键的 “含义” 负责：它是什么（一个 “Shift”）。
+
+  假设，要处理一个热键：Ctrl + Z（或 Mac 上的 Command + Z），大多数文本编辑器将 “撤销” 行为挂在其上，可以在 `keydown` 上设置一个监听器，并检查哪个键被按下了。
+
+  但存在一个问题：在这样的监听器中，应该检查 `event.key` 的值还是 `event.code` 的值？
+
+  一方面，**`event.key` 的值是一个字符，它随语言而改变**，如果访问者在 OS 中使用多种语言，并在它们之间进行切换，**那么相同的按键将给出不同的字符，因此检查 `event.code` 会更好，因为它总是相同的**。
+
+  像下面这样：
+
+  ```js
+  document.addEventListener('keydown', function(event) {
+    if (event.code === 'KeyZ' && (event.ctrlKey || event.metaKey)) {
+      alert('Undo!')
+    }
+  });
+  ```
+
+  另一方面，`event.code` 有一个问题，**对于不同的键盘布局，相同的按键可能会具有不同的字符**。
+
+  例如，下面是美式布局（“QWERTY”）和德式布局（“QWERTZ”）：
+
+  ![image-20250809145034079](images/image-20250809145034079.png)
+
+  对于同一个按键，美式布局为 “Z”，而德式布局为 “Y”（字母被替换了）。
+
+  从字面上看，对于使用德式布局键盘的人来说，他们按下 Y 时，`event.code` 将等于 `KeyZ`。
+
+  如果在代码中检查 `event.code === 'KeyZ'`，那么对于使用德式布局键盘的人来说，当他们按下 Y 时，这个测试就通过了。
+
+  听起来确实很怪，但事实确实如此。[规范](https://www.w3.org/TR/uievents-code/#table-key-code-alphanumeric-writing-system)中明确提到了这种行为。
+
+  因此，**`event.code` 可能由于意外的键盘布局而与错误的字符进行了匹配，在不同键盘布局中的相同字母可能会映射到不同的物理键，从而导致了它们有不同的代码**。
+
+  幸运的是，这种情况只发生在几个代码上，例如 `keyA`，`keyQ`，`keyZ`（我们已经看到了），**而对于诸如 `Shift` 这样的特殊按键没有发生这种情况**，可以在[规范](https://www.w3.org/TR/uievents-code/#table-key-code-alphanumeric-writing-system)中找到该列表。
+
+  **所以为了可靠地跟踪与受键盘布局影响的字符，使用 `event.key` 可能是一个更好的方式**。
+
+  所以说，**如果要处理与布局有关的按键，那么 `event.key` 是必选的方式**。
+
+  **或者希望一个热键即使在切换了语言后仍能正常使用，那么 `event.code` 可能会更好**。
+
+
+
+**自动重复**
+
+如果**按下一个键足够长的时间，它就会开始 “自动重复”：** `keydown` 会被一次又一次地触发，然后当按键被释放时，最终会触发一次 `keyup`，因此，**有很多 `keydown` 却只有一个 `keyup` 是很正常的**。
+
+**对于由自动重复触发的事件，`event` 对象的 `event.repeat` 属性被设置为 `true`**。
+
+
+
+**默认行为**
+
+**默认行为各不相同，因为键盘可能会触发很多可能的东西**。
+
+例如：
+
+- 出现在屏幕上的一个字符（最明显的结果）
+- 一个字符被删除（Delete 键）
+- 滚动页面（PageDown 键）
+- 浏览器打开“保存页面”对话框（Ctrl+S）
+- ......等
+
+**阻止对 `keydown` 的默认行为可以取消大多数的行为，但基于 OS 的特殊按键除外**，例如，在 Windows 中，Alt + F4 会关闭当前浏览器窗口，并且无法通过在 JavaScript 中阻止默认行为来阻止它。
+
+例如，下面的 `<input>` 期望输入的内容为一个电话号码，**因此它不会接受除数字，`+`，`()` 和 `-` 以外的按键**：
+
+```html
+<script>
+function checkPhoneKey(key) {
+  return (key >= '0' && key <= '9') || ['+','(',')','-'].includes(key);
+}
+</script>
+
+<input onkeydown="return checkPhoneKey(event.key)" placeholder="请输入手机号" type="tel">
+```
+
+上述代码中，通过 `onkeydown` 处理程序使用 `checkPhoneKey` 来检查被按下的按键，如果它是有效的（`0..9` 或 `+-()` 之一），那么将返回 `true`，否则返回 `false`。
+
+像上面那样，**从事件处理程序返回 `false` 会阻止事件的默认行为**，所以如果按下的按键未通过按键检查，那么 `<input>` 中什么都不会出现（从事件处理程序返回 `true` 不会对任何行为产生影响，只有返回 `false` 会产生对应的影响）。
+
+**⚠️ 注意：像 Backspace、Left、Right 这样的特殊按键在 `<input>` 中无效，这是严格过滤器 `checkPhoneKey` 的副作用，因为这些按键会使 `checkPhoneKey` 返回 `false`**。
+
+所以将过滤条件放宽一点，允许 Left、Right、Delete 和 Backspace 按键：
+
+```html
+<script>
+function checkPhoneKey(key) {
+  return (key >= '0' && key <= '9') ||
+    ['+','(',')','-','ArrowLeft','ArrowRight','Delete','Backspace'].includes(key);
+}
+</script>
+
+<input onkeydown="return checkPhoneKey(event.key)" placeholder="Phone, please" type="tel">
+```
+
+现在方向键和删除键都能正常使用了，但即使对按键进行了过滤，仍然可以使用鼠标右键单击 + 粘贴来输入任何内容，移动端设备还提供了其它输入内容的方式，**因此，这个过滤器并不是 100% 可靠**。
+
+另一种方式是跟踪 `oninput` 事件 —— 在任何修改后都会触发此事件，这样就可以检查新的 `input.value`，并在其无效时修改它/高亮显示 `<input>`，或者可以同时使用这两个事件处理程序。
+
+
+
+**历史遗留**
+
+过去有一个 `keypress` 事件，还有事件对象的 `keyCode`、`charCode` 和 `which` 属性。
+
+**大多数浏览器对它们都存在兼容性问题，以致使该规范的开发者不得不弃用它们并创建新的现代的事件**（前面提到的这些事件），除此之外别无选择。旧的代码仍然有效，因为浏览器还在支持它们，但现在完全没必要再使用它们。
+
+
+
+**移动端键盘**
+
+当使用虚拟/移动端键盘时，更正式一点的名字叫做 IME（Input-Method Editor），W3C 标准规定 KeyboardEvent 的 [`event.keyCode` 应该为 `229`](https://www.w3.org/TR/uievents/#determine-keydown-keyup-keyCode)，并且 [`event.key` 应该为 `'Unidentified'`](https://www.w3.org/TR/uievents-key/#key-attr-values)。
+
+当按下某些按键（例如箭头或退格键）时，**虽然其中一些键盘仍然使用正确的值来表示 `e.key`、`e.code`、`e.keyCode`...，但并不能保证所有情况下都能对应正确的值，所以键盘逻辑可能并不能保证适用于移动设备**。
