@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <select id="genres">
+      <option value="rock">Rock</option>
+      <option value="blues" selected>Blues</option>
+    </select>
+
+    <script>
+      const genres = document.querySelector('#genres');
+
+      // 显示所选选项的值和文本
+      alert(
+        `值：${genres.value}，文本：${
+          genres.options[genres.selectedIndex].text
+        }`
+      );
+
+      // 添加一个选项：<option value="classic">Classic</option>
+      const option = new Option('Classic', 'classic');
+      genres.append(option);
+
+      // 使之变为可选的
+      option.selected = true;
+    </script>
+  </body>
+</html>
