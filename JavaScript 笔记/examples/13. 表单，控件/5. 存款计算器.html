@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      td select,
+      td input {
+        width: 150px;
+      }
+
+      #diagram td {
+        vertical-align: bottom;
+        text-align: center;
+        padding: 10px;
+      }
+
+      #diagram div {
+        margin: auto;
+      }
+    </style>
+  </head>
+  <body>
+    存款计算器。
+    <form name="calculator">
+      <table>
+        <tr>
+          <td>存款金额</td>
+          <td>
+            <input name="money" type="number" value="10000" required />
+          </td>
+        </tr>
+        <tr>
+          <td>存款时间（月）</td>
+          <td>
+            <select name="months">
+              <option value="3">3 (minimum)</option>
+              <option value="6">6 (half-year)</option>
+              <option value="12" selected>12 (one year)</option>
+              <option value="18">18 (1.5 years)</option>
+              <option value="24">24 (2 years)</option>
+              <option value="30">30 (2.5 years)</option>
+              <option value="36">36 (3 years)</option>
+              <option value="60">60 (5 years)</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td>年利率是多少？</td>
+          <td>
+            <input name="interest" type="number" value="5" required />
+          </td>
+        </tr>
+      </table>
+    </form>
+
+    <table id="diagram">
+      <tr>
+        <th>之前:</th>
+        <th>现在:</th>
+      </tr>
+      <tr>
+        <th id="money-before"></th>
+        <th id="money-after"></th>
+      </tr>
+      <td>
+        <div style="background: red; width: 40px; height: 100px"></div>
+      </td>
+      <td>
+        <div
+          style="background: green; width: 40px; height: 0"
+          id="height-after"
+        ></div>
+      </td>
+    </table>
+
+    <script>
+      const form = document.forms.calculator;
+      const moneyBefore = document.querySelector('#money-before');
+      const moneyAfter = document.querySelector('#money-after');
+      const heightAfter = document.querySelector('#height-after');
+
+      form.money.oninput = function () {
+        if (this.value === '') return;
+        calcMoney();
+      };
+
+      form.months.onchange = function () {
+        calcMoney();
+      };
+
+      form.interest.oninput = function () {
+        calcMoney();
+      };
+
+      function calcMoney() {
+        const initial = parseFloat(form.money.value);
+        const interest = form.interest.value * 0.01;
+        const years = form.months.value / 12;
+
+        console.log(initial, interest, years);
+
+        const result = Math.round(initial * (1 + interest) ** years);
+        moneyBefore.innerHTML = initial;
+        moneyAfter.innerHTML = result;
+
+        heightAfter.style.height = (100 / initial) * result + 'px';
+      }
+
+      calcMoney();
+    </script>
+  </body>
+</html>

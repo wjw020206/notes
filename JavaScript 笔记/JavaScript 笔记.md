@@ -26953,5 +26953,108 @@ Your email please: <input type="email" id="input">
 
 可以**通过 `document.activeElement` 来获取当前所聚焦的元素**。
 
-   
 
+
+## 事件：change，input，cut，copy，paste
+
+
+
+**事件：change**
+
+当元素更改完成时，将触发 `change` 事件。
+
+**对于文本输入框，当其输入内容后，失去焦点时就会触发 `change` 事件**。
+
+例如，当在下面的文本字段中输入内容时不会触发事件，但是当将焦点移到其它位置时，例如：点击按钮就会触发  `change` 事件。
+
+```html
+<input type="text" onchange="alert(this.value)">
+<input type="button" value="Button">
+```
+
+**其余其它元素：`<select>`、`<input type="checkbox" />`、`<input type="radio" />`，会在选项更改后立即触发 `change` 事件**。
+
+```html
+<select onchange="alert(this.value)">
+  <option value="">Select something</option>
+  <option value="1">Option 1</option>
+  <option value="2">Option 2</option>
+  <option value="3">Option 3</option>
+</select>
+```
+
+
+
+**事件：input**
+
+每当用户对输入值进行修改后，就会触发 `input` 事件。
+
+**与键盘事件不同，只要值改变了，`input` 事件就会触发，即使那么不涉及键盘行为（action）的值的更改也是如此：使用鼠标粘贴，或者使用语音识别来输入文本**。
+
+例如：
+
+```html
+<input type="text" id="input"> oninput: <span id="result"></span>
+<script>
+  input.oninput = function() {
+    result.innerHTML = input.value;
+  };
+</script>
+```
+
+如果想处理对 `<input>` 的每次更改，使用此事件是最佳选择。
+
+另一方面，**`input` 事件不会在那些不涉及值更改的键盘输入或其它行为上触发，例如在输入时按方向键 ⇦ ⇨**。
+
+**⚠️ 注意：无法阻止 `oninput` 中的任何事件**，当输入值更改后，就会触发 `input` 事件，所以无法使用 `event.preventDefault()`，太迟了。
+
+
+
+**事件：cut，copy，paste**
+
+这些事件发生于剪切、复制、粘贴一个值的时候。
+
+**它们属于 `ClipboardEvent` 类，并提供了对剪切、复制、粘贴的数据的访问方法**。
+
+也**可以使用 `event.preventDefault()` 来阻止行为**，然后什么都不会被复制、粘贴。
+
+例如，下面的代码阻止了剪切/复制/粘贴的事件，并显示出了所尝试剪切/复制/粘贴的内容：
+
+```html
+<input type="text" id="input">
+<script>
+  input.onpaste = function(event) {
+    alert('paste: ' + event.clipboardData.getData('text/plain'));
+    event.preventDefault();
+  };
+
+  input.oncut = input.oncopy = function(event) {
+    alert(event.type + '-' + document.getSelection());
+    event.preventDefault();
+  };
+</script>
+```
+
+**⚠️ 注意：剪切、复制事件处理程序中调用 `event.clipboardData.getData(...)` 只会得到一个空字符串**，从技术上讲，这是**因为浏览器触发剪切、复制事件的时机是在数据写入剪贴板之前**，所以自然只会得到一个空字符串，之后如果使用 `event.preventDefault()`，那么它根本不会被复制。
+
+上述例子中使用 `document.getSelection()` 来得到被选中的文本。
+
+**不仅可以复制/粘贴文本，也可以复制/粘贴其他各种内容**，例如，可以在操作系统的文件管理器中复制一个文件并进行粘贴。
+
+**这是因为 `clipboardData` 实现了 `DataTransfer` 接口，通常用于拖放和复制/粘贴**。
+
+另外还有一个可以访问剪贴板的异步 API：`navigator.clipboard`，具体可以参考[Clipboard API 和事件规范](https://www.w3.org/TR/clipboard-apis/)，**[火狐浏览器（Firefox）尚未支持](https://caniuse.com/async-clipboard)**。
+
+
+
+**安全限制**
+
+剪贴板是 “全局” 操作系统的东西，用户可能会在各种应用程序之间切换，复制/粘贴不同的内容，而**浏览器页面不应该能访问这些内容**。
+
+因此**大多数浏览器仅允许在某些用户操作范围内（例如复制、粘贴等）对剪贴板进行无缝的读、写访问**。
+
+**除火狐（Firefox）的浏览器外，所有浏览器都禁止使用 `dispatchEvent` 生成 “自定义” 剪贴板事件，无法调度此类事件**，规范也明确声明了，合成（syntetic）事件不得提供对剪切板的访问权限。
+
+**⚠️ 注意：如果想将 `event.clipboardData` 保存在事件处理程序中，然后稍后在访问它，这也不会生效**，`event.clipboardData` 仅在**用户启动的事件处理程序的上下文中生效**。
+
+ 另外 `navigator.clipboard` 是一个较新的 API，适用于任何上下文，**如果需要，它会请求用户的许可**。
