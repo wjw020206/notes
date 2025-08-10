@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      .view,
+      .edit {
+        height: 150px;
+        width: 400px;
+        font-family: arial;
+        font-size: 14px;
+        display: block;
+      }
+
+      .view {
+        /* padding + border = 3px */
+        padding: 2px;
+        border: 1px solid black;
+      }
+
+      .edit {
+        /* 用边框替换填充（仍然是 3px 而不会移动内容） */
+        border: 3px solid blue;
+        padding: 0px;
+      }
+
+      .edit:focus {
+        outline: none;
+        /* 移除 Safari 中的焦点边框 */
+      }
+    </style>
+  </head>
+  <body>
+    <ul>
+      <li>单击要编辑的 div。</li>
+      <li>回车或失去焦点时保存结果。</li>
+    </ul>
+
+    <div id="view" class="view">Text</div>
+
+    <script>
+      const view = document.querySelector('#view');
+
+      view.addEventListener('click', onClick, {
+        once: true,
+      });
+
+      function onClick() {
+        const textarea = document.createElement('textarea');
+        textarea.className = 'edit';
+        textarea.value = this.innerHTML;
+        textarea.r;
+
+        this.replaceWith(textarea);
+        textarea.focus();
+
+        textarea.addEventListener('blur', onBlur, {
+          once: true,
+        });
+        textarea.addEventListener('keydown', onKeydown);
+      }
+
+      function onKeydown(event) {
+        if (event.code === 'Enter') {
+          this.blur();
+        }
+      }
+
+      function onBlur() {
+        view.innerHTML = this.value;
+
+        this.replaceWith(view);
+
+        view.addEventListener('click', onClick, {
+          once: true,
+        });
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      #mouse {
+        display: inline-block;
+        cursor: pointer;
+        margin: 0;
+      }
+
+      #mouse:focus {
+        outline: 1px dashed black;
+      }
+    </style>
+  </head>
+  <body>
+    <p>Click on the mouse and move it with arrow keys.</p>
+
+    <pre id="mouse">
+ _   _
+(q\_/p)
+ /. .\
+=\_t_/=   __
+ /   \   (
+((   ))   )
+/\) (/\  /
+\  Y  /-'
+ nn^nn
+</pre
+    >
+
+    <script>
+      const mouse = document.querySelector('#mouse');
+
+      function move(elem) {
+        elem.tabIndex = 1;
+
+        elem.addEventListener('focus', function () {
+          elem.style.position = 'fixed';
+          elem.addEventListener('keydown', onMove);
+        });
+
+        elem.addEventListener('blur', function () {
+          elem.removeEventListener('keydown', onMove);
+        });
+
+        function onMove(event) {
+          const coords = elem.getBoundingClientRect();
+
+          let left = coords.left;
+          let top = coords.top;
+
+          const speed = elem.offsetWidth;
+
+          switch (event.code) {
+            case 'ArrowUp':
+              top -= speed;
+              break;
+            case 'ArrowDown':
+              top += speed;
+              break;
+            case 'ArrowLeft':
+              left -= speed;
+              break;
+            case 'ArrowRight':
+              left += speed;
+              break;
+          }
+
+          elem.style.left = left + 'px';
+          elem.style.top = top + 'px';
+        }
+      }
+
+      move(mouse);
+    </script>
+  </body>
+</html>
