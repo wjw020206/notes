@@ -27058,3 +27058,68 @@ Your email please: <input type="email" id="input">
 **⚠️ 注意：如果想将 `event.clipboardData` 保存在事件处理程序中，然后稍后在访问它，这也不会生效**，`event.clipboardData` 仅在**用户启动的事件处理程序的上下文中生效**。
 
  另外 `navigator.clipboard` 是一个较新的 API，适用于任何上下文，**如果需要，它会请求用户的许可**。
+
+
+
+## 表单：事件和方法提交
+
+**提交表单的时候，会触发 `submit` 事件**，它通常用于**将表单发送到服务器之前对表单进行校验，或者终止提交，并使用 JavaScript 来处理表单**。
+
+**`form.submit()` 方法允许从 JavaScript 中启动表单发送，可以使用此方法动态地创建表单**，并将其发送到服务器。
+
+
+
+**事件：submit**
+
+提交表单主要有两种方式：
+
+1. **点击 `<input type="submit">` 或 `<input type="image">`**
+2. **在 `<input>` 字段中按下 Enter 键**
+
+这两个行为都会触发表单的 `submit` 事件，处理程序可以检查数据，如果有错误就显示出来，并调用 `event.preventDefault()`，这样就表单就不会发送到服务器了。
+
+例如：
+
+```html
+<form onsubmit="alert('submit!');return false">
+  First: Enter in the input field <input type="text" value="text"><br>
+  Second: Click "submit": <input type="submit" value="Submit">
+</form>
+```
+
+上述代码中，使用以上两种行为都会显示 `alert`，而因为代码中的 `return false`，表单不会被发送到别处。
+
+**⚠️ 注意：在输入框中使用 Enter 发生表单时，会在 `<input type="submit">` 上触发一次 `click` 事件**，但实际根本没有点击，例如：
+
+```html
+<form onsubmit="return false">
+  <input type="text" size="30" value="Focus here and press enter">
+  <input type="submit" value="Submit" onclick="alert('click')">
+</form>
+```
+
+上述代码在输入框中使用 Enter，显示 `click`。
+
+
+
+**方法：submit**
+
+如果要**手动将表单提交到服务器，可以调用 `form.submit()`**。
+
+**这样做不会触发 `submit` 事件**，因为这里假设如果开发人员调用 `form.submit()`，就意味着此脚本已经进行了所有相关处理。
+
+有时该方法被用来手动创建和发送表单，例如：
+
+```js
+const form = document.createElement('form');
+form.action = 'https://google.com/search';
+form.method = 'GET';
+
+form.innerHTML = '<input name="q" value="test">'
+
+document.body.append(form); // 表单必须在文档中才能提交
+
+form.submit();
+```
+
+**⚠️ 注意：表单必须先添加到文档中才能提交**。
