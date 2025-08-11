@@ -27412,8 +27412,8 @@ document.addEventListener('readystatechange', () => console.log(document.readySt
 
 **方括号中的数字表示发生这种情况的大致时间，标有相同数字的事件几乎是同时发生的（± 几毫秒）**。
 
-- 在 `DOMContentLoaded` 之前，`document.readyState` 会立即变成 `interactive`，所以它们实际意义相同
-- 当所有资源（`iframe` 和 `img`）都加载完成后，`document.readyState` 变成 `complete`，这里它与 `img.onload`（`img` 是最后一个资源）和 `window.onload` 几乎同时发生，**转换到 `complete` 状态的意义与 `window.onload` 相同，区别在于 `window.onload` 始终在所有其他 `load` 处理程序之后运行**
+- 在 `DOMContentLoaded` 之前，`document.readyState` 会立即变成 `interactive`，**所以它们实际意义相同**
+- 当所有资源（`iframe` 和 `img`）都加载完成后，`document.readyState` 变成 `complete`，这里它与 `img.onload`（`img` 是最后一个资源）和 `window.onload` 几乎同时发生，**转换到 `complete` 状态的意义与 `window.onload` 相同，区别在于 `window.onload` 始终在所有其它 `load` 处理程序之后运行**
 
 
 
