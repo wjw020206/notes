@@ -27417,7 +27417,384 @@ document.addEventListener('readystatechange', () => console.log(document.readySt
 
 
 
+## 脚本：async，defer
+
+在现代的网站中，脚本往往比 HTML 更 “重”：它们的大小通常更大，处理时间也更长。
+
+当浏览器加载 HTML 时遇到 `<script>...</script>` 标签，**浏览器就不能继续构建 DOM**，它必须立刻执行此脚本，对于外部的脚本 `<script src="..."></script>` 也是一样的：**浏览器必须等脚本下载完，并执行结束之后才能继续处理剩余的页面**。
+
+这会导致两个重要的问题：
+
+1. **脚本不能访问到位于它们下面的 DOM 元素，因此，脚本无法给它们添加处理程序等**
+2. **如果页面顶部有一个笨重的脚本，它会“阻塞页面”**，在该脚本下载并执行结束前，用户都不能看到页面内容
+
+这里有一些解决办法，例如**将脚本放在页面底部**，此时，它可以访问到它上面的元素，并且不会阻塞页面显示内容：
+
+```html
+<body>
+  ...all content is above the script...
+
+  <script src="https://javascript.info/article/script-async-defer/long.js?speed=1"></script>
+</body>
+```
+
+但这种解决方案并非完美，例如：**浏览器只有在下载了完整的 HTML 文档之后才会注意到脚本（并且可以开始下载它），对于长的 HTML 文档来说，这样可能会造成明显的延迟**。
+
+对于网速快的人来说这不值一提，他们不会感受到这种延迟，但世界上仍然有许多地区的人所使用的网络速度很慢，并且使用的是远非完美的移动互联网连接。
+
+幸运的是，有两个 `<script>` 特性（attribute）可以解决这两个问题：`defer` 和 `async`。
 
 
 
+**defer**
 
+`defer` 特性**告诉浏览器不要等待脚本**，让浏览器将继续处理 HTML，构建 DOM，**脚本会在 “后台” 下载，然后等 DOM 构建完成后，脚本才会执行**。
+
+与之前相同的示例，但是带 `defer` 特性：
+
+```html
+<p>...content before script...</p>
+
+<script defer src="https://javascript.info/article/script-async-defer/long.js?speed=1"></script>
+
+<!-- 立即可见 -->
+<p>...content after script...</p>
+```
+
+简单来说：
+
+- **具有 `defer` 特性的脚本不会阻塞页面**
+- **具有 `defer` 特性的脚本总是要等到 DOM 解析完毕，但在 `DOMContentLoaded` 事件之前执行**
+
+下面示例演示了上面所说的第二句话：
+
+```html
+<p>...content before scripts...</p>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => alert('DOM ready after defer!'));
+</script>
+
+<script defer src="https://javascript.info/article/script-async-defer/long.js?speed=1"></script>
+
+<p>...content after scripts...</p>
+```
+
+上述代码：
+
+1. **页面内容立即显示**
+2. **`DOMContentLoaded` 事件处理程序等待具有 `defer` 特性的脚本执行完成，它仅在脚本下载且执行结束后才会被触发**
+
+**⚠️ 注意：**
+
+- **具有 `defer` 特性的脚本保持其相对顺序，就像常规脚本一样**
+
+  例如，有两个具有 `defer` 特性的脚本：`long.js` 在前，`small.js` 在后。
+
+  ```html
+  <script defer src="https://javascript.info/article/script-async-defer/long.js"></script>
+  <script defer src="https://javascript.info/article/script-async-defer/small.js"></script>
+  ```
+
+  浏览器扫描页面寻找脚本，**然后并行下载它们，以提高性能**，所以在上面的示例中，两个脚本是并行下载的，`small.js` 可能会先下载完成。
+
+  **但是 `defer` 特性除了告诉浏览器 “不要阻塞页面” 之外，还可以确保脚本执行的相对顺序**，因此，即使 `small.js` 先加载完成，它也需要等到 `long.js` 执行结束才会被执行。
+
+- **`defer` 特性仅适用于外部脚本**，如果 `<script>` **脚本没有 `src`，则会忽略 `defer` 特性**
+
+
+
+**async**
+
+`async` 特性与 `defer` 有些类似，**它也能够让脚本不阻塞页面，但是在行为上二者有着重要的区别**。
+
+`async` 特性意味着**脚本是完全独立**的：
+
+- **浏览器不会因 `async` 脚本而阻塞（与 `defer` 类似）**
+- **其它脚本不会等待 `async` 脚本加载完成，同样 `async` 脚本也不会等待其它脚本**
+- **`DOMContentLoaded` 事件和异步脚本不会彼此等待**，例如：
+  - **`DOMContentLoaded` 可能会发生在异步脚本之前**（如果异步脚本在页面完成后才加载完成）
+  - **`DOMContentLoaded` 也可能发生在异步脚本之后**（如果异步脚本很短，或者是从 HTTP 缓存中加载的）
+
+简单来说，`async` 脚本会在后台加载，并在加载就绪时运行，DOM 和其它脚本不会等待它们，它们也不会等待其它的东西，**`async` 脚本就是一个会在加载完成时执行的完全独立的脚本**。
+
+例如：
+
+```html
+<p>...content before scripts...</p>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => alert('DOM ready!'));
+</script>
+
+<script async src="https://javascript.info/article/script-async-defer/long.js"></script>
+<script async src="https://javascript.info/article/script-async-defer/small.js"></script>
+
+<p>...content after scripts...</p>
+```
+
+上述代码中：
+
+- 页面内容立刻显示出来：加载写有 `async` 特性（attribute）的脚本不会阻塞页面渲染
+- `DOMContentLoaded` 可能在 `async` 之前或之后触发，不能保证谁先谁后
+- 较小的脚本 `small.js` 排在第二位，但可能会比 `long.js` 这个长脚本先加载完成，所以 `small.js` 会先执行，虽然，可能是 `long.js` 先加载完成，如果它被缓存了的话，那么它就会先执行，**换句话说，异步脚本以 “加载优先” 的顺序执行**
+
+**当将独立的第三方脚本集成到页面时，此时采用异步脚本加载方式是非常棒的**：计数器，广告等，因为它们不依赖于我们的脚本，我们的脚本也不应该等待它们：
+
+```html
+<!-- Google Analytics 脚本通常是这样嵌入页面的 -->
+<script async src="https://google-analytics.com/analytics.js"></script>
+```
+
+**⚠️ 注意：`async` 特性仅适用于外部脚本**，如果 `<script>` 标签没有 `src` 特性（attribute），那么 `async` 特性会被忽略。
+
+
+
+**动态脚本**
+
+还有一种面向页面添加脚本的重要方式。
+
+可以使用 JavaScript 动态地创建一个脚本，并将其附加（append）到文档（document）中：
+
+```js
+const script = document.createElement('script');
+script.src = '/article/script-async-defer/long.js';
+document.body.append(script); // (*)
+```
+
+当脚本被附加到文档 `(*)` 时，脚本就会立即开始记载。
+
+**默认情况下，动态脚本的行为是 “异步” 的。**
+
+也就是说：
+
+- **它们不会等待任何东西，也没有什么东西会等它们**
+- **先加载完成的脚本先执行（“加载优先” 顺序）**
+
+**如果显式设置了 `script.async = false`**，则可以改变这个规则，然后**脚本将按照脚本在文档中的顺序自行，像 `defer` 那样**。
+
+例如，`loadScript(src)` 函数添加了一个脚本，并将 `async` 设置为了 `false`：
+
+```js
+function loadScript(src) {
+  let script = document.createElement('script');
+  script.src = src;
+  script.async = false;
+  document.body.append(script);
+}
+
+// long.js 先执行，因为代码中设置了 async=false
+loadScript('/article/script-async-defer/long.js');
+loadScript('/article/script-async-defer/small.js');
+```
+
+因此，上述代码中 `long.js` 总是会先执行（因为它是先被添加到文档的），**如果没有 `script.async = false`，脚本则将以默认规则执行，即加载优先顺序（`small.js` 大概会先执行）**。
+
+同样，和 `defer` 一样，如果要加载一个库和一个依赖于它的脚本，那么顺序就很重要。
+
+
+
+**async 和 defer 的区别**
+
+|         | 顺序                                                         | `DOMContentLoaded`                                           |
+| :------ | :----------------------------------------------------------- | ------------------------------------------------------------ |
+| `async` | **加载优先顺序**，脚本在文档中的顺序不重要 —— 先加载完成的先执行 | 不相关，可能在文档加载完成前加载并执行完毕。如果脚本很小或者来自于缓存，同时文档足够长，就会发生这种情况。 |
+| `defer` | **文档顺序**（它们在文档中的顺序）                           | 在文档加载和解析完成之后（如果需要，则会等待），即在 `DOMContentLoaded` 之前执行。 |
+
+![image-20250811093317685](images/image-20250811093317685.png)
+
+**⚠️ 注意：如果使用的是 `defer` 或 `async`**，那么**用户将在脚本加载完成之前先看到页面**，在这种情况下，**某些图形组件可能尚未初始化完成**，所以，**应该记得添加一个 “正在加载” 的提示，并禁用尚不可用的按钮**，可以让用户清楚地看到，他现在可以在页面上做什么，以及还有什么是正在准备中的。
+
+
+
+## 资源加载：onload，onerror
+
+**浏览器允许跟踪外部资源的加载** —— 脚本，iframe，图片等。
+
+这里有两个事件：
+
+- `onload` —— 成功加载
+- `onerror` —— 出现 error
+
+
+
+**加载脚本**
+
+假设需要加载第三方脚本，并调用其中的函数。
+
+可以像这样动态地加载它：
+
+```js
+const script = document.createElement('script');
+script.src = 'my.js';
+
+document.head.append(script);
+```
+
+如果要运行在该脚本中声明的函数，**需要等待该脚本加载完成之后才能调用它**。
+
+**⚠️ 注意：对于自己的脚本，可以使用 JavaScript module**，但是它们并未被广泛应用于第三方库。
+
+
+
+**script.onload**
+
+`onload` 事件会**在脚本加载并执行完成时触发**。
+
+例如：
+
+```js
+const script = document.createElement('script');
+
+// 可以从任意域（domain），加载任意脚本
+script.src = 'https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.3.0/lodash.js';
+document.head.append(script);
+
+script.onload = function() {
+  // 该脚本创建了一个变量 "_"
+  alert( _.VERSION ); // 显示库的版本
+};
+```
+
+所以在 `onload` 中可以使用脚本中的变量、运行函数等。
+
+
+
+**script.onerror**
+
+如果**脚本加载期间发生 error，会被 `error` 事件捕获到**。
+
+例如，请求一个不存在的脚本：
+
+```js
+const script = document.createElement('script');
+script.src = 'https://example.com/404.js'; // 没有这个脚本
+document.head.append(script);
+
+script.onerror = function() {
+  alert('Error loading ' + this.src); // Error loading https://example.com/404.js
+};
+```
+
+**⚠️ 注意：**
+
+- **这里无法获取更多 HTTP error 的详细信息**，无法知道 error 是 404 还是 500 或者其他情况，只知道是加载失败了
+
+- **`onload`/`onerror` 事件仅跟踪加载本身，在脚本处理和执行期间可能发生的 error 超出了这些事件跟踪的范围**，也就是说：如果脚本成功加载，**则即使脚本中有编程 error，也会触发 `onload` 事件**
+
+  **如果要跟踪脚本 error，可以使用 `window.onerror` 全局处理程序**。
+
+
+
+**其它资源**
+
+`load` 和 `error` 事件也适用于其它资源，**基本上（basically）适用于具有外部 `src` 的任何资源**。
+
+例如：
+
+```js
+const img = document.createElement('img');
+img.src = 'https://js.cx/clipart/train.gif'; // (*)
+
+img.onload = function() {
+  alert(`Image loaded, size ${img.width}x${img.height}`);
+};
+
+img.onerror = function() {
+  alert('Error occurred while loading image');
+};
+```
+
+**⚠️ 注意：**
+
+- 大多数资源在被添加到文档之后，便开始加载，**但是 `<img>` 是个例外，它获得 `src` 属性（`*` 行）后就开始下载，并将其保存到缓存中，即使 `<img>` 没被添加到文档中**
+- 对于 `<iframe>` 来说，**`<iframe>` 加载完成时会触发 `iframe.onload` 事件，无论是成功加载还是出现 error**
+- **`readystatechange` 事件也适用于资源，但很少被使用，因为 `load/error` 事件更简单**
+
+**第一点和第二点都是出于历史原因**。
+
+
+
+**跨源策略**
+
+有一条规则：**来自一个网站的脚步无法其它网站的内容**，例如：位于 `https://facebook.com` 的脚本无法读取位于 `https://gmail.com` 的用户邮箱。
+
+更确切地来说，**一个源（域/端口/协议三者）无法获取另一个源（origin）的内容，因此即使有一个子域，或者仅仅是另一个端口，这都是不同的域，彼此无法相互访问**。
+
+这个规则还影响其它域的资源。
+
+**如果使用的是来自其它域的脚本，并且该脚本中存在 error，那么无法获取 error 的详细信息**。
+
+例如：使用一个脚本 `error.js`，该脚本只包含一个（错误）函数调用：
+
+```js
+// error.js
+noSuchFunction();
+```
+
+现在从它所在的同一个网站加载它：
+
+```html
+<script>
+  window.onerror = function(message, url, line, col, errorObj) {
+    alert(`${message}\n${url}, ${line}:${col}`); 
+  };
+</script>
+<script src="/article/onload-onerror/crossorigin/error.js"></script>
+```
+
+可以看到一个很好的 error 报告，像下面这样：
+
+```
+Uncaught ReferenceError:noSuchFunction is not defined
+https://zh.javascript.info/article/onload-onerror/crossorigin/error.js,1:1
+```
+
+现在从另一个域中加载相同的脚本：
+
+```html
+<script>
+  window.onerror = function(message, url, line, col, errorObj) {
+    alert(`${message}\n${url}, ${line}:${col}`);
+  };
+</script>
+<script src="https://cors.javascript.info/article/onload-onerror/crossorigin/error.js"></script>
+```
+
+此报错与上面的示例中的不一样：
+
+```
+Script error.
+, 0:0
+```
+
+**error 的详细信息可能因浏览器而异**，但是原理是相同的：有关脚本内部的任何信息（包括 error 堆栈跟踪）都被隐藏了，**正是因为它来自于另一个域**。
+
+有很多服务（也可以构建自己的服务）使用 `window.onerror` 监听全局的 error，保存 error 并提供访问和分析 error 的接口，这样就可以看到由用户触发的实际中的 error，但是如果一个脚本来自于另一个源（origin），那么就无法看到太多有关 error 的信息。
+
+**对其它类型的资源也执行类似的跨源策略（CORS）**。
+
+**要允许跨源访问，`<script>` 标签需要具有 `crossorigin` 特性（attribute），并且远程服务器必须提供特殊的 header**。
+
+有三个级别的跨源访问：
+
+1. **无 `crossorigin` 特性** —— 禁止访问
+2. **`crossorigin="anonymous"`** —— 如果服务器的响应带有包含 `*` 或我们的源（origin）的 header `Access-Control-Allow-Origin`，则允许访问，**浏览器不会将授权信息和 cookie 发送到远程服务器**
+3. **`crossorigin="use-credentials"`** —— 如果服务器发送回带有我们的源的 header `Access-Control-Allow-Origin` 和 `Access-Control-Allow-Credentials: true`，则允许访问，**浏览器会将授权信息和 cookie 发送到远程服务器**
+
+在前面的示例中没有任何跨源特性（attribute），因此，跨源访问被禁止。
+
+可以在 `"anonymous"`（不会发送 cookie，需要一个服务器端的 header）和 `"use-credentials"`（会发送 cookie，需要两个服务器端的 header）之间进行选择。
+
+如果不关心 cookie，可以选择 `"anonymous"`：
+
+```html
+<script>
+  window.onerror = function(message, url, line, col, errorObj) {
+    alert(`${message}\n${url}, ${line}:${col}`);
+  };
+</script>
+<script crossorigin="anonymous" src="https://cors.javascript.info/article/onload-onerror/crossorigin/error.js"></script>
+```
+
+现在，假设服务器提供了 `Access-Control-Allow-Origin` header，一切都正常，有了完整的 error 报告。

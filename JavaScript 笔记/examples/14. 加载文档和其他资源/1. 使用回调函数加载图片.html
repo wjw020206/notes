@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      const sources = [
+        'https://zh.js.cx/images-load/1.jpg',
+        'https://zh.js.cx/images-load/2.jpg',
+        'https://zh.js.cx/images-load/3.jpg',
+      ];
+
+      // 添加随机字符以防止浏览器缓存
+      for (let i = 0; i < sources.length; i++) {
+        sources[i] += '?' + Math.random();
+      }
+
+      // 对于每张图片，
+      // 创建另一个具有相同 src 的 img 并立即检查其宽度
+      function testLoaded() {
+        let widthSum = 0;
+
+        for (let i = 0; i < sources.length; i++) {
+          const img = document.createElement('img');
+          img.src = sources[i];
+          widthSum += img.width;
+        }
+
+        alert(widthSum);
+      }
+
+      // 每张图片都是 100x100，总宽度应该是 300
+      preloadImages(sources, testLoaded);
+
+      // Promise 方案
+      // function preloadImages(sources, callback) {
+      //   const requests = sources.map((url) => {
+      //     return new Promise((resolve, reject) => {
+      //       const img = document.createElement('img');
+      //       img.src = url;
+
+      //       img.onload = resolve;
+      //       img.onerror = reject;
+      //     });
+      //   });
+
+      //   Promise.allSettled(requests).then(callback);
+      // }
+
+      // 计数器方案
+      function preloadImages(sources, callback) {
+        let counter = 0;
+
+        function onLoad() {
+          counter++;
+          if (counter === sources.length) callback();
+        }
+
+        for (let source of sources) {
+          let img = document.createElement('img');
+          img.onload = img.onerror = onLoad;
+          img.src = source;
+        }
+      }
+    </script>
+  </body>
+</html>
