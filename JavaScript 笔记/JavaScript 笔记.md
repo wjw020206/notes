@@ -27123,3 +27123,301 @@ form.submit();
 ```
 
 **⚠️ 注意：表单必须先添加到文档中才能提交**。
+
+
+
+## 页面生命周期：DOMContentLoaded，load，beforeunload，unload
+
+HTML 页面的生命周期包含了三个重要事件：
+
+- **`DOMContentLoaded`** —— 浏览器已完全加载 HTML，并构建了 DOM 树，**但像 `<img>` 和 样式表之类的外部资源可能尚未完成加载**
+- **`load`** —— 浏览器**不仅加载完成了 HTML，还加载完成了所有外部资源：图片、样式等**
+- **`beforeunload/unload`** —— 当用户正在**离开页面时**
+
+每个事件都是有用的：
+
+- `DOMContentLoaded` 事件 —— DOM 已经就绪，**因此处理程序可以查找 DOM 节点，并初始化接口**
+- `load` 事件 —— **外部资源已加载完成，样式已被应用，图片大小也已知了**
+- `beforeunload` 事件 —— 用户正在离开：**可以检查用户是否保存了更改，并询问是否真的要离开**
+- `unload` 事件 —— 用户几乎已经离开了，**但是仍然可以启动一些操作，例如发送统计数据**
+
+
+
+**DOMContentLoaded**
+
+`DOMContentLoaded` 事件**发生在 `document` 对象上，必须使用 `addEventListener` 来捕获它**：
+
+```js
+document.addEventListener('DOMContentLoaded', ready);
+// 不是 document.onDOMContentLoaded = ...
+```
+
+例如：
+
+```html
+<script>
+  function ready() {
+    alert('DOM is ready');
+
+    // 图片目前尚未加载完成（除非已经被缓存），所以图片的大小为 0x0
+    alert(`Image size: ${img.offsetWidth}x${img.offsetHeight}`);
+  }
+
+  document.addEventListener('DOMContentLoaded', ready);
+</script>
+
+<img id="img" src="https://zh.js.cx/clipart/train.gif?speed=1&cache=0">
+```
+
+在上述代码中，`DOMContentLoaded` 处理程序在文档加载完成后触发，所以它可以查看元素，包括它下面的 `<img>` 元素，但**它不会等待图片加载，因此 `alert` 显示大小为 `0x0`**。
+
+
+
+**DOMContentLoaded 和脚本**
+
+**当浏览器处理一个 HTML 文档，并在文档中遇到 `<script>` 标签时，就会在继续构建 DOM 之前运行它**，这是一种防范措施，因为脚本可能想要修改 DOM，甚至对其执行 `document.write` 操作，所以 `DOMContentLoaded` 必须等待脚本执行结束。
+
+因此，`DOMContentLoaded` 会在下面这些脚本执行结束之后发生：
+
+```html
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    alert('DOM ready!');
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.3.0/lodash.js'></script>
+
+<script>
+  alert('Library loaded, inline script executed');
+</script>
+```
+
+上述代码中，会先看到 `Library loaded, inline script executed`，然后才会看到 `DOM ready!`（所有脚本都已经执行结束）。
+
+**⚠️ 注意：有以下两个例外不会阻塞 `DOMContentLoaded` 的脚本：**
+
+1. **具有 `async` 特性（attribute）的脚本不会阻塞 `DOMContentLoaded`**
+2. **使用 `document.createElement('script')` 动态生成并添加到页面的脚本也不会阻塞 `DOMContentLoaded`**
+
+
+
+**DOMContentLoaded 和样式**
+
+外部样式不会影响 DOM，因此 `DOMContentLoaded` 不会等待它们。
+
+**⚠️ 注意：如果样式后面有一个脚本，那该脚本必须等待样式表加载完成**，例如：
+
+```html
+<link type="text/css" rel="stylesheet" href="style.css">
+<script>
+  // 在样式表加载完成之前，脚本都不会执行
+  alert(getComputedStyle(document.body).marginTop);
+</script>
+```
+
+之所以会这样，是**因为脚本可能想要获取元素的坐标和其它样式相关的属性，因此必须等待样式加载完成，当 `DOMContentLoaded` 等待脚本时，它现在也在等待脚本前的样式**。
+
+
+
+**浏览器内建的自动填充**
+
+Firefox、Chrome 和 Opera **都会在 `DOMContentLoaded` 中自动填充表单**。
+
+如果页面有一个带有登录名和密码的表单，并且浏览器记住了这些值，**那么在 `DOMContentLoaded` 上，浏览器就会尝试自动填充它们（如果得到了用户允许）**。
+
+所以，**如果 `DOMContentLoaded` 被需要加载很长时间的脚本延迟触发，那么自动填充也会等待**，例如在一些网站上，登录名/密码字段不会立即自动填充，而是在页面被完全加载前会延迟填充。**这实际上是 `DOMContentLoaded` 事件之前的延迟**。
+
+
+
+**window.onload**
+
+当整个页面，包括样式、图片和其它资源被完全加载时，**会触发 `window` 对象上的 `onload` 事件**，可以通过 `onload` 属性获取此事件。
+
+例如，下面的这个示例正确显示了图片大小，因为 `window.onload` 会等待所有图片加载完毕：
+
+```html
+<script>
+  window.onload = function() { // 也可以用 window.addEventListener('load', (event) => {
+    alert('Page loaded');
+
+    // 此时图片已经加载完成
+    alert(`Image size: ${img.offsetWidth}x${img.offsetHeight}`);
+  };
+</script>
+
+<img id="img" src="https://zh.js.cx/clipart/train.gif?speed=1&cache=0">
+```
+
+
+
+**window.onunload**
+
+当访问者离开页面时，**`window` 对象上的 `unload` 事件就会被触发，可以在那里做一些不涉及延迟的操作**，例如：关闭相关的弹出窗口。
+
+**有一个值得注意的特殊情况是发送分析数据**。
+
+假设收集有关页面使用情况的数据：鼠标点击、滚动和被查看的页面区域等。
+
+自然地，当用户要离开的时候，可能会希望通过 `unload` 事件将数据保存在服务器上。
+
+**有一个特殊的 `navigator.sendBeacon(url, data)` 可以满足这种需求**，它在后台发送数据，转换到另一个页面不会有延迟：浏览器离开页面，但仍然在执行 `sendBeacon`。
+
+使用方式如下：
+
+```js
+const analyticsData = { /* 带有收集的数据的对象 */ };
+
+window.addEventListener('unload', function() {
+  navigator.sendBeacon('/analytics', JSON.stringify(analyticsData));
+})
+```
+
+- 请求以 POST 方式发生
+- 不仅能发送字符串，还可以发送表单以及其它格式的数据，**但通常它是一个字符串化的对象**
+- 数据大小限制在 64Kb
+
+当 `sendBeacon` 请求完成时，浏览器可能已经离开了文档，所以就无法获取服务器响应（对于分析数据来说通常为空）
+
+还有一个 `keep-alive` 标志，该标志用于在 `fetch` 方法中为通用的网络请求执行此类 “离开页面后” 的请求。
+
+**⚠️ 注意：浏览器对 ``navigator.sendBeacon()` 在 unload 场景并不可靠，可能存在 bug 导致统计数据失准**，具体的可以参考 [Large Data Study: Navigator.sendBeacon() is broken - Volument](https://volument.com/blog/sendbeacon-is-broken/#comments)。
+
+
+
+**window.onbeforeunload**
+
+如果**访问者触发了离开页面的导航（navigation）或试图关闭窗口，`beforeunload` 处理程序将要求进行更多确认**。
+
+如果要取消事件，浏览器会询问用户是否确定。
+
+例如，可以通过运行下面这段代码，然后重新加载页面来进行尝试：
+
+```js
+window.onbeforeunload = function() {
+  return false;
+};
+```
+
+会出现如下图的确认对话框：
+
+![image-20250811080709375](images/image-20250811080709375.png)
+
+**由于历史原因，返回非空字符串也被视为取消事件**，在以前，浏览器曾经将其显示为消息，但是根据[现代规范](https://html.spec.whatwg.org/#unloading-documents)所述，它们不应该这样。
+
+之前的例子：
+
+```js
+window.onbeforeunload = function() {
+  return '有未保存的值。确认要离开吗？';
+};
+```
+
+现在它的行为已经改变了，**因为有些站长通过显示误导性和恶意信息滥用了此事件处理程序**，所以，目前一些旧的浏览器可能仍将其显示为消息，但除此之外 —— **无法自定义显示给用户的消息**。
+
+**⚠️ 注意：`event.preventDefault()` 在 `beforeunload` 处理程序中不起作用**，这可能很奇怪，但大多数浏览器都会忽略 `event.preventDefault()`，这意味着，以下代码可能不起作用：
+
+```js
+window.addEventListener('beforeunload', (event) => {
+  // 不起作用，所以这个事件处理程序没做任何事儿
+  event.preventDefault();
+});
+```
+
+相反在这样的处理程序中，应该将 `event.returnValue` 设置为一个字符串，以获取类似于上面代码的结果：
+
+```js
+window.addEventListener('beforeunload', (event) => {
+  // 起作用，与在 window.onbeforeunload 中 return 值的效果是一样的
+  event.returnValue = '有未保存的值。确认要离开吗？';
+});
+```
+
+
+
+**readyState**
+
+如果**在文档加载完成之后，再设置 `DOMContentLoaded` 事件处理程序，它永远不会运行**。
+
+在某些情况下，不确定文档是否已经准备就绪，但希望函数在 DOM 加载完成时执行，无论现在还是以后。
+
+**`document.readyState` 属性可以提供当前加载状态的信息**。
+
+它有 3 个可能值：
+
+- **`loading`** —— 文档正在被加载
+- **`interactive`** —— 文档已被解析完成，与 `DOMContentLoaded` 几乎同时发生，**但是在 `DOMContentLoaded` 之前发生**
+- **`complete`** —— 文档和资源均已加载完成，与 `window.onload` 几乎同时发生，**但是在 `window.onload` 之前发生**
+
+所以可以检查 `document.readyState` 并设置一个处理程序，或在代码准备就绪时立即执行它。
+
+例如：
+
+```js
+function work() { /*...*/ }
+
+if (document.readyState === 'loading') {
+  // 仍在加载，等待事件
+  document.addEventListener('DOMContentLoaded', work);
+} else {
+  // DOM 已就绪！
+  work();
+}
+```
+
+还有一个 `readystatechange` 事件，会在状态发生改变时触发，因此可以打印所有这些状态，像下面这样：
+
+```js
+// 当前状态
+console.log(document.readyState);
+
+// 状态改变时打印它
+document.addEventListener('readystatechange', () => console.log(document.readyState));
+```
+
+`readystatechange` 事件是跟踪文档加载状态的另一种机制，**它很早就存在了，现在很少被使用**。
+
+下面是一个带有 `<iframe>`、`<img>` 和记录事件的处理程序的文档：
+
+```html
+<script>
+  function log(txt) {
+    events.insertAdjacentHTML('beforeend', `<div>[${Math.floor(performance.now())}] ${txt}</div>`);
+  }
+  log('initial readyState:' + document.readyState);
+
+  document.addEventListener('readystatechange', () => log('readyState:' + document.readyState));
+  document.addEventListener('DOMContentLoaded', () => log('DOMContentLoaded'));
+
+  window.onload = () => log('window onload');
+</script>
+
+<iframe src="iframe.html" onload="log('iframe onload')"></iframe>
+
+<img src="http://zh.js.cx/clipart/train.gif" id="img">
+<script>
+  img.onload = () => log('img onload');
+</script>
+```
+
+上述代码输出的结果如下：
+
+1. [1] initial readyState:loading
+2. [2] readyState:interactive
+3. [2] DOMContentLoaded
+4. [3] iframe onload
+5. [4] img onload
+6. [4] readyState:complete
+7. [4] window onload
+
+**方括号中的数字表示发生这种情况的大致时间，标有相同数字的事件几乎是同时发生的（± 几毫秒）**。
+
+- 在 `DOMContentLoaded` 之前，`document.readyState` 会立即变成 `interactive`，所以它们实际意义相同
+- 当所有资源（`iframe` 和 `img`）都加载完成后，`document.readyState` 变成 `complete`，这里它与 `img.onload`（`img` 是最后一个资源）和 `window.onload` 几乎同时发生，**转换到 `complete` 状态的意义与 `window.onload` 相同，区别在于 `window.onload` 始终在所有其他 `load` 处理程序之后运行**
+
+
+
+
+
+
+
