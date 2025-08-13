@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      // function concat(arrays) {
+      //   const totalLength = arrays.reduce(
+      //     (acc, value) => acc + value.length,
+      //     0
+      //   );
+
+      //   const result = new Uint8Array(totalLength);
+
+      //   if (!arrays.length) return result;
+
+      //   let length = 0;
+
+      //   for (const array of arrays) {
+      //     result.set(array, length);
+      //     length += array.length;
+      //   }
+
+      //   return result;
+      // }
+
+      // function concat(arrays) {
+      //   return new Uint8Array(arrays.flatMap((array) => [...array]));
+      // }
+
+      function concat(arrays) {
+        return new Uint8Array(
+          arrays.reduce((acc, cur) => [...acc, ...cur], [])
+        );
+      }
+    </script>
+  </body>
+</html>
