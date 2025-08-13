@@ -30082,5 +30082,368 @@ alert(uint8Array); // 72,101,108,108,111
 
 
 
+## Blob
+
+`arrayBuffer` 和视图（view）都是 ECMA 标准的一部分，是 JavaScript 的一部分。
+
+在浏览器中，还有其它更高级的对象，特别是是 `Blob`，在 [File API](https://www.w3.org/TR/FileAPI/) 中有相关描述。
+
+**`Blob` 由一个可选的字符串 `type`（通常是 MIME 类型）和 `blobParts`（一系列其它 `Blob` 对象，字符串和 `BufferSource`）组成**。
+
+![image-20250813094654337](images/image-20250813094654337.png)
+
+构造函数的语法为：
+
+```js
+new Blob(blobParts, options);
+```
+
+- **`blobParts`** —— 是 `Blob`/`BufferSource`/`String` 类型的值的数组
+- **`options`** 可选对象：
+  - **`type`** —— `Blob` 类型，**通常是 MIME 类型，例如 `image/png`**
+  - **`endings`** —— 是否转换换行符，使 `Blob` 对应于当前操作系统的换行符（`\r\n` 或 `\n`），**默认为 `"transparent"`（啥也不做），不过也可以是 `"native"`（转换）**
+
+例如：
+
+```js
+// 从字符串创建 Blob
+const blob = new Blob(['<html>…</html>'], {type: 'text/html'});
+```
+
+**⚠️ 注意：第一个参数必须是一个数组**。
+
+```js
+// 从类型化数组（typed array）和字符串创建 Blob
+const hello = new Uint8Array([72, 101, 108, 108, 111]); // 二进制格式的 "hello"
+
+const blob = new Blob([hello, ' ', 'world'], {type: 'text/plain'});
+```
+
+也**可以使用 `slice` 方法来提取 `Blob` 片段**：
+
+```js
+blob.slice([byteStart], [byteEnd], [contentType]);
+```
+
+- **`byteStart`** —— 起始字节，默认为 0
+- **`byteEnd`** —— 最后一个字节（不包括，默认为最后）
+- **`contentType`** —— 新 blob 的 `type`，默认与源 blob 相同
+
+**参数值类似于 `array.slice`，也允许是负数**。
+
+**⚠️ 注意：`Blob` 对象是不可变的**，无法直接在 `Blob` 中更改数据，**但可以通过 `slice` 获得 `Blob` 的多个部分，从这些部分创建新的 `Blob` 对象，将它们组成新的 `Blob` 等**，这类似于 JavaScript 字符串：无法更改字符串中的字符，但可以生成一个新的改动过的字符串。
+
+简单来说，`arrayBuffer`，`Uint8Array` 及其它 `BufferSource` 是 **“二进制数据”**，而 Blob 则表示 **“具有类型的二进制数据”**，这样可以方便 Blob 用于在浏览器中非常常见的上传/下载操作。
+
+**`XMLHttpRequest`、`fetch` 等进行 Web 请求的方法可以自然地使用 `Blob`**，也可以使用其它类型的二进制数据。
 
 
+
+**Blob 用作 URL**
+
+Blob **可以很容易用作 `<a>`、`<img>` 或其它标签的 URL，来显示它们的内容**。
+
+**多亏了 `type`，使得可以下载/上传 `Blob` 对象，而在网络请求中，`type` 自然地变成了 `Content-Type`**。
+
+例如，通过点击链接，**可以下载一个具有动态生成的内容为 `hello world` 的 `Blob` 的文件**：
+
+```html
+<!-- download 特性（attribute）强制浏览器下载而不是导航 -->
+<a download="hello.txt" href='#' id="link">Download</a>
+
+<script>
+let blob = new Blob(['Hello, world!'], {type: 'text/plain'});
+
+link.href = URL.createObjectURL(blob);
+</script>
+```
+
+也可以在 JavaScript 中动态创建一个链接，通过 `link.click()` 模拟一个点击，然后便自动下载了。
+
+例如，下面这段代码可以无需用户点击即可下载动态生成的 `Blob`：
+
+```js
+const link = document.createElement('a');
+link.download = 'hello.txt';
+
+const blob = new Blob(['Hello, world!'], {type: 'text/plain'});
+
+link.href = URL.createObjectURL(blob);
+
+link.click();
+
+URL.revokeObjectURL(link.href);
+```
+
+**`URL.createObjectURL` 取一个 `Blob`，并为其创建一个唯一的 URL，形式为 `blob:<origin>/<uuid>`**。
+
+例如下面就是 `link.href` 的值的样子：
+
+```
+blob:https://javascript.info/1e67e00e-860d-40a5-89ae-6ab0cbee6273
+```
+
+**浏览器内部为每个通过 `URL.createObjectURL` 生成的 URL 存储一个 URL → `Blob` 映射**，因此，此类 URL 很短，但可以访问 `Blob`。
+
+**生成的 URL 仅在当前文档打开的状态下有效**，它允许引用 `<img>`、`<a>` 的 `Blob`，以及基本上任何期望 URL 的对象。
+
+不过它有个副作用，虽然这里有 `Blob` 的映射，**但 `Blob` 本身只保存在内存中，浏览器无法释放它**。
+
+**在文档退出时（unload），该映射会被自动清除，因此 `Blob` 也相应的被释放了**，但是如果应用程序寿命很长，那么这个释放就不会很快发生。
+
+**可以使用 `URL.revokeObjectURL(url)` 从内部映射中移除引用**，因此允许 `Blob` 被删除（如果没有其它引用的话），并释放内存。
+
+在前面的示例中，仅使用一次 `Blob` 来进行即使下载，因此立即调用 `URL.revokeObjectURL(link.href)`。
+
+而在前一个带有可点击的 HTML 链接的示例中，**没有调用 `URL.revokeObjectURL(link.href)`，是因为那样会使 `Blob` URL 无效，在调用该方法后，由于映射被删除了，因此该 URL 也就不再起作用了**。
+
+
+
+**Blob 转 base64**
+
+`URL.createObjectURL` 的一个替代方法是：将 `Blob` 转换为 base64 编码的字符串。
+
+**这种编码将二进制数据表示为一个由 0 到 64 的 ASCII 码组成的字符串**，非常安全且 “可读”，更重要的是可以在 “data-url” 中使用此编码。
+
+**“data-url” 的形式为 `data:[<mediatype>][;base64],<data>`**，可以在任何地方使用这种 url，和使用 “常规” url 一样。
+
+例如，下面的 “data-url” 是一个笑脸：
+
+```html
+<img src="data:image/png;base64,R0lGODlhDAAMAKIFAF5LAP/zxAAAANyuAP/gaP///wAAAAAAACH5BAEAAAUALAAAAAAMAAwAAAMlWLPcGjDKFYi9lxKBOaGcF35DhWHamZUW0K4mAbiwWtuf0uxFAgA7">
+```
+
+**浏览器将解码该字符串，并显示图像：![img](data:image/png;base64,R0lGODlhDAAMAKIFAF5LAP/zxAAAANyuAP/gaP///wAAAAAAACH5BAEAAAUALAAAAAAMAAwAAAMlWLPcGjDKFYi9lxKBOaGcF35DhWHamZUW0K4mAbiwWtuf0uxFAgA7)**。
+
+可以使用内建的 `FileReader` 对象将 `Blob` 转换为 base64，它可以将 `Blob` 中的数据读取为多种格式。
+
+例如：
+
+```js
+const link = document.createElement('a');
+link.download = 'hello.txt';
+
+const blob = new Blob(['Hello, world!'], {type: 'text/plain'});
+
+const reader = new FileReader();
+reader.readAsDataURL(blob); // 将 Blob 转换为 base64 并调用 onload
+
+reader.onload = function() {
+  link.href = reader.result; // data url
+  link.click();
+};
+```
+
+这两种从 `Blob` 创建 URL 的方法都可以用，**但通常 `URL.createObjectURL(blob)` 更简单快捷**。
+
+![image-20250813102832997](images/image-20250813102832997.png)
+
+
+
+**Image 转换为 blob**
+
+**可以创建一个图像（image）的、图像的一部分、或者甚至创建一个页面截图的 `Blob`**，这样方便将其上传至其它地方。
+
+图像操作是通过 `<canvas>` 元素来实现的：
+
+1. 使用 [canvas.drawImage](https://developer.mozilla.org/zh/docs/Web/api/CanvasRenderingContext2D/drawImage) 在 canvas 上绘制图像（或图像的一部分）
+2. 调用 canvas 方法 [.toBlob(callback, format, quality)](https://developer.mozilla.org/zh/docs/Web/api/HTMLCanvasElement/toBlob) 创建一个 `Blob`，**并在创建完成后使用其运行 `callback`**
+
+例如下面的示例中，图像只是被复制了，**不过可以在创建 blob 之前，从中裁剪图像，或者在 canvas 上对其进行转换**：
+
+```js
+// 获取任何图像
+const img = document.querySelector('img');
+
+img.onload = function () {
+  // 生成同尺寸的 <canvas>
+  const canvas = document.createElement('canvas');
+  canvas.width = img.clientWidth;
+  canvas.height = img.clientHeight;
+
+  const context = canvas.getContext('2d');
+
+  // 向其中复制图像（此方法允许剪裁图像）
+  context.drawImage(img, 0, 0);
+
+  // toBlob 是异步操作，结束后会调用 callback
+  canvas.toBlob(function(blob) {
+    const link = document.createElement('a');
+    link.download = 'example.png';
+  
+    link.href = URL.createObjectURL(blob);
+    link.click();
+  
+    // 删除内部 blob 引用，这样浏览器可以从内存中将其清除
+    URL.revokeObjectURL(link.href);
+  }, 'image/png');
+};
+```
+
+对于页面截屏，可以使用诸如 https://github.com/niklasvh/html2canvas 之类的库，它所做的只是扫一遍浏览器页面，并将其绘制在 `<canvas>` 上，然后可以像上面一样获取一个它的 `Blob`。
+
+
+
+**Blob 转换为 ArrayBuffer**
+
+`Blob` 构造器允许从几乎任何东西创建 blob，包括任何 `BufferSource`。
+
+但是如果要执行低级别的处理时，**可以从 `blob.arrayBuffer()` 中获取最低级别的 `ArrayBuffer`**：
+
+```js
+// 从 blob 获取 arrayBuffer
+const bufferPromise = await blob.arrayBuffer();
+
+// 或
+blob.arrayBuffer().then(buffer => /* 处理 ArrayBuffer */);
+```
+
+
+
+**Blob 转换为 Sream**
+
+**当读取和写入超过 `2 GB` 的 blob 时，将其转换为 `arrayBuffer` 的使用会更加占用内存**，这种情况下，**可以直接将 blob 转换为 stream 进行处理**。
+
+stream 是一种特殊的对象，可以从它那里逐部分地读取（或写入），可以在 [Stream API](https://developer.mozilla.org/zh-CN/docs/Web/API/Streams_API) 了解更多内容，**对于适合逐段处理的数据，使用 stream 是很方便的**。
+
+**`Blob` 接口里的 `stream()` 方法返回一个 `ReadableStream`**，在读取时可以返回 `Blob` 中包含的数据。
+
+例如：
+
+```js
+// 从 blob 获取可读流（readableStream）
+const readableStream = blob.stream();
+const stream = readableStream.getReader();
+
+while (true) {
+  // 对于每次迭代：value 是下一个 blob 数据片段
+  const { done, value } = await stream.read();
+  if (done) {
+    // 读取完毕，stream 里已经没有数据了
+    console.log('all blob processed.');
+    break;
+  }
+
+  // 对刚从 blob 中读取的数据片段做一些处理
+  console.log(value);
+}
+```
+
+
+
+## File 和 FileReader
+
+**`File` 对象继承自 `Blob`，并扩展了与文件系统相关的功能**。
+
+有两种方式可以获取它：
+
+1. **与 `Blob` 类似，使用一个构造器 `File`**
+
+   ```js
+   new File(fileParts, fileName, [options])
+   ```
+
+   - **`fileParts`** —— Blob/BufferSource/String 类型值的数组
+   - **`fileName`** —— 文件名字符串
+   - **`options`** —— 可选对象：
+     - **`lastModified`** —— 最后一次修改的时间戳（整数日期）
+
+   
+
+2. 更**常见的是，从 `<input type="file">` 或拖放或其它浏览器接口来获取文件**，在这种情况下，**file 将从操作系统（OS）中获取文件的元信息（文件名、文件大小、MIME 类型 等）**
+
+   由于 `File` 是继承自 `Blob` 的，所以 `File` 对象具有相同的属性，附加：
+
+   - `name` —— 文件名
+   - `lastModified` —— 最后一次修改的时间戳
+
+   从 `<input type="file">` 中获取 `File` 对象的方式：
+
+   ```html
+   <input type="file" onchange="showFile(this)">
+   
+   <script>
+   function showFile(input) {
+     let file = input.files[0];
+   
+     alert(`File name: ${file.name}`); // 例如 my.png
+     alert(`Last modified: ${file.lastModified}`); // 例如 1552830408824
+   }
+   </script>
+   ```
+
+   **⚠️ 注意：可以选择多个文件，因此 `input.files` 是一个类数组的对象**。
+
+
+
+**FileReader**
+
+   `FileReader` 是一个对象，**其唯一目的是从 `Blob`（因此也从 `File`）对象中读取数据**。
+
+   **它使用事件来传递数据，因为从磁盘读取数据可能比较费使用**。
+
+   构造函数：
+
+   ```js
+   const reader = new FileReader(); // 没有参数
+   ```
+
+   主要方法：
+
+   - **`readAsArrayBuffer(blob)`** —— 将数据读取为二进制格式的 `ArrayBuffer`
+   - **`readAsText(blob, [encoding])`** —— 将数据读取为给定编码（默认为 `utf-8` 编码）的文本字符串
+   - **`readAsDataURL(blob)`** —— 读取二进制数据，并将其编码为 base64 的 data url
+   - **`abort()`** —— 取消操作
+
+   `read*` 方法的选择，取决于喜欢哪种格式，以及如何使用数据。
+
+   - `readAsArrayBuffer` —— **用于二进制文件，执行低级别的二进制操作**，对于诸如切片（slicing）之类的高级别的操作，`File` 是继承自 `Blob` 的，所以可以直接调用它们，而无需读取
+   - `readAsText` —— 用于文本文件，当想要获取字符串时
+   - `readAsDataURL` —— 当想在 `src` 中使用此数据，并将其用于 `img` 或其它标签时，**此读取文件的另一种替代方案：`URL.createObjectURL(file)`**
+
+   读取过程中，有以下事件：
+
+   - `loadstart` —— 开始加载
+   - `progress` —— 在读取过程中出现
+   - `load` —— 读取完成，没有 error
+   - `abort` —— 调用了 `abort()`
+   - `error` —— 出现 error
+   - `loadend` —— 读取完成，无论成功还是失败
+
+读取完成后，可以通过以下方式访问读取结果：
+
+- `reader.result` 是结果（如果成功）
+- `reader.error` 是 error（如果失败）
+
+使用最广泛的事件无疑是 `load` 和 `error`，例如：
+
+```html
+<input type="file" onchange="readFile(this)">
+
+<script>
+function readFile(input) {
+  let file = input.files[0];
+
+  let reader = new FileReader();
+
+  reader.readAsText(file);
+
+  reader.onload = function() {
+    console.log(reader.result);
+  };
+
+  reader.onerror = function() {
+    console.log(reader.error);
+  };
+
+}
+</script>
+```
+
+**⚠️ 注意：在 Web Workers 中还可以使用 `FileReaderSync`，它的读取方法 `read*` 不会生成事件，但是会像常规函数那样返回一个结果**，这仅在 Web Workers 中可用，因为在读取文件的时候，同步调用会有延迟，而在 Web Worker 中，这种延迟并不是很重要，它不会影响页面。
+
+  
+
+   
+
+   
