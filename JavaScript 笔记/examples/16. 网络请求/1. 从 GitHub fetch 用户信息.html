@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      // async function getUsers(names) {
+      //   const promises = [];
+
+      //   for (const name of names) {
+      //     const promise = fetch(`https://api.github.com/users/${name}`).then(
+      //       (successResponse) => {
+      //         if (successResponse.status !== 200) {
+      //           return null;
+      //         } else {
+      //           return successResponse.json();
+      //         }
+      //       },
+      //       (failResponse) => {
+      //         return null;
+      //       }
+      //     );
+
+      //     promises.push(promise);
+      //   }
+
+      //   const results = await Promise.all(promises);
+
+      //   return results;
+      // }
+
+      async function getUsers(names) {
+        const promises = names.map(async (name) => {
+          try {
+            const promise = await fetch(`https://api.github.com/users/${name}`);
+            if (promise.status !== 200) return null;
+            return promise.json();
+          } catch {
+            return null;
+          }
+        });
+
+        const results = await Promise.all(promises);
+
+        return results;
+      }
+    </script>
+  </body>
+</html>
