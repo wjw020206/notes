@@ -30873,3 +30873,122 @@ formData.append('image', imageBlob, 'image.png');
 
 服务器读取表单数据和文件，就好像它是常规的表单提交一样。
 
+
+
+## Fetch：下载进度
+
+`fetch` 方法**允许跟踪下载进度**。
+
+**⚠️ 注意：目前为止，`fetch` 方法无法跟踪上传进度，对于这个目的，需要使用 ` XMLHttpRequest`**。
+
+**要跟踪下载进度，可以使用 `response.body` 属性，它是 `ReadableStream` —— 一个特殊的对象**，它可以逐块（chunk）提供 body，在 [Streams API](https://streams.spec.whatwg.org/#rs-class) 规范中有对 `ReadableStream` 的详细描述。
+
+与 `response.text()`、`response.json()` 和其它方法不同，**`response.body` 给予了对进度读取的完全控制，可以随时计算下载了多少**。
+
+例如：
+
+```js
+// 代替 response.json() 以及其它方法
+const reader = response.body.getReader();
+
+// 在 body 下载时，一直为无限循环
+while(true) {
+  // 当最后一块下载完成时，done 值为 true
+  // value 是块字节的 Uint8Array
+  const { done, value } = await reader.read();
+  
+  if (done) {
+    break;
+  }
+  
+  console.log(`已收到 ${value.length} 字节`);
+}
+```
+
+`await reader.read()` 调用的结果是一个具有两个属性的对象：
+
+- **`done`** —— 当读取完成时为 `true`，否则为 `false`
+- **`value`** —— 字节的类型化数组：`Uint8Array`
+
+**⚠️ 注意：Streams API 还描述了可以使用 `for await..of` 循环异步迭代 `ReadableStream`，但目前为止，它还未得到很好的支持（参见 [浏览器问题](https://github.com/whatwg/streams/issues/778#issuecomment-461341033)），所以上述代码使用了 `while` 循环**。
+
+在循环中接收响应块（response chunk），直到加载完成，也就是：直到 `done` 为 `true`。
+
+**要将进度打印出来，只需要将每个接收到的片段 `value` 的长度（length）加到 `counter` 即可**。
+
+例如，下面的代码会在控制台中记录进度：
+
+```js
+// Step 1：启动 fetch，并获得一个 reader
+const response = await fetch('https://api.github.com/repos/javascript-tutorial/en.javascript.info/commits?per_page=100');
+
+const reader = response.body.getReader();
+
+// Step 2：获得总长度（length）
+const contentLength = +response.headers.get('Content-Length');
+
+// Step 3：读取数据
+let receivedLength = 0; // 当前接收到到的字节数
+const chunks = []; // 接收到的二进制块的数组（包括 body）
+
+while(true) {
+  const { done, value } = await reader.read();
+  
+  if (done) {
+    break;
+  }
+  
+  chunks.push(value);
+  receivedLength += value.length;
+  
+  console.log(`Received ${receivedLength} of ${contentLength}`)
+}
+
+// Step 4：将块连接到单个 Uint8Array
+const chunksAll = new Uint8Array(receivedLength);
+let position = 0;
+
+for(const chunk of chunks) {
+  chunksAll.set(chunk, position);
+  position += chunk.length;
+}
+
+// Step 5：解码成字符串
+const result = new TextDecoder('utf-8').decode(chunksAll);
+
+const commits = JSON.parse(result);
+alert(commits[0].author.login);
+```
+
+具体步骤如下：
+
+1. **像往常一样执行 `fetch`，但不是调用 `response.json()`**，而是获得了一个流读取器（stream reader）`response.body.getReader()`
+
+   **⚠️ 注意：不能同时使用这两种方法来读取相同的响应，要么使用流读取器，要么使用 reponse 方法来获取结果**。
+
+2. 在读取数据之前，可以从 `Content-Length` header 中得到完整的响应长度
+
+   **⚠️ 注意：跨源请求中可能不存在这个 header，并且从技术上讲，服务器可以不设置它，但是通常情况下它都会在那里**。
+
+3. **调用 `await reader.read()`，直到它完成**
+
+   将响应块收集到数组 `chunks` 中，这很重要，因为在使用完（consumed）响应后，**将无法使用 `response.json()` 或者其它方式去 “重新读取” 它**
+
+4. 最后，有了一个 `chunks` —— **一个 `Uint8Array` 字节块数组，需要将这些块合并成一个结果**，但没有单个方法将它们串联起来，所以需要一些代码来实现：
+
+   1. 创建 `const chunksAll = new Uint8Array(receivedLength)` —— 一个**具有所有数据块合并后的长度的同类型数组**
+   2. 然后**使用 `.set(chunk, position)` 方法，从数组中一个个地复制这些 `chunk`**
+
+5. 结果现在储存在 `chunksAll` 中，但它是一个字节数组，不是字符串
+
+   **要创建一个字符串，则需要解析这些字节，可以使用内建的 `TextDecoder` 对象完成**，然后可以通过 `JSON.parse` 它，如果有必要的话。
+
+   如果需要的是二进制内容而不是字符串，可以使用以下代码替换掉第 4 和第 5 步，这行代码从所有块中创建一个 `Blob`：
+
+   ```js
+   const blob = new Blob(chunks);
+   ```
+
+   最后得到了结果，并在过程中对进度进行了跟踪。
+
+   **⚠️ 注意：如果大小未知（后台没有返回 `Content-Length` header ），应该检查循环中的 `receivedLength`，一旦达到一定的限制就将其中断，这样 `chunks` 就不会溢出内存**。
