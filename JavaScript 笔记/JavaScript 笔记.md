@@ -30711,4 +30711,165 @@ alert(result.message);
 
 
 
-   
+## FormData
+
+`FormData` 对象**用于捕获 HTML 表单，并使用 `fetch` 或其它网络方法提交**。
+
+构造函数是：
+
+```js
+const formData = new FormData([form]);
+```
+
+**如果提供了 HTML `form` 元素，它会自动捕获 `form` 元素字段**。
+
+`FormData` 的特殊之处在于网络方法（network methods），例如：**`fetch` 可以接受一个 `FormData` 对象作为 body，它会被编码并发送出去，带有 `Content-Type: multipart/form-data`**。
+
+从服务器角度来看，它就像是一个普通的表单提交。
+
+
+
+**发送一个简单的表单**
+
+例如：
+
+```html
+<form id="formElem">
+  <input type="text" name="name" value="John">
+  <input type="text" name="surname" value="Smith">
+  <input type="submit">
+</form>
+
+<script>
+  formElem.onsubmit = async (event) => {
+    event.preventDefault();
+
+    const response = await fetch('/article/formdata/post/user', {
+      method: 'POST',
+      body: new FormData(formElem)
+    });
+
+    const result = await response.json();
+
+    alert(result.message);
+  };
+</script>
+```
+
+
+
+**FormData 方法**
+
+可以使用以下方法修改 `FormData` 中的字段：
+
+- **`formData.append(name, value)`** —— 添加具有给定 `name` 和 `value` 的表单字段
+- **`formData.append(name, blob, fileName)`** —— 添加一个字段，就像它是 `<input type="file">`，**第三个参数 `fileName` 设置文件名（而不是表单字段名），因为它是用户文件系统中文件的名称**
+- **`formData.delete(name)`** —— 移除带有给定 `name` 的字段
+- **`formData.get(name)`** —— 获取带有给定 `name` 的字段值
+- **`formData.has(name)`** —— 如果存在带有给定 `name` 的字段，则返回 `true`，否则返回 `false`
+
+从技术上讲，**一个表单可以包含多个具有相同 `name` 的字段，因此，多次调用 `append` 将会添加多个具有相同名称的字段**。
+
+还有一个 `set` 方法，语法与 `append` 相同，**不同步之处在于 `.set` 移除所有具有给定 `name` 的字段，然后附加一个新字段，因此，它确保了只有一个具有这种 `name` 的字段，其它的和 `append` 一样：**
+
+- **`formData.set(name, value)`**
+- **`formData.set(name, blob, fileName)`**
+
+也可以使用 `for..of` 循环迭代 `formData` 字段：
+
+```js
+const formData = new FormData();
+formData.append('key1', 'value1');
+formData.append('key2', 'value2');
+
+// 列出 key/value 对
+for(let [name, value] of formData) {
+  alert(`${name} = ${value}`); // key1 = value1，然后是 key2 = value2
+}
+```
+
+
+
+**发送带有文件的表单**
+
+**表单始终以 `Content-Type: multipart/form-data` 来发送数据**，这个编码允许发送文件，因此 `<input type="file">` 字段也能被发送，类似于普通表单的提交。
+
+例如：
+
+```html
+<form id="formElem">
+  <input type="text" name="firstName" value="John">
+  Picture: <input type="file" name="picture" accept="image/*">
+  <input type="submit">
+</form>
+
+<script>
+  formElem.onsubmit = async (event) {
+    event.preventDefault();
+    
+    const response = await fetch('/article/formdata/post/user-avatar', {
+      method: 'POST',
+      body: new FormData(formElem)
+    });
+    
+    const result = await response.json();
+    
+    alert(result.message);
+  }
+</script>
+```
+
+
+
+**发送具有 Blob 数据的表单**
+
+以 `Blob` 发送一个动态生成的二进制数据，例如图片，是很简单的，**可以直接将其作为 `fetch` 参数的 `body`**。
+
+**但在实际中，通常更方便的发送图片的方式不是单独返送，而是将其作为表单的一部分，比带有附加字段（例如 “name” 和其他 metadata）一起发送**。
+
+并且，**服务器通常更适合接收多部分编码的表单（multipart-encoded form），而不是原始的二进制数据**。
+
+例如，使用 `FormData` 将一个来自 `<canvas>` 的图片和一些其它字段一起作为一个表单提交：
+
+```html
+<body style="margin:0">
+  <canvas id="canvasElem" width="100" height="80" style="border:1px solid"></canvas>
+
+  <input type="button" value="Submit" onclick="submit()">
+
+  <script>
+    canvasElem.onmousemove = function(e) {
+      const ctx = canvasElem.getContext('2d');
+      ctx.lineTo(e.clientX, e.clientY);
+      ctx.stroke();
+    };
+
+    async function submit() {
+      const imageBlob = await new Promise(resolve => canvasElem.toBlob(resolve, 'image/png'));
+
+      const formData = new FormData();
+      formData.append('firstName', 'CodePencil');
+      formData.append('image', imageBlob, 'image.png');
+
+      let response = await fetch('/article/formdata/post/image-form', {
+        method: 'POST',
+        body: formData
+      });
+      let result = await response.json();
+      alert(result.message);
+    }
+
+  </script>
+</body>
+```
+
+**⚠️ 注意：图片 `Blob` 是如何添加的：**
+
+```js
+formData.append('image', imageBlob, 'image.png');
+```
+
+就像表单中有 `<input type="file" name="image">` 一样，用户从他们的文件系统中使用数据 `imageBlob`（第二个参数）提交了一个名为 `image.png`（第三个参数）的文件。
+
+服务器读取表单数据和文件，就好像它是常规的表单提交一样。
+
