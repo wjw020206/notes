@@ -31146,5 +31146,346 @@ const results = await Promise.all([...fetchJobs, ourJob]);
 
 
 
+## Fetch：跨域请求
+
+**如果向另一个网站发送 `fetch` 请求，则该请求可能会失败**。
+
+例如，尝试向 `http://example.com` 发送 `fetch` 请求：
+
+```js
+try {
+  await fetch('http://example.com');
+} catch(error) {
+  alert(error); // fetch 失败
+}
+```
+
+这里的核心概念是**源（origin）** —— 域（domain）/端口（port）/协议（protocol）的组合。
+
+跨源请求 —— **指那些发送到其它域（即使是子域）、协议或端口的请求 —— 需要来自远程端的特殊 header**。
+
+**这个策略被称为 “CORS”：跨源资源共享（Cross-Origin Resource Sharing）**。
 
 
+
+**跨域请求简史**
+
+**CORS 的存在是为了保护互联网免受黑客攻击**。
+
+**多年以来，来自一个网站的脚本无法访问另一个网站的内容**。
+
+这个简单有力的规则是互联网安全的基础，例如，来自 `hacker.com` 的脚本无法访问 `gmail.com` 上的用户邮箱。
+
+在那个时候，JavaScript 并没有任何特殊的执行网络请求的方法，它只是一种用来装饰网页的玩具语言而已。
+
+但是 Web 开发人员需要更多功能，人们发明了各种各样的技巧去突破该限制，并向其它网站发出请求。
+
+
+
+**使用表单**
+
+**其中一种和其它服务器通信的方法是在那里提交一个 `<form>`，人们将它提交到 `<iframe>`**，只是为了停留在当前页面，像下面这样：
+
+```html
+<!-- 表单目标 -->
+<iframe name="iframe"></iframe>
+
+<!-- 表单可以由 JavaScript 动态生成并提交 -->
+<form target="iframe" method="POST" action="http://another.com/…">
+  ...
+</form>
+```
+
+因此，即使没有网络方法，也可以向其它网站发出 GET/POST 请求，**因为表单可以将数据发送到任何地方，但是由于禁止从其它网站访问 `<iframe>` 中的内容，因此就无法读取响应**。
+
+确切来说，有一些技巧可以解决这个问题，在 iframe 和页面中都需要添加特殊脚本，因此，与 iframe 的通信在技术上是可能的，**不过现在不再推荐使用这些古老的代码了**。
+
+
+
+**使用 script**
+
+另一个技巧是使用 `<script>` 标签，**`script` 可以具有任何域的 `src`，例如 `<script src="http://another.com/…">`，也可以执行来自任何网站的 `script`**。
+
+如果一个网站，例如 `another.com` 视图公开这种访问方式的数据，**则会使用这种所谓的 “JSONP（JSON with padding）” 协议**。
+
+这是它的工作方式。
+
+假设在网站中，需要以这种方式从 `http://another.com` 网站获取数据，例如天气：
+
+1. 首先，**先声明一个全局函数来接收数据**，例如 `gotWeather`
+
+   ```js
+   // 1. 声明处理天气数据的函数
+   function gotWeather({ temperature, humidity }) {
+     alert(`temperature: ${temperature}, humidity: ${humidity}`);
+   }
+   ```
+
+2. **然后创建一个特性（attribute）为 `src="http://another.com/weather.json?callback=gotWeather"` 的 `<script>` 标签，使用 `callback` 函数作为它的 `callback` URL 参数**
+
+   ```js
+   const script = document.createElement('script');
+   script.src = `http://another.com/weather.json?callback=gotWeather`;
+   document.body.append(script);
+   ```
+
+3. **远程服务器 `another.com` 动态生成一个脚本，该脚本调用 `gotWeather(...)`，发送它想让我们接收的数据**
+
+   ```js
+   // 期望来自服务器的回答看起来像这样：
+   gotWeather({
+     temperature: 25,
+     humidity: 78
+   });
+   ```
+
+4. **当远程脚本加载并执行时，`goWeather` 函数将运行，就可以拿到需要的数据**
+
+
+这是可行的，并且不违反安全规定，因为双方都同意以这种方式传递数据，而且，既然双方都同意这种行为，那这肯定不是黑客攻击了，**现在仍然有提供这种访问的服务，因为即使是非常旧的浏览器它依然适用**。
+
+不久之后，网络方法出现在了浏览器 JavaScript 中，**起初，跨源请求是被禁止的**，但是，经过长时间的讨论，跨源请求被允许了，**但是任何新功能都需要服务器明确允许，以特殊的 header 表述**。
+
+
+
+**安全请求**
+
+有两种类型的跨源请求：
+
+1. **安全请求**
+2. **所有其它请求**
+
+**如果一个请求满足下面这两个条件，则该请求是安全的**：
+
+1. **[安全的方法](https://fetch.spec.whatwg.org/#cors-safelisted-method)：GET、POST 或 HEAD**
+2. **[安全的 header](https://fetch.spec.whatwg.org/#cors-safelisted-request-header)** —— **仅允许自定义下列 header**：
+   - `Accept`
+   - `Accept-Language`
+   - `Content-Language`
+   - `Content-Type` 的值为 `application/x-www-form-urlencoded`、`multipart/form-data` 或 `text/plain`
+
+**任何其它请求都被认为是 “非安全” 请求，例如：具有 `PUT` 方法或 `API-Key` HTTP-header 的请求就不是安全请求**。
+
+**本质区别在于：可以使用 `<form>` 或 `<script>` 进行安全请求，而无需任何其它特殊方法**。
+
+因此，即使是非常旧的服务器也能很好地接收安全请求。
+
+**与此相反，带有非标准的 header 或者例如 `DELETE` 方法的请求，无法通过这种方式创建（比如 `<form>` 或 `<script>` 标签不支持非标准的 header 和方法请求），在很长一段时间里，JavaScript 都不能进行这样的请求**，所以，旧的服务器可能会认为这类请求来自具有特权的来源（privileged source），**因为网页无法发送它们**。
+
+**当尝试发送一个非安全请求时，浏览器会发送一个特殊的 “预检（preflight）” 请求到服务器 —— 询问服务器是否接受此类跨源请求，并且，除非服务器明确通过 header 进行确认，否则非安全请求不会被发送**。
+
+
+
+**用于安全请求的 CORS**
+
+如果一个请求是跨源的，**浏览器始终会向其添加 `Origin` header**。
+
+例如，从 `https://javascript.info/page` 请求 `https://anywhere.com/request`，请求的 header 如下所示：
+
+```http
+GET /request
+Host: anywhere.com
+Origin: https://javascript.info
+...
+```
+
+**`Origin` 包含了确切的源（domain/protocol/port），没有路径（path）**。
+
+服务器可以检查 `Origin`，**如果同意接受这样的请求，就会在响应中添加一个特殊的 header `Access-Control-Allow-Origin`，该 header 包含了允许的源（在上述示例中是 `https://javascript.info`），或者一个星号 `*`，然后响应成功，否则报错**。
+
+浏览器在这里扮演被信任的中间人的角色：
+
+1. **它确保发送的跨源请求带有正确的 `Origin`**
+2. **它检查响应中的许可 `Access-Control-Allow-Origin`，如果存在，则允许 JavaScript 访问响应，否则将失败并报错**
+
+![image-20250814111713542](images/image-20250814111713542.png)
+
+以下是一个带有服务器许可的响应示例：
+
+```http
+200 OK
+Content-Type:text/html; charset=UTF-8
+Access-Control-Allow-Origin: https://javascript.info
+```
+
+
+
+**Response header**
+
+对于跨源请求，**默认情况下，JavaScript 只能访问 “安全的” response header**：
+
+- `Cache-Control`
+- `Content-Language`
+- `Content-Type`
+- `Expires`
+- `Last-Modified`
+- `Pragma`
+
+**访问任何其它 response header 都将导致 error**。
+
+**⚠️ 注意：列表中没有 `Content-Length` header**，该 header 包含完整的响应长度，因此如果正在下载某些内容，并希望跟踪百分比，则需要额外的权限才能访问该 header。
+
+**要授予 JavaScript 对任何其它 response header 的访问权限，服务器必须发送 `Access-Control-Expose-Headers` header，它包含一个以逗号分隔的应该被设置为可访问的非安全 header 名称列表**，例如：
+
+```http
+200 OK
+Content-Type:text/html; charset=UTF-8
+Content-Length: 12345
+API-Key: 2c9de507f2c54aa1
+Access-Control-Allow-Origin: https://javascript.info
+Access-Control-Expose-Headers: Content-Length,API-Key
+```
+
+有了这种 `Access-Control-Expose-Headers` header，此脚本就被允许读取响应的 `Content-Length` 和 `API-Key` header。
+
+
+
+**非安全请求**
+
+可以使用任何 HTTP 方法：**不仅仅是 `GET/POST`，也可以是 `PATCH`，`DELETE` 及其它**。
+
+之前，没有人能够设想网页能发出这样的请求，**因此，可能仍然存在有些 Web 服务将非标准方法视为一个信号：“这不是浏览器”，它们可以在检查访问权限时将其考虑在内**。
+
+因此，为了避免误解，**任何 “非安全” 请求 —— 在过去无法完成的，浏览器不会立即发出此类请求，首先它会先发送一个初步的、所谓的 “预检（preflight）” 请求，来请求许可**。
+
+**预检请求使用 `OPTIONS` 方法，它没有 body，但是有三个 header**：
+
+- `Access-Control-Request-Method` header 带有非安全请求的方法
+- `Access-Control-Request-Headers` header 提供一个以逗号分隔的非安全 HTTP-header 列表
+- `Origin` header 说明请求来自哪里
+
+**如果服务器同意处理请求，那么它会进行响应，此响应的状态码应该为 200，没有 body，具有 header**：
+
+- `Access-Control-Allow-Origin` 必须为 `*` 或进行请求的源（例如 `https://javascript.info`）才能允许此请求
+- `Access-Control-Allow-Methods` 必须具有允许的方法
+- `Access-Control-Allow-Headers` 必须具有一个允许的 header 列表
+- 另外，**header `Access-Control-Max-Age` 可以指定缓存此权限的秒数，因此，浏览器不是必须为满足给定权限的后续请求发送预检**
+
+![image-20250814114507299](images/image-20250814114507299.png)
+
+例如，在一个跨源 `PATCH` 请求的例子中一步一步地看它是如何工作的（此方法经常被用于更新数据）：
+
+```js
+const response = await fetch('https://site.com/service.json', {
+  method: 'PATCH',
+  headers: {
+    'Content-Type': 'application/json',
+    'API-Key': 'secret'
+  }
+});
+```
+
+这里有三个理由解释为什么它不是一个安全请求（其实一个就够了）：
+
+- 方法 `PATCH`
+- `Content-Type` 不是这三个中之一：`application/x-www-form-urlencoded`，`multipart/form-data`，`text/plain`
+- “非安全” `API-Key` header
+
+具体的步骤如下：
+
+1. **预检请求（preflight request）**
+
+   在发送请求之前，浏览器会自己发送如下所示的预检请求：
+
+   ```http
+   OPTIONS /service.json
+   Host: site.com
+   Origin: https://javascript.info
+   Access-Control-Request-Method: PATCH
+   Access-Control-Request-Headers: Content-Type,API-Key
+   ```
+
+   - 方法：`OPTIONS`
+   - 路径 —— 与主请求完全相同：`/service.json`
+   - 特殊跨源头：
+     - `Origin` —— 来源
+     - `Access-Control-Request-Method` —— 请求方法
+     - `Access-Control-Request-Headers` —— 以逗号分隔的 “非安全” header 列表
+
+2. **预检响应（preflight response）**
+
+   服务应响应状态 200 和 header：
+
+   - `Access-Control-Allow-Origin: https://javascript.info`
+   - `Access-Control-Allow-Methods: PATCH`
+   - `Access-Control-Allow-Headers: Content-Type,API-Key`
+
+   这将允许后续通信，否则会触发错误。
+
+   如果服务器将来需要其它方法和 header，则可以通过将这些方法和 header 添加到列表中**来预先允许它们**。
+
+   例如，此响应还允许 `PUT`、`DELETE` 以及其他 header：
+
+   ```http
+   200 OK
+   Access-Control-Allow-Origin: https://javascript.info
+   Access-Control-Allow-Methods: PUT,PATCH,DELETE
+   Access-Control-Allow-Headers: API-Key,Content-Type,If-Modified-Since,Cache-Control
+   Access-Control-Max-Age: 86400
+   ```
+
+   现在，浏览器可以看到 `PATCH` 在 `Access-Control-Allow-Methods` 中，`Content-Type,API-Key` 在列表 `Access-Control-Allow-Headers` 中，因此它将发送主请求。
+
+   **如果 `Access-Control-Max-Age` 带有一个表示秒的数字，则在给定的时间内，预检权限会被缓存**，例如上面的响应将被缓存 86400 秒，也就是一天，在此时间范围内，后续请求将不会触发预检，假设它们符合缓存的配额，则将直接发送它们。
+
+3. **实际请求（actual request）**
+
+   预检成功后，浏览器现在发出主请求，这里的过程与安全请求的过程相同。
+
+   主请求具有 `Origin` header（**因为它是跨源的**）：
+
+   ```http
+   PATCH /service.json
+   Host: site.com
+   Content-Type: application/json
+   API-Key: secret
+   Origin: https://javascript.info
+   ```
+
+4. **实际响应（actual response）**
+
+   **服务器不应该忘记在主响应中添加 `Access-Control-Allow-Origin`，成功的预检并不能免除此要求**：
+
+   ```http
+   Access-Control-Allow-Origin: https://javascript.info
+   ```
+
+   然后，JavaScript 可以读取主服务器响应了。
+
+**⚠️ 注意：预检请求发生在 “幕后”，它对 JavaScript 不可见**，JavaScript 仅获取对主请求的响应，如果没有服务器许可，则获得一个 error。
+
+
+
+**凭据（Credentials）**
+
+默认情况下，**由 JavaScript 代码发起的跨源请求不会带来任何凭据（cookies 或者 HTTP 认证（HTTP authentication））**。
+
+这对于 HTTP 请求来说并不常见，**通常对 `http://site.com` 的请求会附带有该域的所有 cookie，但由 JavaScript 方法发出的跨域请求是个例外**。
+
+例如，**`fetch('http://another.com')` 不会发送任何 cookie，即使那些属于 `another.com` 域的 cookie**。
+
+**因为具有凭证的请求比没有凭证的请求要强大得多，如果被允许，它会使用它们的凭据授予 JavaScript 代表用户行为和访问敏感信息的全部能力**。
+
+服务器不会信任这种脚本，所以**它必须显式地带有允许请求的凭据和附加 header**。
+
+要在 `fetch` 中发送凭据，**需要添加 `credentials: 'include'` 选项**，像这样：
+
+```js
+fetch('http://another.com', {
+  credentials: 'include'
+});
+```
+
+现在，`fetch` 将把源自 `another.com` 的 cookie 和请求发送到该网站。
+
+如果服务器同意接受**带有凭据**的请求，**则除了 `Access-Control-Allow-Origin` 外，服务器还应该在响应中添加 header `Access-Control-Allow-Credentials: true`**。
+
+例如：
+
+```http
+200 OK
+Access-Control-Allow-Origin: https://javascript.info
+Access-Control-Allow-Credentials: true
+```
+
+**⚠️ 注意：对于具有凭据的请求，禁止 `Access-Control-Allow-Origin` 使用星号 `*`，如上所示，必须有一个确切的源**，这是另一项安全措施，以确保服务器真的知道它信任的发出此请求的是谁。
