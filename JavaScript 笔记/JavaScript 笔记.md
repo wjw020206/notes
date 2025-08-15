@@ -32598,5 +32598,282 @@ subscribe();
 
 
 
+## WebSocket
 
+在 [RFC 6455](https://datatracker.ietf.org/doc/html/rfc6455) 规范中描述的 `WebSocket` 协议，**提供了一种在浏览器和服务器之间建立持久连接来交换数据的方法，数据可以作为 “数据包” 在两个方向上传递，而无需中断连接也无需额外的 HTTP 请求**。
+
+**对于需要连续数据交换的服务，例如网络游戏，实时交易凭证系统等，WebSocket 尤其有用**。
+
+
+
+**一个简单的例子**
+
+要打开一个 WebSocket 连接，**需要在 url 中使用特殊的协议 `ws` 创建 `new WebSocket`**：
+
+```js
+const socket = new WebSocket('ws://javascript.info');
+```
+
+**同样也有一个加密的 `wss://` 协议**，类似于 WebSocket 中的 HTTPS。
+
+**⚠️ 注意：建议始终使用 `wss://` 协议**，`wss://` 协议不仅是加密的，而且更可靠，**因为 `ws://` 数据不是加密的**，对于任何中间人来说其数据都是可见的，并且，**旧的代理服务器不了解 WebSocket，可能会因为看到 “奇怪的” header 而中止连接**，而 `wss://` 是基于 TLS 的 WebSocket（类似于 HTTPS 是基于 TLS 的 HTTP），在传输安全层里发送方对数据进行了加密，在接收方进行解密，因此，数据包是通过代理加密传输的，旧的代理服务器看不到传输的里面的内容，会让这些数据通过。
+
+**一旦 socket 被建立，就应该监听 socket 上的事件**，一共有 4 个事件：
+
+- **`open`** —— 连接已建立
+- **`message`** —— 接收到数据
+- **`error`** —— WebSocket 错误
+- **`close`** —— 连接已关闭
+
+**如果要发送一些东西，可以使用 `socket.send(data)`**。
+
+例如：
+
+```js
+const socket = new WebSocket('wss://javascript.info/article/websocket/demo/hello');
+
+socket.onopen = function(event) {
+  alert('[open] Connection established');
+  alert('Sending to server');
+  socket.send('My name is CodePencil')
+};
+
+socket.onmessage = function(event) {
+  alert(`[message] Data received from server: ${event.data}`);
+};
+
+socket.onclose = function(event) {
+  if(event.wasClean) {
+    alert(`[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`);
+  } else {
+    // 例如服务器进程被杀死或网络中断
+    // 在这种情况下，event.code 通常为 1006
+    alert('[close] Connection died');
+  }
+};
+
+socket.onerror = function(error) {
+  alert(`[error] ${error.message}`);
+};
+```
+
+上述代码的事件执行顺序为：`open` → `message` → `close`，服务器会在等待 5 秒后关闭连接。
+
+
+
+**建立 WebSocket**
+
+当 `new WebSocket(url)` 被创建后，**它将立即开始连接**。
+
+**在连接期间，浏览器（使用 header）问服务器：“你支持 WebSocket 吗？”，如果服务器回复 “我支持”，那么通信就以 WebSocket 协议继续执行**，该协议根本不是 HTTP。
+
+![image-20250815140121140](images/image-20250815140121140.png)
+
+这是由 `new WebSocket('wss://javascript.info/chat')` 发出的请求的浏览器 header 示例。
+
+```http
+GET /chat
+Host: javascript.info
+Origin: https://javascript.info
+Connection: Upgrade
+Upgrade: websocket
+Sec-WebSocket-Key: Iv8io/9s+lYFgZWcXczP8Q==
+Sec-WebSocket-Version: 13
+```
+
+- `Origin` —— 客户端页面的源，例如 `https://javascript.info`，**WebSocket 对象是原生支持跨源的，没有特殊的 header 或其他限制，旧的服务器无法处理 WebSocket，因此不存在兼容性问题，但 `Origin` header 很重要，因为它允许服务器决定是否使用 WebSocket 与该网站通信**
+- `Connection: Upgrade` —— 表示客户端想要更改协议
+- `Upgrade: websocket` —— 请求的协议是 “websocket”
+- `Sec-WebSocket-Key` —— 浏览器随机生成的安全密钥
+- `Sec-WebSocket-Version` —— WebSocket 协议版本，当前为 13
+
+**⚠️ 注意：无法使用 `XMLHttpRequest` 或 `fetch` 来模拟 WebSocket 请求，因为不允许  JavaScript 设置这些 header**。
+
+如果服务器同意切换为 WebSocket 协议，**服务器应该返回响应码 101**：
+
+```http
+101 Switching Protocols
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Accept: hsBlbuDTkk24srzEOTBUlZAlC2g=
+```
+
+这里的 `Sec-WebSocket-Accept` 是 `Sec-WebSocket-Key`，**是使用特殊的算法重新编码的，浏览器使用它来确保响应与请求相对应**。
+
+然后，使用 WebSocket 协议传输数据，**它的结构根本不是 HTTP**。
+
+
+
+**扩展和子协议**
+
+WebSocket 可能还有其它 header，`Sec-WebSocket-Extensions` 和 `Sec-WebSocket-Protocol` 它们描述了扩展和子协议。
+
+例如：
+
+- `Sec-WebSocket-Extensions: deflate-frame` ——  **表示浏览器支持数据压缩**，扩展与传输数据有关，扩展了 WebSocket 协议的功能，**`Sec-WebSocket-Extensions` header 由浏览器自动发送，其中包含其支持的所有扩展的列表**
+
+- `Sec-WebSocket-Protocol: soap, wamp` —— **表示不仅要传输任何数据，还要传输 [SOAP](https://en.wikipedia.org/wiki/SOAP) 或 WAMP（“The WebSocket Application Messaging Protocol”）协议中的数据**，WebSocket 子协议已经在 [IANA catalogue](https://www.iana.org/assignments/websocket/websocket.xml) 中注册，因此，此 header 描述了将要使用的数据格式
+
+  **这个可选的 header 是使用 `new WebSocket` 的第二个参数设置的，它是子协议数组**，例如，如果想使用 SOAP 或 WAMP：
+
+  ```js
+  const socket = new WebSocket('wss://javascript.info/chat', ['soap', 'wamp']);
+  ```
+
+**服务器应该使用同意使用的协议和扩展的列表进行响应**。
+
+例如，这个请求：
+
+```http
+GET /chat
+Host: javascript.info
+Upgrade: websocket
+Connection: Upgrade
+Origin: https://javascript.info
+Sec-WebSocket-Key: Iv8io/9s+lYFgZWcXczP8Q==
+Sec-WebSocket-Version: 13
+Sec-WebSocket-Extensions: deflate-frame
+Sec-WebSocket-Protocol: soap, wamp
+```
+
+响应：
+
+```http
+101 Switching Protocols
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Accept: hsBlbuDTkk24srzEOTBUlZAlC2g=
+Sec-WebSocket-Extensions: deflate-frame
+Sec-WebSocket-Protocol: soap
+```
+
+在这里服务器响应，**它支持扩展 “deflate-frame”，并且仅支持所请求的子协议中的 SOAP**。
+
+
+
+**数据传输**
+
+**WebSocket 通信由 “frames”（即数据片段）组成，可以从任何一方发送**，并且有以下几种类型：
+
+- “text frames” —— 包含各方发送给彼此的文本数据
+- “binary data frames” —— 包含各方发送给彼此的二进制数据
+- “ping/pong frames” 被用于检查从服务器发送的连接，浏览器会自动响应它们
+- 还有 “connection close frame” 以及其它服务 frames
+
+**在浏览器里，只能直接使用文本或二进制 frames**。
+
+**WebSocket `.send()` 方法可以发送文本或二进制数据**。
+
+`socket.send(body)` 调用允许 `body` 是字符串或二进制格式（包括 `Blob`，`ArrayBuffer` 等），**不需要额外的设置，直接发送它们就可以了**。
+
+**当收到数据时，文本总是以字符串形式呈现，而对于二进制数据，可以在 `Blob` 和 `ArrayBuffer` 格式之间进行选择**。
+
+**它是由 `socket.binaryType` 属性设置的，默认为 `'blob'`，因此二进制数据通常以 `Blob` 对象呈现**。
+
+`Blob` 是高级的二进制对象，它直接与 `<a>`、`<img>` 及其它标签集成在一起，因此，默认以 `Blob` 格式是一个明智的选择，但对于二进制处理，要访问单个数据字节，可以将其改为 `'arraybuffer'`：
+
+```js
+socket.binaryType = 'arraybuffer';
+
+socket.onmessage = (event) => {
+  // event.data 可以是文本（如果是文本），也可以是 arraybuffer（如果是二进制数据）
+};
+```
+
+
+
+**限速**
+
+如果**应用程序正在生成大量要发送的数据，但是用户的网速却很慢**，可能是在乡下的移动设备上。
+
+可以反复调用 `socket.send(data)`，**但是数据将会缓冲（储存）在内存中，并且只能在网速允许的情况下尽快将数据发送出去**。
+
+**`socket.bufferedAmount` 属性储存了目前已缓冲的字节数**，等待通过网络发送。
+
+**可以检查它以查看 socket 是否真的可用于传输**。
+
+```js
+// 每 100ms 检查一次 socket
+// 仅当所有现有的数据都已被发送出去时，再发送更多数据
+setInterval(() => {
+  if (socket.bufferedAmount === 0) {
+    socket.send(moreData());
+  }
+}, 100);
+```
+
+
+
+**连接关闭**
+
+通常，当一方想要关闭连接时（浏览器和服务器都具有相同的权限），它们**会发送一个带有数字码（numeric code）和文本形式的原因的 “connection close frame”**。
+
+它的方法是：
+
+```js
+socket.close([code], [reason]);
+```
+
+- `code` —— 一个特殊的 WebSocket 关闭码（可选）
+- `reason` —— 一个描述关闭原因的字符串（可选）
+
+然后，**另外一方通过 `close` 事件处理器获取关闭码和关闭原因**，例如：
+
+```js
+// 关闭方：
+socket.close(1000, 'Work complete');
+
+// 另一方：
+socket.onclose = event => {
+  // event.code === 1000
+  // event.reason === 'Work complete'
+  // event.wasClean === true (clean close)
+};
+```
+
+最常见的数字码：
+
+- `1000` —— 默认，正常关闭（如果没有指明 `code` 时使用它）
+- `1006` —— 没有办法手动设定这个数字码，表示连接丢失（没有 close frame）
+
+还有其它的数字码，例如：
+
+- `1001` —— 一方正在离开，例如服务器正在关闭，或者浏览器离开了该页面
+- `1009` —— 消息太大，无法处理
+- `1011` —— 服务器上发生意外错误
+- ......等
+
+完整列表请见 [RFC6455, §7.4.1](https://tools.ietf.org/html/rfc6455#section-7.4.1)。
+
+WebSocket 码与 HTTP 码类似，但它们是不同的，**特别是小于 `1000` 的码都是被保留的**，如果尝试设置这样的码，将会出现错误。
+
+```js
+// 在连接断开的情况下
+socket.onclose = event => {
+  // event.code === 1006
+  // event.reason === ''
+  // event.wasClean === false（未关闭 frame）
+};
+```
+
+
+
+**连接状态**
+
+要获取连接状态，可以通过带有值 `socket.readyState` 属性：
+
+- **`0`** —— “CONNECTING”：连接还未建立
+- **`1`** —— “OPEN”：通信中
+- **`2`** —— “CLOSING”：连接关闭中
+- **`3`** —— “CLOSED”：连接已关闭
+
+
+
+**其它**
+
+**WebSocket 自身并不包含重新连接（reconnection），身份验证（authentication）和很多其它高级机制**，因此，有针对于此的客户端/服务端的库，并且也可以手动实现这些功能。
+
+**有时为了将 WebSocket 集成到现有项目中，人们将主 HTTP 服务器与 WebSocket 服务器并行运行，并且它们之间共享同一个数据库**，对于 WebSocket 请求使用一个通向 WebSocket 服务器的子域 `wss://ws.site.com`，而 `https://site.com` 则通向主 HTTP 服务器。
+
+其它集成方式也是可行的。
 
