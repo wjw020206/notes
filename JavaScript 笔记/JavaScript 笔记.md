@@ -32434,3 +32434,81 @@ xhr.open('POST', 'http://anywhere.com/request');
 
 
 
+## 可恢复的文件上传
+
+使用 `fetch` 方法来上传文件非常容易，但**它不允许跟踪上传进度，并且连接断开后无法恢复上传**，这时可以使用 `XMLHttpRequest`。
+
+
+
+**不太实用的进度事件**
+
+**要恢复上传，需要知道在连接断开前已经上传了多少**。
+
+有 `xhr.upload.onprogress` 来跟踪上传进度，不幸的是，**它无法用来恢复上传，因为它只会在数据被发送时触发，并且它无法确认这些数据是否已经被服务器成功接收并写入**。
+
+或许它是由本地网络代理缓冲（buffered），或者可能是远程服务器进程刚刚终止而无法处理它们，也可能是中间丢失了，并没有到达服务器。
+
+这就是为什么 **`xhr.upload.onprogress` 仅适用于显示一个好看的进度条**。
+
+**要恢复上传，需要确切地知道服务器接收的字节数，而是只有服务器能告诉前端，因此需要发出一个额外的请求**。
+
+
+
+**算法**
+
+1. 首先**创建一个文件 id，用来唯一标识要上传的文件**：
+
+   ```js
+   const fileId = file.name + '-' + file.size + '-' + file.lastModified;
+   ```
+
+   在恢复上传时需要用到它，用来告诉服务器要恢复的内容。
+
+   **如果名称、大小或最后一次修改时间发生了更改，则将有另一个 `fileId`**。
+
+2. **向服务器发送给一个请求，询问它已经有了多少字节**，像下面这样：
+
+   ```js
+   const response = fetch('status', {
+     headers: {
+       'X-File-Id': fileId
+     }
+   });
+   
+   // 服务器已有的字节数
+   const startByte = +await response.text();
+   ```
+
+   **假设服务器通过 `X-File-Id` header 跟踪文件上传，应该在服务端实现**。
+
+   **如果服务器上尚不存在该文件，则服务器响应应为 `0`**。
+
+3. 然后**可以使用 `Blob` 和 `slice` 方法来发送从 `startByte` 开始的文件**：
+
+   ```js
+   xhr.open('POST', 'upload', true);
+   
+   // 文件 id，以便服务器知道要恢复的是哪个文件
+   xhr.setRequestHeader('X-File-Id', fileId);
+   
+   // 发送要从哪个字节开始恢复，因此服务器知道正在恢复
+   xhr.setRequestHeader('X-Start-Byte', startByte);
+   
+   xhr.upload.onprogress = (event) => {
+     console.log(`Uploaded ${startByte + e.loaded} of ${startByte + e.total}`)
+   };
+   
+   // 文件可以是来自 input.files[0]，或者另一个源
+   xhr.send(file.slice(startByte));
+   ```
+
+   这里将文件 id 作为 `X-File-Id` 发送给服务器，所以服务器知道正在上传哪个文件，并且还将起始字节作为 `X-Start-Byte` 发送给服务器，所以服务器知道不是重新上传它，而是恢复其上传。
+
+   **服务器应该检查其记录，如果有一个上传的该文件，并且当前已上传的文件大小恰好是 `X-Start-Byte`，那就将数据附加到该文件**。
+
+   
+
+   
+
+   
+
