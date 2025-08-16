@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <textarea style="width: 200px; height: 60px" id="area"></textarea>
+
+    <script>
+      const area = document.querySelector('#area');
+
+      const inputValue = localStorage.getItem('input');
+
+      if (inputValue) {
+        area.value = inputValue;
+      }
+
+      area.addEventListener('input', function () {
+        localStorage.setItem('input', area.value);
+      });
+    </script>
+  </body>
+</html>
