@@ -34623,3 +34623,383 @@ const result = await promise; // 如果仍然需要
 在实际开发中，对于复杂的线条，将几条曲线拼接在一起，这更容易开发和计算。
 
 **⚠️ 注意：对于需要通过给定点绘制曲线，这种任务叫插值，这些曲线有数学方程式，例如拉格朗日多项式，在计算机图形中样条插值通常用于构建连接多个点的平滑曲线**。
+
+
+
+## CSS 动画
+
+CSS 动画可以不借助 JavaScript 的情况下做出一些简单的动画效果。
+
+**也可以通过 Javascript 控制 CSS 动画，使用少量的代码，就能让动画表现更加出色**。
+
+
+
+**CSS 过渡（transition）**
+
+CSS 过渡的理念非常简单，**只需要定义一个属性以及如何动态地表现其变化，当属性变化时，浏览器将会绘制出相应的过渡动画**。
+
+也就是说：**只需要改变某个属性，然后所有流畅的动画都由浏览器生成**。
+
+例如，以下 CSS 会为 `background-color` 的变化生成一个 3 秒的过渡动画：
+
+```css
+.animated {
+  transition-property: background-color;
+  transition-duration: 3s;
+}
+```
+
+现在，只要一个元素拥有名为 `.animated` 的类，那么任何背景颜色的变化都会被渲染为 3 秒钟的动画。
+
+例如：
+
+```html
+<button class="animated" id="color">Click me</button>
+
+<style>
+  .animated {
+    transition-property: background-color;
+    transition-duration: 3s;
+  }
+</style>
+
+<script>
+  color.onclick = function() {
+    this.style.backgroundColor = 'red';
+  };
+</script>
+```
+
+CSS 提供了四个属性来描述一个过渡：
+
+- `transition-property`
+- `transition-duration`
+- `transition-timing-function`
+- `transition-delay`
+
+不过**可以在 `transition` 中以 `property duration timing-function delay` 的顺序一次定义它们，并且可以同时为多个属性设置过渡动画**。
+
+例如：
+
+```html
+<button id="growing">Click me</button>
+
+<style>
+#growing {
+  transition: font-size 3s, color 2s;
+}
+</style>
+
+<script>
+growing.onclick = function() {
+  this.style.fontSize = '36px';
+  this.style.color = 'red';
+};
+</script>
+```
+
+
+
+**transition-property**
+
+在 `transition-property` 中**可以列举要设置动画的所有属性**，如：`left、margin-left、height 和 color`。
+
+**不是所有 CSS 属性都可以使用过渡动画，但它们中的大多数都是可以的，`all` 表示应用在所有属性上**。
+
+
+
+**transition-duration**
+
+`transition-duration` 允许指定动画持续的时间，时间的格式参照 [CSS 时间格式](http://www.w3.org/TR/css3-values/#time)：**单位为秒 `s` 或者毫秒 `ms`**。
+
+
+
+**transition-delay**
+
+`transition-delay` 允许设定动画**开始前**的延迟时间，例如，对于 `transition-delay: 1s`，动画将会在属性变化发生 1 秒后开始渲染。
+
+**也可以提供一个负值，那么动画将会从整个过渡的中间时刻开始渲染**，例如，对于 `transition-duration: 2s`，同时把 `delay` 设置为 `-1s`，那么这个动画将会持续 1 秒钟，并且从正中间开始渲染。
+
+例如，单击这个数字，那么它会从当前的秒数开始渲染：
+
+```html
+Click below to animate:
+<div id="digit"><div id="stripe">0123456789</div></div>
+
+<style>
+#digit {
+  width: .5em;
+  overflow: hidden;
+  font: 32px monospace;
+  cursor: pointer;
+}
+
+#stripe {
+  display: inline-block
+}
+
+#stripe.animate {
+  transform: translate(-90%);
+  transition-property: transform;
+  transition-duration: 9s;
+  transition-timing-function: linear;
+}
+</style>
+
+<script>
+  stripe.onclick = function() {
+    const sec = new Date().getSeconds() % 10;
+    stripe.style.transitionDelay = '-' + sec + 's';
+    stripe.classList.add('animate');
+  };
+</script>
+```
+
+
+
+**transition-timing-function**
+
+时间函数属性描述了动画进程在时间上的分布。
+
+这个属性接受两种值：**一个贝塞尔曲线（Bezier curve）或者阶跃函数（steps）**。
+
+
+
+**贝塞尔曲线**
+
+时间函数可以用贝塞尔曲线描述，**通过设置四个满足以下条件的控制点**：
+
+1. **第一个应为：`(0,0)`**
+2. **最后一个应为：`(1,1)`**
+3. **对于中间值，`x` 必须位于 `0..1` 之间，`y` 可以为任意值**
+
+CSS 中设置贝塞尔曲线的语法为：`cubic-bezier(x2, y2, x3, y3)`，这里**只需要设置第二个和第三个值，因为第一个点固定为 `(0,0)`，第四个点固定为 `(1,1)`**。
+
+时间函数描述了动画进行的快慢。
+
+- `x` 轴表示时间：`0` —— 开始时刻，`1` —— `transition-duration` 的结束时刻
+- `y` 轴表示过程的完成度：`0` —— 属性的起始值，`1` —— 属性的最终值
+
+最简单的一种情况就是动画匀速进行，可以通过设置曲线为 `cubic-bezier(0, 0, 1, 1)` 来实现。
+
+看上去像这样：
+
+![image-20250816151156178](images/image-20250816151156178.png)
+
+这就是条直线，**随着时间 `x` 推移，完成度 `y` 稳步从 `0` 增长到 `1`**。
+
+例如下面的列车匀速地从左侧移动到右侧：
+
+```html
+<img class="train" src="https://js.cx/clipart/train.gif" onclick="this.style.left='450px'">
+
+<script>
+.train {
+  position: relative;
+  cursor: pointer;
+  width: 177px;
+  height: 160px;
+  left: 0;
+  transition: left 5s cubic-bezier(0, 0, 1, 1);
+}
+</script>
+```
+
+如果要表现出减速行驶的列车，可以使用另一条贝塞尔曲线：`cubic-bezier(0.0, 0.5, 0.5 ,1.0)`。
+
+图像如下：
+
+![image-20250816151627981](images/image-20250816151627981.png)
+
+这个过程起初很快：曲线开始迅速升高，然后越来越慢。
+
+CSS：
+
+```css
+.train {
+  left: 0;
+  transition: left 5s cubic-bezier(0, 0.5, 0.5, 1);
+}
+```
+
+CSS 提供几条内建的曲线：`linear`、`ease`、`ease-in`、`ease-out` 和 `ease-in-out`。
+
+`linear` 其实就是 `cubic-bezier(0, 0, 1, 1)` 的简写，一条直线。
+
+其它的名称是以下贝塞尔曲线的简写：
+
+![image-20250816151829117](images/image-20250816151829117.png)
+
+`*` —— 默认值，**如果没有指定时间函数，那么将使用 `ease` 作为默认值**。
+
+**贝塞尔曲线可以使动画超出其原本的范围**。
+
+曲线上的控制点的 `y` 值可以使任意的：不管是负值还是一个很大的值，如此，**贝塞尔曲线就会变得很低或者很高，让动画超出其正常的范围**。
+
+例如：
+
+```css
+.train {
+  left: 100px;
+  transition: left 5s cubic-bezier(0.5, -1, 0.5, 2);
+}
+```
+
+假设 `left` 本该在 `100px` 到 `400px` 之间变化。
+
+但是如果点击列车，会发现：
+
+- 起初，列车会**反向**运动：`left` 会变得小于 `100px`
+- 然后，它会变回往前运动，并且超过 `400px`
+- 最后再返回到 `400px`
+
+之所以会这样，通过观察贝塞尔曲线的图形就会明白：
+
+![image-20250816152307691](images/image-20250816152307691.png)
+
+**把第二个点的 `y` 坐标移动到了小于 `0` 的位置，同时把第三个点的 `y` 坐标移动到了大于 `1` 的位置**，因此曲线已经不再像一个四分之一圆了，`y` 坐标超出了常规的 `0..1` 的范围。
+
+正如前面说的，**`y` 表示动画进程的完成度，`y = 0` 表示属性的初始值，`y = 1` 则表示属性的最终值，因此，`y < 0` 意味着属性值要比初始值小，而 `y > 1` 则表明属性值要比最终值大**。
+
+当然了，`-1` 和 `2` 还是比较缓和的值。如果把 `y` 设为 `-99` 和 `99`，那么列车将会偏离地更远。
+
+但对于特定的任务要寻找合适的贝塞尔曲线，有更多工具可以使用，例如这个网站：http://cubic-bezier.com/。
+
+
+
+**阶跃函数（Steps）**
+
+时间函数 `steps(number of steps[, start/end])` **允许让动画分段进行**，`number of steps` 表示需要拆分为多少段。
+
+例如通过之前的数字的例子来演示一下，**将会让数字以离散的方式变化，而不是以连续的方式**。
+
+为了达到这个效果，把动画拆分为 9 段：
+
+```css
+#stripe.animate  {
+  transform: translate(-90%);
+  transition: transform 9s steps(9, start);
+}
+```
+
+`steps` 的**第一个参数表示段数，这个过渡动画将会被拆分为 9 个部分（每个占 10%），时间间隔也会以同样的方式被拆分：9 秒会被分割为多个时长 1 秒的间隔**。
+
+第二个参数可以取 `start` 或 `end` 两者其一。
+
+**`start` 表示在动画开始时，需要立即开始第一段的动画**。
+
+通过观察前面的动画可以知道：**当单击了数字之后，它会立马变为 `1`（即第一段），然后在下一秒开始的时候继续变化**。
+
+具体的流程如下：
+
+- `0s` —— `-10%`（在第一秒开始的时候立即变化）
+- `1s` —— `-20%`
+- …
+- `8s` – `-80%`
+- （最后一秒，显示最终值）
+
+另一个值 `end` 表示：**改变不应该在最开始的时候发生，而是发生在每一段的最后时刻**。
+
+其流程如下：
+
+- `0s` —— `0`
+- `1s` —— `-10%`（在第一秒结束时第一次变化）
+- `2s` —— `-20%`
+- …
+- `9s` —— `-90%`
+
+另外还有一些简写值：
+
+- `step-start` —— 等同于 `steps(1, start)`，即：动画立刻开始，并且只有一段，**就是说，会立刻开始，紧接着就结束了，宛如没有动画一样**
+- `step-end` —— 等同于 `steps(1, end)`，即：**在 `transition-duration` 结束时生成一段动画**
+
+这些值很少会被用到，因为它们并不算是真正的动画，而是单步的变化。
+
+
+
+**transitionend 事件**
+
+CSS 动画完成后，会触发 `transitionend` 事件，**而且还允许在动画结束后执行 JavaScript 代码，因此它可以方便得与代码结合起来**。
+
+**这被广泛用于在动画结束后执行某种操作**，也可以用它来串联动画。
+
+例如让一个小船在点击后向右浮动，然后再回来，而且，每一次都会向右移动地更远一点，这个动画通过 `go` 函数初始化，**并且在每次动画完成后都会重复执行**，并转变方向：
+
+```js
+boat.onclick = function() {
+  //...
+  let times = 1;
+  
+  function go() {
+    if (times % 2) {
+      // 向右移动
+      boat.classList.remove('back');
+      boat.style.marginLeft = 100 * times + 200 + 'px';
+    } else {
+      // 向左移动
+      boat.classList.add('back');
+      boat.style.marginLeft = 100 * times - 200 + 'px';
+    }
+  }
+  
+  go();
+  
+  boat.addEventListener('transitionend', function() {
+    times++;
+    go();
+  });
+};
+```
+
+`transitionend` 的事件对象有几个特定的属性：
+
+- `event.propertyName` ：当前完成动画的属性，**这在同时为多个属性加上动画时会很有用**
+- `event.elapsedTime` ：**动画完成的时间（按秒计算），不包括 `transition-delay`**
+
+**⚠️ 注意：如果有多个属性触发动画，那么 `transitionend` 事件会触发多次 —— 每个属性触发一次，因此需要进行额外的检查以确保只触发一次**。
+
+
+
+**关键帧动画（Keyframes）**
+
+可以通过 CSS 提供的 `@keyframes` 规则整合多个简单的动画。
+
+它会指定某个动画的名称以及相应的规则：**哪个属性，何时以及何地渲染动画**。
+
+**然后使用 `animation` 属性把动画绑定到相应的元素上**，并为其添加额外的参数。
+
+例如：
+
+```html
+<div class="progress"></div>
+
+<style>
+  @keyframes go-left-right {        /* 指定一个名字："go-left-right" */
+    from { left: 0px; }             /* 从 left: 0px 开始 */
+    to { left: calc(100% - 50px); } /* 移动至 left: 100%-50px */
+  }
+
+  .progress {
+    animation: go-left-right 3s infinite alternate;
+    /* 把动画 "go-left-right" 应用到元素上
+       持续 3 秒
+       持续次数：infinite
+       每次都改变方向
+    */
+
+    position: relative;
+    border: 2px solid green;
+    width: 50px;
+    height: 20px;
+    background: lime;
+  }
+</style>
+```
+
+有许多关于 `@keyframes` 的文章以及一个[详细的规范说明](https://drafts.csswg.org/css-animations/)。
+
+
+
+**CSS 动画与 JavaScript 动画对比**
+
+![image-20250816155342140](images/image-20250816155342140.png)

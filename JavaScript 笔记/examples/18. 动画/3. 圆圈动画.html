@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      .circle {
+        transition-property: width, height, margin-left, margin-top;
+        transition-duration: 2s;
+        position: fixed;
+        transform: translateX(-50%) translateY(-50%);
+        background-color: red;
+        border-radius: 50%;
+      }
+    </style>
+  </head>
+  <body>
+    <button onclick="showCircle(150, 150, 100)">
+      showCircle(150, 150, 100)
+    </button>
+
+    <script>
+      function showCircle(cx, cy, radius) {
+        const div = document.createElement('div');
+        div.style.width = 0;
+        div.style.height = 0;
+        div.style.left = cx + 'px';
+        div.style.top = cy + 'px';
+        div.className = 'circle';
+
+        document.body.append(div);
+
+        // 不加 setTimeout 浏览器认为元素一出现就是最终大小，导致看不到动画
+        setTimeout(() => {
+          div.style.width = radius * 2 + 'px';
+          div.style.height = radius * 2 + 'px';
+        });
+      }
+    </script>
+  </body>
+</html>
