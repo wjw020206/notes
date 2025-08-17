@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <time-formatted
+      hour="numeric"
+      minute="numeric"
+      second="numeric"
+    ></time-formatted>
+
+    <live-timer id="elem"></live-timer>
+
+    <script>
+      class TimeFormatted extends HTMLElement {
+        render() {
+          const date = new Date(this.getAttribute('datetime') || Date.now());
+
+          this.innerHTML = new Intl.DateTimeFormat('default', {
+            year: this.getAttribute('year') || undefined,
+            month: this.getAttribute('month') || undefined,
+            day: this.getAttribute('day') || undefined,
+            hour: this.getAttribute('hour') || undefined,
+            minute: this.getAttribute('minute') || undefined,
+            second: this.getAttribute('second') || undefined,
+            timeZoneName: this.getAttribute('time-zone-name') || undefined,
+          }).format(date);
+        }
+
+        connectedCallback() {
+          if (!this.rendered) {
+            this.render();
+            this.rendered = true;
+          }
+        }
+
+        static get observedAttributes() {
+          return [
+            'datetime',
+            'year',
+            'month',
+            'day',
+            'hour',
+            'minute',
+            'second',
+            'time-zone-name',
+          ];
+        }
+
+        attributeChangedCallback(name, oldValue, newValue) {
+          this.render();
+        }
+      }
+
+      customElements.define('time-formatted', TimeFormatted);
+
+      class LiveTimer extends HTMLElement {
+        connectedCallback() {
+          if (!this.rendered) {
+            this.render();
+            this.rendered = true;
+          }
+
+          this.timer = setInterval(() => this.update(), 1000);
+        }
+
+        disconnectedCallback() {
+          clearInterval(this.timer);
+        }
+
+        render() {
+          this.insertAdjacentHTML(
+            'beforeend',
+            `<time-formatted hour="numeric" minute="numeric" second="numeric"></time-formatted>`
+          );
+
+          this.timerElem = this.firstElementChild;
+        }
+
+        update() {
+          this.date = new Date();
+          this.timerElem.setAttribute('datetime', this.date);
+          this.dispatchEvent(
+            new CustomEvent('tick', {
+              detail: this.date,
+            })
+          );
+        }
+      }
+
+      customElements.define('live-timer', LiveTimer);
+
+      elem.addEventListener('tick', (event) => console.log(event.detail));
+    </script>
+  </body>
+</html>
