@@ -36009,5 +36009,108 @@ Shadow DOM 在很多其它标准中被提到，比如：[DOM Parsing](https://w3
 
 
 
+## 模版元素
+
+**内建的 `<template>` 元素用来存储 HTML 模版，浏览器将忽略它的内容，仅检查语法的有效性**，但可以在 JavaScript 中访问和使用它们来创建其它元素。
+
+从理论上讲，可以在 HTML 中的任何位置创建不可见的元素来存储 HTML 模版，那使用 `<template>` 元素有什么优势吗？
+
+首先，**其内容可以是任何有效的 HTML，即使它通常需要特定的封闭标签**。
+
+例如，可以在其中放置一行表格 `<tr>`：
+
+```html
+<template>
+  <tr>
+    <td>Contents</td>
+  </tr>
+</template>
+```
+
+通常，在 `<tr>` 内放置类似 `<div>` 的元素，**浏览器会检测到无效 DOM 结构并对其进行 “修复”，然后用 `<table>` 封闭 `<tr>`，但那不是我们想要的，而 `<template>` 则完全保留想要存储的内容**。
+
+也可以将样式和脚本放入 `<template>` 元素中：
+
+```html
+<template>
+  <style>
+    p { font-weight: bold; }
+  </style>
+  <script>
+    alert('Hello');
+  </script>
+</template>
+```
+
+**浏览器认为 `<template>` 的内容 “不在文档中”：样式不会被应用，脚本也不会被执行， `<video autoplay>` 也不会运行等**。
+
+**当将内容插入文档时，该内容将变为活动状态（应用样式，运行脚本等）**。
+
+
+
+**插入模版**
+
+**模版的 `content` 属性可看作 `DocumentFragment` —— 一种特殊的 DOM 节点**。
+
+可以将其视为普通的 DOM 节点，**除了它有一个特殊属性：将其插入某个位置时，被插入的是其子节点**。
+
+例如：
+
+```html
+<template id="tmpl">
+  <script>
+    alert('Hello');
+  </script>
+  <div class="message">Hello, world!</div>
+</template>
+
+<script>
+  const elem = document.createElement('div');
+
+  // 克隆模板内容以便多次重复使用
+  elem.append(tmpl.content.cloneNode(true));
+
+  document.body.append(elem);
+  // 现在 <template> 中的脚本运行
+</script>
+```
+
+使用 `<template>` 重写前面 Shadow DOM 示例：
+
+```html
+<template id="tmpl">
+  <style> p { font-weight: bold; } </style>
+  <p id="message"></p>
+</template>
+
+<div id="elem">Click me</div>
+
+<script>
+  elem.onclick = function() {
+    elem.attachShadow({mode: 'open'});
+
+    elem.shadowRoot.append(tmpl.content.cloneNode(true)); // (*)
+
+    elem.shadowRoot.getElementById('message').innerHTML = 'Hello from the shadows!';
+  };
+</script>
+```
+
+在 `(*)` 行，将 `tmpl.content` 作为 `DocumentFragment` 克隆和插入，它的子节点（`<style>`、`<p>`）将代为插入。
+
+它们会变成一个 Shadow DOM：
+
+```html
+<div id="elem">
+  #shadow-root
+    <style> p { font-weight: bold; } </style>
+    <p id="message"></p>
+</div>
+```
+
+
+
+
+
 
 
