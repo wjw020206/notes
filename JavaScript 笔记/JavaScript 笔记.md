@@ -36004,7 +36004,10 @@ Shadow DOM 被非常明显地和主文档分开：
 
 - DOM：https://dom.spec.whatwg.org/#shadow-trees
 - 兼容性：https://caniuse.com/#feat=shadowdomv1
-- Shadow DOM 在很多其它标准中被提到，比如：[DOM Parsing](https://w3c.github.io/DOM-Parsing/#the-innerhtml-mixin) 指定了 shadow root 有 `innerHTML`
+
+Shadow DOM 在很多其它标准中被提到，比如：[DOM Parsing](https://w3c.github.io/DOM-Parsing/#the-innerhtml-mixin) 指定了 shadow root 有 `innerHTML`。
+
+
 
 
 
