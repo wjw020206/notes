@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      #field {
+        height: 200px;
+        border-bottom: 3px black groove;
+        position: relative;
+      }
+
+      #ball {
+        position: absolute;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="field">
+      <img
+        src="https://zh.js.cx/clipart/ball.svg"
+        width="40"
+        height="40"
+        id="ball"
+      />
+    </div>
+
+    <script>
+      const field = document.querySelector('#field');
+      const ball = document.querySelector('#ball');
+
+      const width = 100;
+      const to = field.clientHeight - ball.offsetHeight;
+
+      ball.addEventListener('click', function () {
+        // 设置 top 动画（弹跳）
+        animate({
+          duration: 2000,
+          timing: makeEaseOut(bounce),
+          draw(progress) {
+            ball.style.top = progress * to + 'px';
+          },
+        });
+
+        // 设置 left 动画（向右移动）
+        animate({
+          duration: 2000,
+          timing: makeEaseOut(quad),
+          draw(progress) {
+            ball.style.left = progress * width + 'px';
+          },
+        });
+      });
+
+      // 接受时序函数，返回变换后的变体
+      function makeEaseOut(timing) {
+        return function (timeFraction) {
+          return 1 - timing(1 - timeFraction);
+        };
+      }
+
+      // 弹跳
+      function bounce(timeFraction) {
+        for (let a = 0, b = 1; 1; a += b, b /= 2) {
+          if (timeFraction >= (7 - 4 * a) / 11) {
+            return (
+              -Math.pow((11 - 6 * a - 11 * timeFraction) / 4, 2) +
+              Math.pow(b, 2)
+            );
+          }
+        }
+      }
+
+      // n 次幂抛物线
+      function quad(timeFraction) {
+        return Math.pow(timeFraction, 2);
+      }
+
+      function animate({ timing, draw, duration }) {
+        let start = performance.now();
+
+        requestAnimationFrame(function animate(time) {
+          // timeFraction 从 0 增加到 1
+          let timeFraction = (time - start) / duration;
+          if (timeFraction > 1) timeFraction = 1;
+
+          // 计算当前动画状态
+          let progress = timing(timeFraction);
+
+          draw(progress); // 绘制
+
+          if (timeFraction < 1) {
+            requestAnimationFrame(animate);
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

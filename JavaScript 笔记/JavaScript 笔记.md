@@ -35003,3 +35003,475 @@ boat.onclick = function() {
 **CSS 动画与 JavaScript 动画对比**
 
 ![image-20250816155342140](images/image-20250816155342140.png)
+
+
+
+## JavaScript 动画
+
+**JavaScript 动画可以处理 CSS 无法处理的事情**。
+
+例如，沿着具有与 Bezier 曲线不同的时序函数的复杂路径移动，或者实现画布上的动画。
+
+
+
+**使用 setInterval**
+
+从 HTML、CSS 角度来看，动画是 `style` 属性的逐渐变化，例如，将 `style.left` 从 `0px` 变化到 `100px` 可以移动元素。
+
+**如果用 `setInterval` 每秒做 50 次小变化，看起来会更顺畅**，电影也是这样的原理：每秒 24 帧或更多帧足以使其看起来流畅。
+
+伪代码如下：
+
+```js
+const delay = 1000 / 50; // 每秒 50 帧
+
+const timer = setInterval(function() {
+  if (animation complete) clearInterval(timer);
+  else increase style.left
+}, delay)
+```
+
+更完整的动画示例：
+
+```js
+const start = Date.now(); // 保存开始时间
+
+const timer = setInterval(function() {
+  // 距开始过了多长时间
+  const timePassed = Date.now() - start;
+  
+  if(timePassed >= 2000) {
+    clearInterval(timer); // 2 秒后结束动画
+    return;
+  }
+  
+  // 在 timePassed 时刻绘制动画
+  draw(timePassed);
+}, 20);
+
+// 随着 timePassed 从 0 增加到 2000
+// 将 left 的值从 0px 增加到 400px
+function draw(timePassed) {
+  train.style.left = timePassed / 5 + 'px';
+}
+```
+
+
+
+**使用 requestAnimationFrame**
+
+假设有几个同时运行的动画。
+
+**如果要单独运行它们，每个都有自己的 `setInterval(..., 20)`，那么浏览器必须以比 `20ms` 更频繁的速度重绘**。
+
+每个 `setInterval` 每 `20ms` 触发一次，但它们相互独立，因此 `20ms` 内将有多个独立运行的重绘。
+
+**可以将这几个独立的重绘应该组合在一起，以使浏览器更加容易处理**。
+
+像下面这样：
+
+```js
+setInterval(function() {
+  animate1();
+  animate2();
+  animate3();
+}, 20)
+```
+
+比这样更好：
+
+```js
+setInterval(animate1, 20);
+setInterval(animate2, 20);
+setInterval(animate3, 20);
+```
+
+**有时当 CPU 过载时，或者有其它原因需要降低重绘频率，例如，如果浏览器选项卡被隐藏，那么绘图完全没有意义**。
+
+有一个标准[动画时序](http://www.w3.org/TR/animation-timing/)**提供了 `requestAnimationFrame` 函数**。
+
+它解决了所有这些问题，甚至更多其它的问题。
+
+语法：
+
+```js
+const requestId = requestAnimationFrame(callback);
+```
+
+**这会让 `callback` 函数在浏览器每次重绘的最近时间运行**。
+
+**如果对 `callback` 中的元素进行变化，这些变化将与其它 `requestAnimationFrame` 回调和 CSS 动画组合在一起**，因此，**只会有一次几何重新计算和重绘，而不是多次**。
+
+返回值 `requestId` 可用来取消回调：
+
+```js
+// 取消回调的周期执行
+cancelAnimationFrame(requestId);
+```
+
+**`callback` 会得到一个参数，从页面加载开始经过的毫秒数，这个时间也可通过调用 [performance.now()](https://developer.mozilla.org/zh/docs/Web/API/Performance/now) 得到**。
+
+通常 `callback` 很快就会运行，除非 CPU 过载或笔记本电量消耗殆尽，或者其它原因。
+
+下面的代码显示了 `requestAnimationFrame` 的前 10 次运行之间的时间间隔，通常是 10-20ms：
+
+```js
+let prev = performance.now();
+let times = 0;
+
+requestAnimationFrame(function measure(time) {
+  document.body.insertAdjacentHTML('beforeEnd', Math.floor(time - prev) + ' ');
+  prev = time;
+  
+  if(times++ < 10) requestAnimationFrame(measure);
+});
+```
+
+输出结果如下：
+
+```
+-8 12 8 8 8 8 8 8 8 8 8
+```
+
+
+
+**结构化动画**
+
+可以在 `requestAnimationFrame` 基础上创建一个更通用的动画函数：
+
+```js
+function animate({ timing, draw, duration }) {
+  const start = performance.now();
+  
+  requestAnimationFrame(function animate(time) {
+    // let timeFraction 从 0 增加到 1
+    let timeFraction = (time - start) / duration;
+    if(timeFraction > 1) timeFraction = 1;
+    
+    // 计算当前动画状态
+    let progress = timing(timeFraction);
+    
+    draw(progress); // 绘制
+    
+    if(timeFraction < 1) {
+      requestAnimationFrame(animate);
+    }
+  });
+}
+```
+
+`animate` 函数接受 3 个描述动画的基本参数：
+
+- **`duration`** —— 动画总时间，比如 `1000`
+
+- **`timing(timeFraction)`** —— 时序函数，类似 CSS 属性 `transition-timing-function` **传入一个已过去的时间与总时间之比的小数（`0` 代表开始，`1` 代表结束）**，返回动画完成度（类似 Bezier 曲线中的 `y`）
+
+  例如，线性函数意味着动画以相同的速度均匀地进行：
+
+  ```js
+  function linear(timeFraction) {
+    return timeFraction;
+  }
+  ```
+
+  图形如下：
+
+  ![image-20250817070523397](images/image-20250817070523397.png)
+  
+  它类似于 `transition-timing-function: linear`。
+  
+- **`draw(progress)`** —— 获取动画完成状态并绘制的函数，**值 `progress = 0` 表示开始动画状态，`progress = 1` 表示结束状态，这是实际绘制动画的函数**
+
+  它可以移动元素：
+
+  ```js
+  function draw(progress) {
+    train.style.left = progress + 'px';
+  }
+  ```
+
+  也可以做其它任何事情，可以以任何方式为任何事物制作动画。
+
+  例如，将元素的 `width` 从 `0` 变化为 `100%`。
+
+  ```html
+  <progress id="elem"></progress>
+  
+  <script>
+    elem.onclick = function() {
+      animate({
+        duration: 1000,
+        timing(timeFraction) {
+          return timeFraction;
+        },
+        draw(progress) {
+          elem.style.width = progress * 100 + '%';
+        }
+      });
+    };
+  </script>
+  ```
+
+  与 CSS 动画不同，**可以在这里设计任何时序函数和任何绘制函数，时序函数不受 Bezier 曲线的限制，并且 `draw` 不局限于操作 CSS 属性**，还可以为类似烟花动画或其它动画创建新元素。
+
+
+
+**时序函数**
+
+以下是不同时序函数的代码和工作原理。
+
+- **n 次幂**
+
+  如果想要加速动画，可以让 `progress` 为 `n` 次幂。
+
+  例如，抛物线：
+
+  ```js
+  function quad(timeFraction) {
+    return Math.pow(timeFraction, 2)
+  }
+  ```
+
+  图像如下：
+
+  ![image-20250817071527789](images/image-20250817071527789.png)
+
+  如果使用三次曲线甚至使用更大的 `n`，增大幂会让动画加速得更快。
+
+- **圆弧**
+
+  函数：
+
+  ```js
+  function circ(timeFraction) {
+    return 1 - Math.sin(Math.acos(timeFraction));
+  }
+  ```
+
+  图像：
+
+  ![image-20250817071730967](images/image-20250817071730967.png)
+
+- **反弹：弓箭射击**
+
+  此函数执行 “弓箭射击”。先 “拉弓弦”，然后 “射击”。
+
+  与前面的函数不同，**它取决于附加参数 `x`，即 “弹性系数”，“拉弓弦” 的距离由它定义**。
+
+  代码如下：
+
+  ```js
+  function back(x, timeFraction) {
+    return Math.pow(timeFraction, 2) * ((x + 1) * timeFraction - x);
+  }
+  ```
+
+  `x = 1.5` 时的图像：
+
+  ![image-20250817072040098](images/image-20250817072040098.png)
+
+- **弹跳**
+
+  假如正在抛球，球落下之后，弹跳几次然后停下来。
+
+  `bounce` 函数也是如此，但顺序相反：“bouncing” 立即启动，它使用了几个特殊的系数：
+
+  ```js
+  function bounce(timeFraction) {
+    for (let a = 0, b = 1; 1; a += b, b /= 2) {
+      if (timeFraction >= (7 - 4 * a) / 11) {
+        return -Math.pow((11 - 6 * a - 11 * timeFraction) / 4, 2) + Math.pow(b, 2)
+      }
+    }
+  }
+  ```
+
+  
+
+- **伸缩动画**
+
+  另一个 “伸缩” 函数接受附加参数 `x` 作为 “初始范围”。
+
+  ```js
+  function elastic(x, timeFraction) {
+    return Math.pow(2, 10 * (timeFraction - 1)) * Math.cos(20 * Math.PI * x / 3 * timeFraction)
+  }
+  ```
+
+  `x=1.5` 时的图像：
+
+  ![image-20250817072848743](images/image-20250817072848743.png)
+
+**逆转：ease***
+
+有一组时序函数，它们的直接应用称为 “easeIn”。
+
+**有时需要以相反的顺序显示动画**，这是通过 “easeOut” 变换完成的。
+
+
+
+**easeOut**
+
+在 “easeOut” 模式中，将 `timing` 函数封装到 `timingEaseOut` 中：
+
+```js
+timingEaseOut = (timeFraction) => 1 - timing(1 - timeFraction);
+```
+
+换句话说，有一个 “变换” 函数 `makeEaseOut`，它接受一个 “常规” 时序函数 `timing` 并返回一个封装器，在里面封装了 `timing` 函数：
+
+```js
+// 接受时序函数，返回变换后的变体
+function makeEaseOut(timing) {
+  return function(timeFraction) {
+    return 1 - timing(1 - timeFraction);
+  }
+}
+```
+
+可以调整前面示例中的 `bounce` 函数：
+
+```js
+function makeEaseOut(timing) {
+  return function(timeFraction) {
+    return 1 - timing(1 - timeFraction);
+  }
+}
+
+function bounce(timeFraction) {
+  for (let a = 0, b = 1; 1; a += b, b /= 2) {
+    if (timeFraction >= (7 - 4 * a) / 11) {
+      return -Math.pow((11 - 6 * a - 11 * timeFraction) / 4, 2) + Math.pow(b, 2)
+    }
+  }
+}
+
+const bounceEaseOut = makeEaseOut(bounce);
+
+brick.onclick = function() {
+  animate({
+    duration: 3000,
+    timing: bounceEaseOut,
+    draw: function(progress) {
+      brick.style.left = progress * 500 + 'px';
+    }
+  });
+};
+```
+
+现在弹跳不在动画开始执行，而是在动画结束时，这样看起来更好。
+
+下图可以看到变换如何改变函数的行为：
+
+![image-20250817074548545](images/image-20250817074548545.png)
+
+上图中**常规弹跳为红色，easeOut 弹跳为蓝色**。
+
+- 常规弹跳 —— 物体在底部弹跳，然后突然跳到顶部
+- `easeOut` 变换之后 —— 物体跳到顶部之后，在那里弹跳
+
+
+
+
+
+**easeInOut**
+
+还可以**在动画的开头和结尾都显示效果**，该变换称为 “easeInOut”。
+
+给定时序函数，按下面的方式计算动画状态：
+
+```js
+if (timeFraction <= 0.5) { // 动画前半部分
+  return timing(2 * timeFraction) / 2;
+} else { // 动画后半部分
+  return (2 - timing(2 * (1 - timeFraction))) / 2;
+}
+```
+
+封装器代码：
+
+```js
+function makeEaseInOut(timing) {
+  return function(timeFraction) {
+    if (timeFraction < .5)
+      return timing(2 * timeFraction) / 2;
+    else
+      return (2 - timing(2 * (1 - timeFraction))) / 2;
+  }
+}
+
+bounceEaseInOut = makeEaseInOut(bounce);
+```
+
+“easeInOut” 变换将两个图像连接成一个：**动画的前半部分为 “easeIn”（常规），后半部分为“easeOut”（反向）**。
+
+如果比较 `circ` 时序函数的 `easeIn`、`easeOut` 和 `easeInOut` 的图像，就可以清楚地看到效果：
+
+![image-20250817075048318](images/image-20250817075048318.png)
+
+- 红色是 `circ`（`easeIn`）的常规变体
+- 绿色 —— `easeOut`
+- 蓝色 —— `easeInOut`
+
+
+
+**更有趣的 “draw”**
+
+除了移动元素，还可以做其它事情，所需要的只是写出合适的 `draw`。
+
+例如，实现动画形式的 “弹跳” 文字输入：
+
+```html
+<textarea id="textExample" rows="5" cols="60">He took his vorpal sword in hand:
+Long time the manxome foe he sought—
+So rested he by the Tumtum tree,
+And stood awhile in thought.
+</textarea>
+
+<button onclick="animateText(textExample)">Run the animated typing!</button>
+
+<style>
+textarea {
+  display: block;
+  border: 1px solid #BBB;
+  color: #444;
+  font-size: 110%;
+}
+
+button {
+  margin-top: 10px;
+}
+</style>
+
+<script>
+  function animateText(textArea) {
+    let text = textArea.value;
+    let to = text.length,
+      from = 0;
+
+    animate({
+      duration: 5000,
+      timing: bounce,
+      draw(progress) {
+        let result = (to - from) * progress + from;
+        textArea.value = text.substr(0, Math.ceil(result))
+      }
+    });
+  }
+
+  function bounce(timeFraction) {
+    for (let a = 0, b = 1; 1; a += b, b /= 2) {
+      if (timeFraction >= (7 - 4 * a) / 11) {
+        return -Math.pow((11 - 6 * a - 11 * timeFraction) / 4, 2) + Math.pow(b, 2)
+      }
+    }
+  }
+</script>
+```
+
+
+
+
+
+
+
