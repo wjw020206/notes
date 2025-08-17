@@ -35860,3 +35860,151 @@ customElements.define('user-info', class extends HTMLElement {
 - 兼容性： https://caniuse.com/#feat=custom-elements
 
 **⚠️ 注意：Custom element 在各浏览器中的兼容性已经非常好了，但 Edge 支持地相对较差，但可以使用 polyfill https://github.com/webcomponents/polyfills/tree/master/packages/webcomponentsjs**。
+
+
+
+## 影子 DOM（Shadow DOM）
+
+Shadow DOM 为封装而生，**它可以让一个组件拥有自己的影子 DOM 树，这个 DOM 树不能在主文档中被任意访问，可能拥有局部样式规则，还有其它特性**。
+
+
+
+**内建 shadow DOM**
+
+复杂的浏览器控件是如何被创建和添加样式的？
+
+例如 `<input type="range">`：
+
+![image-20250817143857856](images/image-20250817143857856.png)
+
+浏览器在内部使用 DOM/CSS 来绘制它们，这个 DOM 结构一般来说是对外部隐藏的，但是可以在开发者工具里面看见它，比如，**在 Chrome 中需要打开 Show user agent shadow DOM 选项。**
+
+然后 `<input type="range">` 看起来会像这样：
+
+![image-20250817144252919](images/image-20250817144252919.png)
+
+**在 `#shadow-root` 下看到的就是被称为 shadow DOM 的东西**。
+
+**不能使用一般的 JavaScript 调用或者选择器来获取内建的 shadow DOM 元素，它们不是常规的子元素，而是一个强大的封装手段**。
+
+在上面的例子中，**可以看到一个有用的属性 `pseudo`，这是一个因为历史原因而存在的属性，并不在标准中，可以使用它来给子元素加上 CSS 样式**，像下面这样：
+
+```html
+<style>
+  input::-webkit-slider-runnable-track {
+    background: red;
+  }
+</style>
+
+<input type="range">
+```
+
+**⚠️ 注意：重申一次 `pseudo` 是一个非标准属性**，按照时间顺序来说，浏览器首先实验了使用内部 DOM 结构来实现控件，然后在一段时间之后，shadow DOM 才被标准化，才让开发者能做类似的事情。
+
+
+
+**Shadow tree**
+
+一个 DOM 元素可以有以下两类的 DOM 子树：
+
+- **Light tree（光明树） **—— 一个常规 DOM 子树，有 HTML 子元素完成
+- **Shadow tree（影子树）** —— 一个隐藏的 DOM 子树，**不在 HTML 中反映，无法被察觉**
+
+**如果一个元素同时有以上两种子树，那么浏览器只渲染 Shadow tree，但是使用 Shadow DOM 插槽同样可以设置两种树的组合**。
+
+**影子树可以在自定义元素中被使用，其作用是隐藏组件内部结构和添加只在组件内有效的样式**。
+
+例如，`<show-hello>` 元素将它的内部 DOM 隐藏在了影子里面：
+
+```html
+<script>
+customElements.define('show-hello', class extends HTMLElement {
+  connectedCallback() {
+    const shadow = this.attachShadow({mode: 'open'});
+    shadow.innerHTML = `<p>
+      Hello, ${this.getAttribute('name')}
+    </p>`;
+  }
+});
+</script>
+
+<show-hello name="John"></show-hello>
+```
+
+这是在 Chrome 开发者工具中看到的样子，所有的内容都在 `#shadow-root` 下：
+
+![image-20250817150616881](images/image-20250817150616881.png)
+
+首先，**调用 `elem.attachShadow({mode: ...})` 可以创建一个 shadow tree**。
+
+这里有两个限制：
+
+1. **在每个元素中，只能创建一个 shadow root**
+2. **`elem` 必须是自定义元素，或者是以下元素中的其中一个：`article`、`aside`、`blockquote`、`body`、`div`、`footer`、`h1...h6`、`header`、`main`、`nav`、`p`、`section` 或者 `span`，其它元素，比如 `img` 不能容纳 Shadow tree**
+
+`mode` 选项**可以设定封装层级，它必须是以下两个值之一**：
+
+- `'open'` ——  shadow root 可以通过 `elem.shadowRoot` 访问
+
+- `'closed'` —— **`elem.shadowRoot` 永远是 `null`**
+
+  **这时只能通过 `attachShadow` 返回的指针来访问 shadow DOM**（并且可能隐藏在一个 class 中），**浏览器原生的 shadow tree，比如 `<input type="range">` 是封闭的，没有任何方法可以访问它们**。
+
+**`attachShadow` 返回的是 shadow root，和任何元素一样：可以使用 `innerHTML` 或者 DOM 方法，比如 `append` 来扩展它**。
+
+**称有 shadow root 的元素叫做 shadow tree host，可以通过 shadow root 的 `host` 属性访问**：
+
+```js
+// 假设 {mode: 'open'}，否则 elem.shadowRoot 是 null
+alert(elem.shadowRoot.host === elem); // true
+```
+
+
+
+**封装**
+
+Shadow DOM 被非常明显地和主文档分开：
+
+- **Shadow DOM 元素在 Light DOM 中的 `querySelector` 中不可见**，实际上，Shadow DOM 中的元素可能与 light DOM 中某些元素的 id 冲突，这些元素必须在 shadow tree 中独一无二
+- **Shadow DOM 有自己的样式，外部样式规则在 Shadow DOM 中不产生作用**
+
+例如：
+
+```html
+<style>
+  /* 文档样式对 #elem 内的 shadow tree 无作用 (1) */
+  p { color: red; }
+</style>
+
+<div id="elem"></div>
+
+<script>
+  elem.attachShadow({mode: 'open'});
+   // shadow tree 有自己的样式 (2)
+  elem.shadowRoot.innerHTML = `
+    <style> p { font-weight: bold; } </style>
+    <p>Hello, John!</p>
+  `;
+
+  // <p> 只对 shadow tree 里面的查询可见 (3)
+  alert(document.querySelectorAll('p').length); // 0
+  alert(elem.shadowRoot.querySelectorAll('p').length); // 1
+</script>
+```
+
+![image-20250817152916019](images/image-20250817152916019.png)
+
+1. 文档里面的样式对 shadow tree 没有任何效果
+2. 但是内部的样式是有效的
+3. 为了获取 shadow tree 内部的元素，可以从树的内部查询
+
+
+
+**参考**
+
+- DOM：https://dom.spec.whatwg.org/#shadow-trees
+- 兼容性：https://caniuse.com/#feat=shadowdomv1
+- Shadow DOM 在很多其它标准中被提到，比如：[DOM Parsing](https://w3c.github.io/DOM-Parsing/#the-innerhtml-mixin) 指定了 shadow root 有 `innerHTML`
+
+
+
