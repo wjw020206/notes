@@ -35859,4 +35859,4 @@ customElements.define('user-info', class extends HTMLElement {
 - HTML 现行标准： https://html.spec.whatwg.org/#custom-elements
 - 兼容性： https://caniuse.com/#feat=custom-elements
 
-**⚠️ 注意：Custom element 在各浏览器中的兼容性已经非常好了，但 Edge 支持地相对较差，但可以使用 polyfill https://github.com/webcomponents/webcomponentsjs**。
+**⚠️ 注意：Custom element 在各浏览器中的兼容性已经非常好了，但 Edge 支持地相对较差，但可以使用 polyfill https://github.com/webcomponents/polyfills/tree/master/packages/webcomponentsjs**。
