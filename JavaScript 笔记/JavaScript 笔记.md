@@ -36110,6 +36110,427 @@ Shadow DOM 在很多其它标准中被提到，比如：[DOM Parsing](https://w3
 
 
 
+## Shadow DOM 插槽，组成
+
+许多类型的组件，例如标签、菜单、照片库等等，都需要内容去渲染。
+
+**就像浏览器内建的 `<select>` 需要 `<option>` 子项，自定义的 `<custom-tabs>` 可能需要实际的标签内容来其作用，并且一个 `<custom-menu>` 可能需要菜单子项**。
+
+使用一个 `<custom-menu>` 的代码如下：
+
+```html
+<custom-menu>
+  <title>Candy menu</title>
+  <item>Lollipop</item>
+  <item>Fruit Toast</item>
+  <item>Cup Cake</item>
+</custom-menu>
+```
+
+之后，组件应该正确地渲染成具有给定标题和项目、处理菜单事件等的菜单。
+
+如果要实现这个效果，可以尝试分析元素内容并动态复制重新排列 DOM 节点，但如果要将元素移动到 Shadow DOM，那么文档的 CSS 样式不能在那里应用，因此文档的视觉样式可能会丢失，还需要额外的一些处理。
+
+幸运的是不需要自己去做，**Shadow DOM 支持 `<slot>` 元素，由 Light DOM 中的内容自动填充**。
+
+
+
+**具名插槽**
+
+下面代码中 `<user-card>` Shadow DOM 提供两个插槽，从 Light DOM 填充：
+
+```html
+<script>
+customElements.define('user-card', class extends HTMLElement {
+  connectedCallback() {
+    this.attachShadow({mode: 'open'});
+    this.shadowRoot.innerHTML = `
+      <div>Name:
+        <slot name="username"></slot>
+      </div>
+      <div>Birthday:
+        <slot name="birthday"></slot>
+      </div>
+    `;
+  }
+});
+</script>
+
+<user-card>
+  <span slot="username">John Smith</span>
+  <span slot="birthday">01.01.2001</span>
+</user-card>
+```
+
+![image-20250817162008057](images/image-20250817162008057.png)
+
+在 Shadow DOM 中，**`<slot name="X">` 定义了一个 “插入点”，一个带有 `slot="X"` 特性的元素被渲染的地方**。
+
+**然后浏览器执行 “组合”：它从 Light DOM 中获取元素并渲染到 Shaow DOM 中的对应插槽中**。
+
+这是编译后的，不考虑组合的 DOM 结构：
+
+```html
+<user-card>
+  #shadow-root
+    <div>Name:
+      <slot name="username"></slot>
+    </div>
+    <div>Birthday:
+      <slot name="birthday"></slot>
+    </div>
+  <span slot="username">John Smith</span>
+  <span slot="birthday">01.01.2001</span>
+</user-card>
+```
+
+**从 Light DOM 中获取的元素也被插入到了 Shadow DOM 中，位于 `#shadow-root` 之下，现在元素同时拥有了 Light DOM 和 Shadow DOM**。
+
+为了渲染 Shadow DOM 中的每一个 `<slot name="...">` 元素，浏览器在 Light DOM 中寻找相同名字的 `slot="..."`，这些元素在插槽内被渲染：
+
+![image-20250817164354863](images/image-20250817164354863.png)
+
+结果被叫做**扁平化（flattened）DOM**：
+
+```html
+<user-card>
+  #shadow-root
+    <div>Name:
+      <slot name="username">
+        <!-- 插槽组件插入槽中 -->
+        <span slot="username">John Smith</span>
+      </slot>
+    </div>
+    <div>Birthday:
+      <slot name="birthday">
+        <span slot="birthday">01.01.2001</span>
+      </slot>
+    </div>
+</user-card>
+```
+
+**但 “flattened” DOM 仅仅被创建用来渲染和事件处理，是 “虚拟” 的，虽然是渲染出来了，但文档中的节点事实上并没有到处移动**。
+
+调用 `querySelectorAll` 很容易验证：节点仍在它们的位置。
+
+```js
+// Light DOM <span> 节点位置依然不变，在 `<user-card>` 里
+alert( document.querySelectorAll('user-card span').length ); // 2
+```
+
+因此，扁平化 DOM 是通过插入插槽从 Shadow DOM 派生出来的，浏览器渲染它并且用于样式继承、事件传播，但是 JavaScript 在扁平前仍按原样看到文档。
+
+**⚠️ 注意：仅顶层子元素可以设置 slot="..." 特性**，`slot="..."` 属性仅仅对 shadow host 的直接子代，**对于嵌套元素它将被忽略**。
+
+例如，这里的第二个 `<span>` 被忽略了（因为它不是 `<user-card>` 的顶层子元素）：
+
+```html
+<user-card>
+  <span slot="username">John Smith</span>
+  <div>
+    <!-- 无效插槽，必须是 user-card 的直接子项 -->
+    <span slot="birthday">01.01.2001</span>
+  </div>
+</user-card>
+```
+
+**如果在 Light DOM 中有多个相同插槽名的元素，那么它们会被一个接一个地添加到插槽中**。
+
+例如：
+
+```html
+<user-card>
+  <span slot="username">John</span>
+  <span slot="username">Smith</span>
+</user-card>
+```
+
+扁平化这两个 DOM 元素，插入到 `<slot name="username">` 中：
+
+```html
+<user-card>
+  #shadow-root
+    <div>Name:
+      <slot name="username">
+        <span slot="username">John</span>
+        <span slot="username">Smith</span>
+      </slot>
+    </div>
+    <div>Birthday:
+      <slot name="birthday"></slot>
+    </div>
+</user-card>
+```
+
+
+
+**插槽后备内容**
+
+**如果在 `<slot>` 中放点什么，它将成为后备内容**，当 Light DOM 中没有相应填充物的话，浏览器就展示它。
+
+例如，在 Shadow DOM 中，如果 Light DOM 中没有 `slot="username"` 的话 `Anonymous` 就被渲染。
+
+```html
+<div>Name:
+  <slot name="username">Anonymous</slot>
+</div>
+```
+
+
+
+**默认插槽：第一个不具名的插槽**
+
+Shadow DOM 中**第一个没有名字的 `<slot>` 是第一个默认插槽**，它从 Light DOM 中获取没有放置在其它位置的所有节点。
+
+例如，把默认插槽添加到 `<user-card>`，**该位置可以收集有关用户的所有未开槽（unslotted）的信息**：
+
+```html
+<script>
+customElements.define('user-card', class extends HTMLElement {
+  connectedCallback() {
+    this.attachShadow({mode: 'open'});
+    this.shadowRoot.innerHTML = `
+    <div>Name:
+      <slot name="username"></slot>
+    </div>
+    <div>Birthday:
+      <slot name="birthday"></slot>
+    </div>
+    <fieldset>
+      <legend>Other information</legend>
+      <slot></slot>
+    </fieldset>
+    `;
+  }
+});
+</script>
+
+
+<user-card>
+  <div>I like to swim.</div>
+  <span slot="username">John Smith</span>
+  <span slot="birthday">01.01.2001</span>
+  <div>...And play volleyball too!</div>
+</user-card>
+```
+
+![image-20250817184058572](images/image-20250817184058572.png)
+
+上述代码中，所有未被插入的 Light DOM 内容进入了其它信息的字段集。
+
+元素一个接一个的附加到插槽中，因此这两个未插入具名插槽的信息都在默认插槽中。
+
+扁平化的 DOM 看起来像这样：
+
+```html
+<user-card>
+  #shadow-root
+    <div>Name:
+      <slot name="username">
+        <span slot="username">John Smith</span>
+      </slot>
+    </div>
+    <div>Birthday:
+      <slot name="birthday">
+        <span slot="birthday">01.01.2001</span>
+      </slot>
+    </div>
+    <fieldset>
+      <legend>Other information</legend>
+      <slot>
+        <div>I like to swim.</div>
+        <div>...And play volleyball too!</div>
+      </slot>
+    </fieldset>
+</user-card>
+```
+
+
+
+**菜单例子**
+
+例如，通过插槽来为 `<custom-menu>` 分配元素。
+
+这是 `<custom-menu>`：
+
+```html
+<custom-menu>
+  <span slot="title">Candy menu</span>
+  <li slot="item">Lollipop</li>
+  <li slot="item">Fruit Toast</li>
+  <li slot="item">Cup Cake</li>
+</custom-menu>
+```
+
+带有适当插槽的 Shadow DOM 模版：
+
+```html
+<template id="tmpl">
+  <style> /* menu styles */ </style>
+  <div class="menu">
+    <slot name="title"></slot>
+    <ul><slot name="item"></slot></ul>
+  </div>
+</template>
+```
+
+扁平化的 DOM 变为：
+
+```html
+<custom-menu>
+  #shadow-root
+    <style> /* menu styles */ </style>
+    <div class="menu">
+      <slot name="title">
+        <span slot="title">Candy menu</span>
+      </slot>
+      <ul>
+        <slot name="item">
+          <li slot="item">Lollipop</li>
+          <li slot="item">Fruit Toast</li>
+          <li slot="item">Cup Cake</li>
+        </slot>
+      </ul>
+    </div>
+</custom-menu>
+```
+
+**⚠️ 注意：虽然在有效的 DOM 中，`<li>` 必须是 `<ul>` 的直接子代，但这是扁平化的 DOM，它描述了组件的渲染方式，所以这样的事情在这里自然发生**。
+
+只需要添加一个 `click` 事件处理程序来打开/关闭列表，并且 `<custom-menu>` 准备好了：
+
+```js
+customElements.define('custom-menu', class extends HTMLElement {
+  connectedCallback() {
+    this.attachShadow({mode: 'open'});
+
+    // tmpl 是影子 DOM 模板（见上文）
+    this.shadowRoot.append( tmpl.content.cloneNode(true) );
+
+    // 无法选择 Light DOM 节点，因此需要处理插槽上的点击
+    this.shadowRoot.querySelector('slot[name="title"]').onclick = () => {
+      // 打开/关闭菜单
+      this.shadowRoot.querySelector('.menu').classList.toggle('closed');
+    };
+  }
+});
+```
+
+还可以添加更多的功能：事件、方法等。
+
+
+
+**更新插槽**
+
+**如果添加/删除了插槽元素，浏览器将监视插槽并更新渲染。**
+
+另外，**由于插槽不是复制 Light DOM 节点，而是仅在插槽中进行渲染，所以内部的变化是立即可见的**。
+
+因此，无需执行任何操作即可更新渲染，**如果组件想知道插槽的更改，那么可以用 `slotchange` 事件**。
+
+例如，这里的菜单项在 1 秒后动态插入，而且标题在 2 秒后更改。
+
+```html
+<custom-menu id="menu">
+  <span slot="title">Candy menu</span>
+</custom-menu>
+
+<script>
+customElements.define('custom-menu', class extends HTMLElement {
+  connectedCallback() {
+    this.attachShadow({mode: 'open'});
+    this.shadowRoot.innerHTML = `<div class="menu">
+      <slot name="title"></slot>
+      <ul><slot name="item"></slot></ul>
+    </div>`;
+
+    // shadowRoot 无法监听事件处理程序，因此使用第一个子元素
+    this.shadowRoot.firstElementChild.addEventListener('slotchange',
+      e => alert('slotchange: ' + e.target.name)
+    );
+  }
+});
+
+setTimeout(() => {
+  menu.insertAdjacentHTML('beforeEnd', '<li slot="item">Lollipop</li>')
+}, 1000);
+
+setTimeout(() => {
+  menu.querySelector('[slot="title"]').innerHTML = 'New menu';
+}, 2000);
+</script>
+```
+
+上述代码中，菜单每次更新会自动渲染，无需干预：
+
+这里有两个 `slotchange` 事件：
+
+1. 在初始化时：
+
+   `slotchange: title` 立即触发，**因为来自 Light DOM 的 `slot="title"` 进入了相应的插槽**。
+
+2. 1 秒后:
+
+   `slotchange: item` 触发，因为一个新的 `<li slot="item">` 被添加。
+
+**⚠️ 注意：2 秒后，如果修改了 `slot="title"` 的内容，则不会发生 `slotchange` 事件，因为没有插槽更改，而是修改了 slotted 元素的内容，这是另一回事**。
+
+如果想通过 JavaScript 跟踪 Light DOM 的内部修改，可以使用更通用的机制：`Mutation observer`。
+
+
+
+**插槽 API**
+
+通过 JavaScript 查看的是真实的 DOM，不展开，**但如果 shadow 树有 `{ mode: 'open' }`，那么可以找出哪个元素被放进一个插槽，反之亦然，哪个插槽分配了给这个元素**：
+
+- `node.assignedSlot` —— 返回 `node` 分配给的 `<slot>` 元素
+- `slot.assignedNodes({ flatten: true/false })` —— 返回分配给插槽的 DOM 节点，**默认情况下，`flatten` 选项为 `false`，如果显式地设置为 `true`，则它将更深入地查看扁平化 DOM，如果嵌套了组件，则返回嵌套的插槽，如果未分配节点，则返回备用内容**
+- `slot.assignedElements({ flatten: true/false })` —— 分配给插槽的 DOM 元素（与上面相同，但仅元素节点）
+
+**当不仅需要显示已插入的内容的内容，还需要再 JavaScript 对其进行跟踪**，这些方法都很有用。
+
+例如，如果 `<custom-menu>` 组件想知道它所显示的内容，那么它可以跟踪 `slotchange` 并从 `slot.assignedElements` 获取：
+
+```html
+<custom-menu id="menu">
+  <span slot="title">Candy menu</span>
+  <li slot="item">Lollipop</li>
+  <li slot="item">Fruit Toast</li>
+</custom-menu>
+
+<script>
+customElements.define('custom-menu', class extends HTMLElement {
+  items = []
+
+  connectedCallback() {
+    this.attachShadow({mode: 'open'});
+    this.shadowRoot.innerHTML = `<div class="menu">
+      <slot name="title"></slot>
+      <ul><slot name="item"></slot></ul>
+    </div>`;
+
+    // slotchange 事件在插槽第一次填充时触发，并且在插槽元素的添加/删除/替换操作（而不是其子元素）时触发
+    this.shadowRoot.firstElementChild.addEventListener('slotchange', e => {
+      const slot = e.target;
+      if (slot.name === 'item') {
+        this.items = slot.assignedElements().map(elem => elem.textContent);
+        alert('Items: ' + this.items);
+      }
+    });
+  }
+});
+
+// items 在 1 秒后更新
+setTimeout(() => {
+  menu.insertAdjacentHTML('beforeEnd', '<li slot="item">Cup Cake</li>')
+}, 1000);
+</script>
+```
+
+
+
+
+
 
 
 
