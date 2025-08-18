@@ -36422,7 +36422,7 @@ customElements.define('custom-menu', class extends HTMLElement {
 
 **更新插槽**
 
-**如果添加/删除了插槽元素，浏览器将监视插槽并更新渲染。**
+**如果添加/删除/替换了插槽元素，浏览器将监视插槽并更新渲染。**
 
 另外，**由于插槽不是复制 Light DOM 节点，而是仅在插槽中进行渲染，所以内部的变化是立即可见的**。
 
@@ -36529,9 +36529,318 @@ setTimeout(() => {
 
 
 
+## 给 Shadow DOM 添加样式
+
+**Shadow DOM 可以包含 `<style>` 和 `<link rel="stylesheet" href="...">` 标签**，在后一种情况下，**样式表是 HTTP 缓存的，因此不会为使用同一模版的多个组件重新下载样式表**。
+
+一般来说，**局部样式只在 Shadow 树内起作用，文档样式在 Shadow 树外起作用**，但也有少数例外。
 
 
 
+**:host**
+
+`:host` 选择器**允许选择 shadow 宿主（包含 shadow 树的元素）**。
+
+例如，正在创建 `<custom-dialog>` 元素，并且想使它居中，为此需要对 `<custom-dialog>` 元素本身设置样式。
+
+这就是 `:host` 所能做的：
+
+```html
+<template id="tmpl">
+  <style>
+    /* 这些样式将从内部应用到 custom-dialog 元素上 */
+    :host {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      display: inline-block;
+      border: 1px solid red;
+      padding: 10px;
+    }
+  </style>
+  <slot></slot>
+</template>
+
+<script>
+customElements.define('custom-dialog', class extends HTMLElement {
+  connectedCallback() {
+    this.attachShadow({mode: 'open'}).append(tmpl.content.cloneNode(true));
+  }
+});
+</script>
+```
 
 
+
+**级联**
+
+shadow 宿主（ `<custom-dialog>` 本身）驻留在 Light DOM 中，因此它受到文档 CSS 规则的影响。
+
+如果在局部 `:host` 和文档中都给一个属性设置样式，**那么文档样式优先**。
+
+例如，如果在文档中有如下样式：
+
+```html
+<style>
+custom-dialog {
+  padding: 0;
+}
+</style>
+```
+
+那么 `<custom-dialog>` 将没有 `padding`。
+
+这是非常有利的，**因为可以在其 `:host` 规则中设置 “默认” 组件样式，然后在文档中轻松覆盖它们**。
+
+**⚠️ 注意：唯一的例外是当局部属性被标记 `!important` 时，对于这样的属性，局部样式优先**。
+
+
+
+**:host(selector)**
+
+与 `:host` 相同，仅当在 shadow 宿主与 `selector` 匹配时才应用样式。
+
+例如，当希望 `<custom-dialog>` 具有 `centered` 属性时才将其居中：
+
+```html
+<template id="tmpl">
+  <style>
+    :host([centered]) {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      border-color: blue;
+    }
+
+    :host {
+      display: inline-block;
+      border: 1px solid red;
+      padding: 10px;
+    }
+  </style>
+  <slot></slot>
+</template>
+
+<script>
+customElements.define('custom-dialog', class extends HTMLElement {
+  connectedCallback() {
+    this.attachShadow({mode: 'open'}).append(tmpl.content.cloneNode(true));
+  }
+});
+</script>
+
+
+<custom-dialog centered>
+  Centered!
+</custom-dialog>
+
+<custom-dialog>
+  Not centered.
+</custom-dialog>
+```
+
+![image-20250818070611828](images/image-20250818070611828.png)
+
+
+
+**:host-context(selector)**
+
+与 `:host` 相同，但**仅当外部文档中的 shadow 宿主或它的任何祖先节点与 `selector` 匹配时才应用样式**。
+
+例如，`:host-context(.dark-theme)` 只有在 `<custom-dialog>` 或 `custom-dialog` 的任何祖先节点上有 `dark-theme` 类时才匹配：
+
+```html
+<body class="dark-theme">
+  <!--
+    :host-context(.dark-theme) 只应用于 .dark-theme 内部的 custom-dialog
+  -->
+  <custom-dialog>...</custom-dialog>
+</body>
+```
+
+总之，可以使用 `:host`-family 系列的选择器来对组件的主元素进行样式设置，具体取决于上下文，这些样式（除 `!important` 外）可以被文档样式覆盖。
+
+
+
+**给占槽（slotted）内容添加样式**
+
+**占槽元素来自 Light DOM，所以它们使用文档样式，局部样式不会影响占槽内容**。
+
+下面的例子中，按照文档样式，占槽的 `<span>` 是粗体，但它不从局部样式中获取 `background`：
+
+```html
+<style>
+  span { font-weight: bold }
+</style>
+
+<user-card>
+  <div slot="username"><span>John Smith</span></div>
+</user-card>
+
+<script>
+customElements.define('user-card', class extends HTMLElement {
+  connectedCallback() {
+    this.attachShadow({mode: 'open'});
+    this.shadowRoot.innerHTML = `
+      <style>
+      span { background: red; }
+      </style>
+      Name: <slot name="username"></slot>
+    `;
+  }
+});
+</script>
+```
+
+![image-20250818072920864](images/image-20250818072920864.png)
+
+结果是粗体，但不是红色。
+
+但如果想在组件中设置占槽元素的样式，有两种选择。
+
+1. **可以对 `<slot>` 本身进行样式化，并借助 CSS 继承**
+
+   ```html
+   <user-card>
+     <div slot="username"><span>John Smith</span></div>
+   </user-card>
+   
+   <script>
+   customElements.define('user-card', class extends HTMLElement {
+     connectedCallback() {
+       this.attachShadow({mode: 'open'});
+       this.shadowRoot.innerHTML = `
+         <style>
+         slot[name="username"] { font-weight: bold; }
+         </style>
+         Name: <slot name="username"></slot>
+       `;
+     }
+   });
+   </script>
+   ```
+
+   ![image-20250818072920864](images/image-20250818072920864.png)
+
+   这里 `<p>John Smith</p>` 变成粗体，因为 CSS 继承在 `<slot>` 和它的内容之间有效，**但是在 CSS 中，并不是所有的属性都是继承的**。
+
+2. **使用 `::slotted(selector)` 伪类，它根据两个条件来匹配元素：**
+
+   1. **这是一个占槽元素，来自于 Light DOM，插槽名并不重要，任何占槽元素都可以，但只能是元素本身，而不是它的子元素**
+   2. **该元素与 `selector` 匹配**
+
+   例如，`::slotted(div)` 正好选择了 `<div slot="username">` ，**但是没有选择它的子元素**：
+
+   ```html
+   <user-card>
+     <div slot="username">
+       <div>John Smith</div>
+     </div>
+   </user-card>
+   
+   <script>
+   customElements.define('user-card', class extends HTMLElement {
+     connectedCallback() {
+       this.attachShadow({mode: 'open'});
+       this.shadowRoot.innerHTML = `
+         <style>
+         ::slotted(div) { border: 1px solid red; }
+         </style>
+         Name: <slot name="username"></slot>
+       `;
+     }
+   });
+   </script>
+   ```
+
+   ![image-20250818073812457](images/image-20250818073812457.png)
+
+   **⚠️ 注意：**
+
+   - **`::slotted` 选择器不能用于任何插槽中更深层的内容**，下面这些选择器是无效的：
+   
+     ```css
+     ::slotted(div span) {
+       /* 插入的 <div> 不会匹配这个选择器 */
+     }
+     
+     ::slotted(div) p {
+       /* 不能进入 light DOM 中选择元素 */
+     }
+     ```
+
+   - **`::sloated` 只能在 CSS 中使用，不能在 `querySelector` 中使用**
+   
+
+
+
+**用自定义 CSS 属性作为勾子**
+
+像 `:host` 这样的选择器只能应用规则到 shadow 宿主，无法设置它们内部的 Shadow DOM 元素的样式。
+
+**没有选择器可以从文档中直接影响 Shadow DOM 样式**，但可以像暴露用来与组件交互的方法那样，**也可以暴露 CSS 变量（自定义 CSS 属性）来对其样式进行设置**。
+
+**自定义 CSS 属性存在于所有层次，包括 Light DOM 和 Shadow DOM**。
+
+例如，在 Shadow DOM 中，可以使用 `--user-card-field-color` CSS 变量来设置字段的样式，在外部文档也可以设置它的值：
+
+```html
+<style>
+  .field {
+    color: var(--user-card-field-color, black);
+    /* 如果 --user-card-field-color 没有被声明过，则取值为 black */
+  }
+</style>
+<div class="field">Name: <slot name="username"></slot></div>
+<div class="field">Birthday: <slot name="birthday"></slot></div>
+</style>
+```
+
+然后，可以在外部文档中为 `<user-card>` 声明此属性：
+
+```css
+user-card {
+  --user-card-field-color: green;
+}
+```
+
+**自定义 CSS 属性可以穿透 Shadow DOM，它们在任何地方都可见，因此内部的 `.field` 规则将使用它**。
+
+以下是完整的示例：
+
+```html
+<style>
+  user-card {
+    --user-card-field-color: green;
+  }
+</style>
+
+<template id="tmpl">
+  <style>
+    .field {
+      color: var(--user-card-field-color, black);
+    }
+  </style>
+  <div class="field">Name: <slot name="username"></slot></div>
+  <div class="field">Birthday: <slot name="birthday"></slot></div>
+</template>
+
+<script>
+customElements.define('user-card', class extends HTMLElement {
+  connectedCallback() {
+    this.attachShadow({mode: 'open'});
+    this.shadowRoot.append(document.getElementById('tmpl').content.cloneNode(true));
+  }
+});
+</script>
+
+<user-card>
+  <span slot="username">John Smith</span>
+  <span slot="birthday">01.01.2001</span>
+</user-card>
+```
+
+![image-20250818121028719](images/image-20250818121028719.png)
 
