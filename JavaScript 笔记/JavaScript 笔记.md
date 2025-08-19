@@ -37010,3 +37010,167 @@ Shadow tree 背后的思想是封装组件的内部实现细节。
 ```
 
 **⚠️ 注意：如果是嵌套组件，一个 Shadow DOM 可能嵌套在另一个 Shadow DOM 中，当 `composed: true` 时，自定义事件不会只停留在最近的 Shadow DOM，而是会一层层穿透所有嵌套的 Shadow DOM 边界，最终冒泡到最外层的文档（document），如果 `composed: false` 时，事件只能在当前 Shadow DOM 内部传播，不会再穿透到更外层的 Shadow DOM 或 document**。
+
+
+
+## 模式（Patterns）和修饰符（flags）
+
+正则表达式是提供了**一种在文本中进行搜索和替换的强大方式的模式**。
+
+在 JavaScript 中，**可以通过 `RegExp` 对象来使用它们，也可以与字符串方法结合使用**。
+
+
+
+**正则表达式**
+
+正则表达式（可叫作 “regexp”，或 “reg”），由**模式**和可选的**修饰符**组成。
+
+有两种创建正则表达式对象的语法。
+
+- 较长一点的语法：
+
+  ```js
+  regexp = new RegExp('pattern', 'flags');
+  ```
+
+- 较短一点的语法，使用斜线 `'/'`：
+
+  ```js
+  regexp = /pattern/; // 没有修饰符
+  regexp = /pattern/gmi; // 带有修饰符 g、m 和 i
+  ```
+
+斜线 `/.../` 告诉 JavaScript 正在创建一个正则表达式，它的作用与字符串的引号作用相同。
+
+**在以上两种情况下，`regexp` 都会成为内建类 `RegExp` 的一个实例**。
+
+这两种语法之间的主要区别在于：**使用斜线 `/.../` 的模式不允许插入表达式（如带有 `${...}` 的字符串模板），它完全是静态的**。
+
+通常在写代码时使用斜线的方式创建正则表达式，但当需要从动态生成的字符串创建一个正则表达式时，更常使用 `new RegExp`，例如：
+
+```js
+const tag = prompt('您想查找什么标签？', 'h2');
+
+const regexp = new RegExp(`<${tag}>`); // 在上方输入到 prompt 中的答案是 'h2'，则与 /<h2>/ 相同
+```
+
+
+
+**修饰符**
+
+修饰符可以影响正则表达式的搜索结果。
+
+在 JavaScript 中，只有 6 个修饰符：
+
+- **`i`** —— 使用此修饰符后，搜索时不区分大小写：`A` 和 `a` 之间没有区别
+- **`g`** —— 使用此修饰符后，搜索时会寻找所有的匹配项 —— 如果没有它，则仅返回第一个匹配项
+- **`m`** —— 多行模式
+- **`s`** —— 启用 “dotall” 模式，允许点 `.` 匹配换行符 `\n`
+- **`u`** —— 开启完整的 Unicode 支持，该修饰符能够正确处理代理对
+- **`y`** —— 粘滞（Sticky）模式，在文本中的确切位置搜索
+
+
+
+**搜索：str.match**
+
+`str.match(regexp)` 方法**在字符串 `str` 中寻找 `regexp` 的所有匹配项**。
+
+它有 3 种工作模式：
+
+1. 如果正则表达式具有修饰符 `g`，它**返回一个由所有匹配项所构成的数组**：
+
+   ```js
+   const str = 'We will, we will rock you';
+   
+   alert( str.match(/we/gi) ); // We,we（由两个匹配的子字符串构成的数组）
+   ```
+
+   **⚠️ 注意：上述代码中 `We` 和 `we` 都被找到了，因此修饰符 `i` 使得正则表达式在进行搜索时不区分大小写**。
+
+2. 如果没有修饰符 `g`，它则会**以数组的形式返回第一个匹配项**，索引 `0` 处保存着完整的匹配项，**返回的结果的属性中还有一些其它详细信息**：
+
+   ```js
+   const str = 'We will, we will rock you';
+   
+   const result = str.match(/we/i); // 没有修饰符 g
+   
+   alert( result[0] ); // We（第一个匹配项）
+   alert( result.length ); // 1
+   
+   // 详细信息：
+   alert( result.index ); // 0（匹配项的位置）
+   alert( result.input ); // We will, we will rock you（源字符串）
+   ```
+
+   **⚠️ 注意：如果正在表达式中有一部分内容被包在括号里，那么返回的数组可能会有 `0` 以外的索引**。
+
+3. 最后，**如果没有匹配项，则返回 `null`（无论是否有修饰符 `g`）**
+
+   这是一个非常重要的细微差别，如果没有匹配项，则不会收到一个空数组，而是会收到 `null`，如果忘记这一点可能会导致错误，例如：
+
+   ```js
+   const matches = 'JavaScript'.match(/HTML/); // = null
+   
+   if (!matches.length) { // Uncaught TypeError: Cannot read properties of null (reading 'length')
+     alert('上面一行有错误');
+   }
+   ```
+
+   如果希望结果始终是一个数组，可以像下面这样写：
+
+   ```js
+   const matches = 'JavaScript'.match(/HTML/) || [];
+   
+   if (!matches.length) {
+     alert('没有匹配'); // 现在可以了
+   }
+   ```
+
+
+
+**替换：str.replace**
+
+`str.replace(regexp, replacement)` 方法**使用 `replacement` 替换在字符串 `str` 中找到的 `regexp` 的匹配项（如果带有修饰符 `g` 则替换所有匹配项，否则只替换第一个）**。
+
+例如：
+
+```js
+alert( 'We will, we will'.replace(/we/i, 'I') ); // I will, we will
+
+alert( 'We will, we will'.replace(/we/ig, 'I') ); // I will, I will
+```
+
+第二个参数是字符串 `replacement`，**可以在其中使用特殊的字符组合来对匹配项进行插入**：
+
+| 符号      | 在替换字符串中的行为                                  |
+| :-------- | :---------------------------------------------------- |
+| `$&`      | 插入整个匹配项                                        |
+| $`        | 插入字符串中匹配项之前的字符串部分                    |
+| `$'`      | 插入字符串中匹配项之后的字符串部分                    |
+| `$n`      | 如果 `n` 是一个 1-2 位的数字，则插入第 n 个分组的内容 |
+| `$<name>` | 插入带有给定 `name` 的括号内的内容                    |
+| `$$`      | 插入字符 `$`                                          |
+
+带有 `$&` 的一个示例：
+
+```js
+alert( 'I love HTML'.replace(/HTML/, '$& and JavaScript') ); // I love HTML and JavaScript
+```
+
+
+
+**测试：regexp.test**
+
+`regexp.test` 方法**寻找至少一个匹配项**，如果找到了，则返回 `true`，否则返回 `false`。
+
+```js
+const str = 'I love JavaScript';
+const regexp = /LOVE/i;
+
+alert( regexp.test(str) ); // true
+```
+
+
+
+
+
