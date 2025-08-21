@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      const regexp = /#[0-9a-f]{6}\b/gi;
+
+      const str =
+        'color:#121212; background-color:#AA00ef bad-colors:f#fddee #fd2 #12345678';
+
+      alert(str.match(regexp)); // #121212,#AA00ef
+    </script>
+  </body>
+</html>
