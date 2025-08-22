@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      let regexp = /^[0-9a-f]{2}(:[0-9a-f]{2}){5}$/i;
+      alert(regexp.test('01:32:54:67:89:AB')); // true
+
+      alert(regexp.test('0132546789AB')); // false (没有冒号分隔)
+
+      alert(regexp.test('01:32:54:67:89')); // false (5 个数字，必须为 6 个)
+
+      alert(regexp.test('01:32:54:67:89:ZZ')); // false (尾部为 ZZ)
+    </script>
+  </body>
+</html>

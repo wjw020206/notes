@@ -38387,3 +38387,343 @@ alert( str1.match(regexp) ); // null
 alert( str2.match(regexp) ); // <a href="link1" class="doc">,<a href="link2" class="doc">
 ```
 
+
+
+##  捕获组
+
+模式的一部分可以用括号括起来 `(...)`，这被称为 **“捕获组（capturing group）”**。
+
+这有两个影响：
+
+1. **它允许将匹配的一部分作为结果数组中的单独项**
+2. **如果将量词放在括号后，则它将括号视为一个整体**
+
+
+
+**示例：gogogo**
+
+不带括号，模式 `go+` 表示 `g` 字符，其后 `o` 重复一次或多次，例如 `goooo` 或 `gooooooooo`。
+
+括号将字符组合，所以 `(go)+` 匹配 `go`、`gogo` 或 `gogogo` 等。
+
+```js
+alert( 'Gogogo now!'.match(/(go)+/ig) ); // Gogogo
+```
+
+
+
+**示例：域名**
+
+例如：
+
+```
+mail.com
+users.mail.com
+smith.users.mail.com
+```
+
+一个域名由重复的单词组成，每个单词后面有一个点，除了最后一个单词。
+
+在正则表达式中是 `(\w+\.)+\w+`：
+
+```js
+const regexp = /(\w+\.)+\w+/g;
+
+alert( 'site.com my.site.com'.match(regexp) ); // site.com,my.site.com
+```
+
+**搜索有效，但该模式无法匹配带有连字符的域名**，例如 `my-site.com`，**因为连字符不属于 `\w` 类**。
+
+可以通过用 `[\w-]` 替换 `\w` 来匹配除最后一个单词以外的每个单词：`([\w-]+\.)\w+`。
+
+
+
+**示例：电子邮件**
+
+电子邮件的格式为：`name@domain`，**名称可以是任何单词，允许使用连字符和点**，在正则表达式中为 `[-.\w]+`。
+
+模式：
+
+```js
+const regexp = /[-.\w]+@([\w-]+\.)+[\w-]+/g;
+
+alert('my@mail.com @ his@site.com.uk'.match(regexp)); // my@mail.com, his@site.com.uk
+```
+
+**该正则表达式并不完美，但多数情况下都能正确匹配**，并且有助于修复输入邮箱时的意外错误输入，**唯一真正可靠的电子邮件检查只能通过发送电子邮件来完成**。
+
+
+
+**匹配括号中的内容**
+
+**括号被从左到右编号，正则引擎会记住它们各自匹配的内容**，并允许在结果中获取它。
+
+方法 `str.match(regexp)`，**如果 `regexp` 没有修饰符 `g`，将查找第一个匹配项，并将它作为数组返回**：
+
+1. **在索引 `0` 处：完整的匹配项**
+2. **在索引 `1` 处：第一个括号的内容**
+3. **在索引 `2` 处：第二个括号的内容**
+4. **......等等......**
+
+例如，想找到 HTML 标签 `<.*?>` 并处理它们，将标签内容（尖括号内的内容）放在单独的变量中会很方便。
+
+```js
+const str = '<h1>Hello, world!</h1>';
+
+const tag = str.match(/<(.*?)>/);
+
+alert( tag[0] ); // <h1>
+alert( tag[1] ); // h1
+```
+
+
+
+**嵌套组**
+
+括号可以嵌套，**在这种情况下，编号也从左到右**。
+
+例如，在搜索标签 `<span class="my">` 时，可能会对以下内容感兴趣：
+
+1. 整个标签的内容：`span class="my"`
+2. 标签名称：`span`
+3. 标签特性：`class="my"`
+
+为它们添加括号：`<(([a-z+]\s*([^>]*)))>`。
+
+以下是它们的编号方式（根据左括号从左到右）：
+
+![image-20250821185115656](images/image-20250821185115656.png)
+
+验证：
+
+```js
+const str = '<span class="my">';
+
+const regexp = /<(([a-z]+)\s*([^>]*))>/;
+
+const result = str.match(regexp);
+
+alert(result[0]); // <span class="my">
+alert(result[1]); // span class="my"
+alert(result[2]); // span
+alert(result[3]); // class="my"
+```
+
+**`result` 的索引 `0` 中始终保存的是正则表达式的完整匹配项**。
+
+然后是按左括号从左到右编号的组，第一组返回为 `result[1]`，它包含了整个标签内容。
+
+然后是 `result[2]`，从第二个左括号开始分组 `([a-z]+)` —— 标签名称，然后在 `result[3]` 中：`([^>]*)`。
+
+
+
+**可选组**
+
+**即使组是可选的，并且在匹配项中不存在，也存在相应的 `result` 数组项，并且等于 `undefined`**。
+
+例如，正则表达式 `a(z)?(c)?`，它查找 `'a'`，后面是可选的 `'z'`，然后是可选的 `'c'`。
+
+如果在单个字母的字符串上运行 `a`，则结果为：
+
+```js
+const match = 'a'.match(/a(z)?(c)?/);
+
+alert( match.length ); // 3
+alert( match[0] ); // a（完整的匹配项）
+alert( match[1] ); // undefined
+alert( match[2] ); // undefined
+```
+
+数组的长度为 `3`，但所有组均为空。
+
+对于字符串 `ab` 的匹配会更复杂：
+
+```js
+const match = 'ac'.match(/a(z)?(c)?/);
+
+alert( match.length ); // 3
+alert( match[0] ); // ac（完整的匹配项）
+alert( match[1] ); // undefined, 因为没有 (z)? 的匹配项
+alert( match[2] ); // c
+```
+
+**数组的长度依旧为 `3`**，但没有组 `(z)?` 的匹配项，所以结果是 `['ac', undefined, 'c']`。
+
+
+
+**带有组搜索所有匹配项：matchAll**
+
+**⚠️ 注意：`matchAll` 是一个新方法，旧版本浏览器需要使用 polyfill，例如：https://github.com/ljharb/String.prototype.matchAll**。
+
+**当搜索所有匹配项（修饰符 `g`）时，`match` 方法不会返回组的内容**。
+
+例如，查找字符串中的所有标签：
+
+```js
+const str = '<h1> <h2>';
+
+const tags = str.match(/<(.*?)>/g);
+
+alert( tags ); // <h1>,<h2>
+```
+
+上述代码的结果是一个匹配数组，但没有每个匹配项的详细信息，**但实际上，通常需要在结果中获取捕获组的内容**。
+
+**要获取它们，应该使用方法 `str.matchAll(regexp)` 进行搜索**。
+
+在使用 `match` 很长一段时间后，它才被作为 “新的改进版本” 被加入到 JavaScript 中。
+
+就像 `match` 一样，它寻找匹配项，但有以下 3 个区别：
+
+1. **它返回的不是数组，而是一个可迭代的对象**
+2. **当存在修饰符 `g` 时，它将每个匹配项以包含组的数组的形式返回**
+3. **如果没有匹配项，则返回的不是 `null`，而是一个空的可迭代对象**
+
+例如：
+
+```js
+const results = '<h1> <h2>'.matchAll(/<(.*?)>/gi);
+
+// results 不是数组，而是一个迭代对象
+alert(results); // [object RegExp String Iterator]
+
+alert(results[0]); // undefined (*)
+
+results = Array.from(results); // 将其转换为数组
+
+alert(results[0]); // <h1>,h1（第一个标签）
+alert(results[1]); // <h2>,h2（第二个标签）
+```
+
+如 `(*)` 行所示，**无法获取 `results[0]` 的匹配项，因为该对象并不是类数组**，可以使用 `Array.from` 把它变成一个真正的 `Array`。
+
+如果只需要遍历结果，则 `Array.from` 没有必要：
+
+```js
+const results = '<h1> <h2>'.matchAll(/<(.*?)>/gi);
+
+for(const result of results) {
+  alert(result);
+  // 第一个 alert：<h1>,h1
+  // 第二个 alert：<h2>,h2
+}
+```
+
+或使用解构：
+
+```js
+const [tag1, tag2] = '<h1> <h2>'.matchAll(/<(.*?)>/gi);
+```
+
+`matchAll` 返回的每个匹配项，与不带修饰符 `g` 的 `match` 所返回的格式相同：**具有额外 `index`（字符串中的匹配索引）属性和 `input`（源字符串）的数组**：
+
+```js
+const results = '<h1> <h2>'.matchAll(/<(.*?)>/gi);
+
+const [tag1, tag2] = results;
+
+alert( tag1[0] ); // <h1>
+alert( tag1[1] ); // h1
+alert( tag1.index ); // 0
+alert( tag1.input ); // <h1> <h2>
+```
+
+**⚠️ 注意：`matchAll` 的结果之所以是可迭代对象而不是数组，是为了性能优化**，调用 `matchAll` 不会执行搜索相反，它返回一个可迭代对象，最初没有结果，每次迭代它时才会执行搜索，例如在循环中。
+
+因此，**这将根据需要找出尽可能多的结果，而不是全部**。
+
+例如，文本中可能有 100 个匹配项，但在一个 `for..of` 循环中，找到了 5 个匹配项，然后觉得足够了并做出了一个 `break`，**这时引擎就不会花时间查找其它 95 个匹配**。
+
+
+
+**命名组**
+
+用数字记录组很困难，对于简单的模式，它是可行的，但对于更加复杂的模式，计算括号很不方便，有一个更好的选择：**给括号命名**。
+
+**在左括号后紧跟着放置 `?<name>` 即可完成对括号的命名**。
+
+例如，查找 “year-month-day” 格式的日期：
+
+```js
+const dateRegexp = /(?<year>[0-9]{4})-(?<month>[0-9]{2})-(?<day>[0-9]{2})/;
+const str = '2019-04-30';
+
+const groups = str.match(dateRegexp).groups;
+
+alert(groups.year); // 2019
+alert(groups.month); // 04
+alert(groups.day); // 30
+```
+
+**匹配的组在 `groups` 属性中**。
+
+要查找所有日期，可以添加修饰符 `g`，但还需要 `matchAll` 以获取完整的组匹配：
+
+```js
+const dateRegexp = /(?<year>[0-9]{4})-(?<month>[0-9]{2})-(?<day>[0-9]{2})/g;
+
+const str = '2019-10-30 2020-01-01';
+
+const results = str.matchAll(dateRegexp);
+
+for(const result of results) {
+  const { year, month, day } = results.groups;
+  
+    alert(`${day}.${month}.${year}`);
+  // 第一个 alert：30.10.2019
+  // 第二个 alert：01.01.2020
+}
+```
+
+
+
+**替换中的捕获组**
+
+让能够替换 `str` 中的 `regexp` 的所有匹配项的方法 `str.replace(regexp, replacement)` 允许在 `replacement` 字符串中使用括号中的内容，**这使用 `$n` 来完成，其中 `n` 是组号**。
+
+例如：
+
+```js
+const str = 'John Bull';
+const regexp = /(\w+) (\w+)/;
+
+alert( str.replace(regexp, '$2, $1') ); // Bull, John
+```
+
+**对于命名的括号，引用为 `$<name>`**。
+
+例如，将日期从 “year-month-day” 更改为 “day.month.year”：
+
+```js
+const regexp = /(?<year>[0-9]{4})-(?<month>[0-9]{2})-(?<day>[0-9]{2})/g;
+
+const str = '2019-10-30, 2020-01-01';
+
+alert( str.replace(regexp, '$<day>.$<month>.${year}') ); // 30.10.2019,01.01.2020
+```
+
+
+
+**非捕获组 ?:**
+
+有时需要用括号才能正确使用量词，但**不希望它们的内容出现在结果中**。
+
+**可以通过在开头添加 `?:` 来排除组**。
+
+例如，要查找 `(go)+`，但不希望括号内容（`go`）作为一个单独的数组项，则可以编写：`(?:go)+`。
+
+例如，在下面的示例中仅将名称 `John` 作为匹配项的单独成员：
+
+```js
+const str = 'Gogogo John!';
+
+// ?: 从捕获组中排除 go
+const regexp = /(?:go)+ (\w+)/i;
+
+const result = str.match(regexp);
+
+alert( result[0] ); // Gogogo John（完整的匹配项）
+alert( result[1] ); // John
+alert( result.length ); // 2（在数组中没有其它数组项）
+```
+
