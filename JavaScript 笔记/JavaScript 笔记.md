@@ -39414,3 +39414,375 @@ alert( regexp.exec(str) ); // varName（在位置 4 的单词）
 当有一个很长的文本是，其中根本没有匹配项，然后使用修饰符 `g` 进行搜索，会一直搜索到文本的末尾，并且什么也找不到，这将比使用修饰符 `y` 的搜索花费更多的时间，**后者只检查确切的位置**。
 
 在像词法分析这样的任务中，通常会在一个确切的位置进行多次搜索，以检查那里有什么，使用修饰符 `y` 是正确实现和良好性能的关键。
+
+
+
+## 正则表达式和字符串的方法
+
+
+
+**str.match(regexp)**
+
+`str.match(regexp)` 方法在字符串 `str` 中查找 `regexp` 的匹配项。
+
+它有 3 种模式：
+
+1. 如果 `regexp` 不带有修饰符 `g`，则**它以数组的形式返回第一个匹配项，其中包含捕获组和属性 `index`（匹配项的位置）、`input`（输入字符型，等于 `str`）**：
+
+   ```js
+   const str = 'I love JavaScript';
+   
+   const result = str.match(/Java(Script)/);
+   
+   alert( result[0] );     // JavaScript（完全匹配）
+   alert( result[1] );     // Script（第一个分组）
+   alert( result.length ); // 2
+   
+   // 其它信息
+   alert( result.index );  // 7（匹配位置）
+   alert( result.input );  // I love JavaScript（源字符串）
+   ```
+
+2. 如果 `regexp` 带有修饰符 `g`，则它将返回一个包含所有匹配项的数组，**但不包含捕获组和其它详细信息**
+
+   ```js
+   const str = 'I love JavaScript';
+   
+   const result = str.match(/Java(Script)/g);
+   
+   alert( result[0] ); // JavaScript
+   alert( result.length ); // 1
+   ```
+
+3. **如果没有匹配项，则无论是否带有修饰符 `g`，都将返回 `null`**
+
+   ```js
+   const str = 'I love JavaScript';
+   
+   const result = str.match(/HTML/);
+   
+   alert(result); // null
+   alert(result.length); // TypeError: Cannot read properties of null (reading 'length')
+   ```
+
+   因为得到的不是一个空数组，忘记这一点很容易出错，就像上面这样，如果希望结果是一个数组，可以像下面这样写：
+
+   ```js
+   const result = str.match(regexp) || [];
+   ```
+
+
+
+**str.matchAll(regexp)**
+
+**⚠️ 注意：这是新添加的 JavaScript 特性，旧版本浏览器可能需要 polyfills**。
+
+方法 `str.matchAll(regepx)` **是 `str.match` 的 ”更新、改进“ 的实体**。
+
+它主要是**用来搜索所有组的所有匹配项**。
+
+与 `match` 相比有 3 个区别：
+
+1. **它返回一个包含匹配项的可迭代对象，而不是数组**，可以用 `Array.from` 将其转换为一个常规数组
+2. **每个匹配项均以一个包含捕获组的数组形式返回（返回格式与不带修饰符 `g` 的 `str.match` 相同）**
+3. **如果没有结果，则返回的是一个空的可迭代对象而不是 `null`**
+
+用法示例：
+
+```js
+const str = '<h1>Hello, world!</h1>';
+const regexp = /<(.*?)>/g;
+
+let matchAll = str.matchAll(regexp);
+
+alert(matchAll); // [object RegExp String Iterator]，不是数组，而是一个可迭代对象
+
+matchAll = Array.from(matchAll); // 现在是数组了
+
+const firstMatch = matchAll[0];
+alert( firstMatch[0] );  // <h1>
+alert( firstMatch[1] );  // h1
+alert( firstMatch.index );  // 0
+alert( firstMatch.input );  // <h1>Hello, world!</h1>
+```
+
+如果用 `for..of` 来遍历 `matchAll` 的匹配项，那么就不需要 `Array.from` 了。
+
+
+
+**str.split(regexp|substr,limit)**
+
+使用正则表达式（或子字符串）作为分隔符来分割字符串。
+
+可以用 `split` 来分割字符串，像下面这样：
+
+```js
+alert('12-34-56'.split('-')); // 数组 ['12', '34', '56']
+```
+
+但同样，也可以使用正则表达式：
+
+```js
+alert('12, 34, 56'.split(/,\s*/)); // 数组 ['12', '34', '56']
+```
+
+
+
+**str.search(regexp)**
+
+方法 `str.search(regexp)` **返回第一个匹配项的位置，如果没找到，则返回 `-1`**：
+
+```js
+const str = 'A drop of ink may make a million think';
+
+alert( str.search( /ink/i ) ); // 10（第一个匹配位置）
+```
+
+**⚠️ 注意：`search` 仅查找第一个匹配项**。
+
+如果需要其它匹配项的位置，则应使用其它方法，例如使用 `str.matchAll(regexp)` 查找所有位置。
+
+
+
+**str.replace(str|regexp, str|func)**
+
+这是用于搜索和替换的通用方法，是最有用的方法之一，**它是搜索和替换字符串的瑞士军刀**。
+
+可以在不使用正则表达式的情况下使用它来搜索和替换子字符串：
+
+```js
+// 用冒号替换连字符
+alert( '12-34-56'.replace('-', ':') ); // 12:34-56
+```
+
+**⚠️ 注意：当 `replace` 的第一个参数是字符串时，它只替换第一个匹配项**，所以上述示例中只有第一个 `'-'` 被替换为了 `':'`。
+
+**如果要找到所有的连字符，不应该使用字符串 `'-'`，而应该使用带有修饰符 `g` 的正则表达式 `/-/g`**：
+
+```js
+// 将所有连字符都替换为冒号
+alert( '12-34-56'.replace( /-/g, ':' ) );  // 12:34:56
+```
+
+**第二个参数是替换字符串，可以在其中使用特殊字符**：
+
+| 符号      | 替换字符串中的行为                                    |
+| :-------- | :---------------------------------------------------- |
+| `$&`      | 插入整个匹配项                                        |
+| $`        | 插入字符串中匹配项之前的字符串部分                    |
+| `$'`      | 插入字符串中匹配项之后的字符串部分                    |
+| `$n`      | 如果 `n` 是一个 1-2 位的数字，则插入第 n 个分组的内容 |
+| `$<name>` | 插入带有给定 `name` 的括号内的内容                    |
+| `$$`      | 插入字符 `$`                                          |
+
+例如：
+
+```js
+const str = 'John Smith';
+
+// 交换名字和姓氏
+alert(str.replace(/(john) (smith)/i, '$2, $1')) // Smith, John
+```
+
+**对于需要 “智能” 替换的场景，第二个参数可以是一个函数，每次匹配都会调用这个函数，并且返回的值将作为替换字符串插入**。
+
+该函数 `func(match, p1, p2, ..., pn, offset, input, groups)` 带参数调用：
+
+1. `match` —— 匹配项
+2. `p1, p2, ..., pn` —— 捕获组的内容（如果有）
+3. `offset` —— 匹配项的位置
+4. `input` —— 源字符串
+5. `groups` —— 具有命名的捕获组的对象
+
+**如果正则表达式中没有括号，则只有 3 个参数：`func(str, offset, input)`**。
+
+例如，将所有匹配项都大写：
+
+```js
+let str = 'html and css';
+
+let result = str.replace(/html|css/gi, str => str.toUpperCase());
+
+alert(result); // HTML and CSS
+```
+
+将**每个匹配项替换为其在字符串中的位置**：
+
+```js
+alert('Ho-Ho-ho'.replace(/ho/gi, (match, offset) => offset)); // 0-3-6
+```
+
+在下面的示例中，有两对括号，因此将使用 5 个参数调用替换函数：第一个是完全匹配项，然后是 2 对括号，然后是（在示例中未使用）匹配位置和源字符串：
+
+```js
+const str = 'John Smith';
+
+const result = str.replace(/(\w+) (\w+)/, (match, name, surname) => `${surname}, ${name}`);
+
+alert(result); // Smith, John
+```
+
+如果有许多组，用 rest 参数（...）可以很方便的访问：
+
+```js
+const str = 'John Smith';
+
+const result = str.replace(/(\w+) (\w+)/, (...match) => `${match[2]}, ${match[1]}`);
+
+alert(result); // Smith, John
+```
+
+或者，如果使用的是命名组，则带有它们的 `groups` 对象始终是最后一个对象，所以可以像这样获取它：
+
+```js
+const str = 'John Smith';
+
+const result = str.replace(/(?<name>\w+) (?<surname>\w+)/, (...match) => {
+  const groups = match.pop();
+
+  return `${groups.surname}, ${groups.name}`;
+});
+
+alert(result); // Smith, John
+```
+
+使用函数可以提供终极替换功能，因为它可以获取匹配项的所有信息，可以访问外部变量，可以做任何事。
+
+
+
+**str.replaceAll(str|regexp, str|func)**
+
+这个方法与 `str.replace` 本质上是一样的，但有两个主要的区别：
+
+1. **如果第一个参数是一个字符串，它会替换所有出现的和第一个参数相同的字符串，而 `replace` 只会替换第一个**
+1. **如果第一个参数是一个没有修饰符 `g` 的正则表达式，则会报错，带有修饰符 `g`，它的工作方式与 `replace` 相同**
+
+`replaceAll` 的主要用途是替换所有出现的字符串。
+
+像这样：
+
+```js
+// 使用冒号替换所有破折号
+alert('12-34-56'.replaceAll('-', ':')) // 12:34:56
+```
+
+
+
+**regexp.exec(str)**
+
+`regexp.exec(str)` 方法返回字符串 `str` 中的 `regexp` 匹配项，与之前的方法不同，**它是在正则表达式而不是在字符串上调用**。
+
+**它的行为取决于正则表达式是否具有修饰符 `g`**。
+
+如果没有修饰符 `g`，**则 `regexp.exec(str)` 会返回第一个匹配项，就像 `str.match(regexp)` 那样，这种行为没有带来任何新的东西**。
+
+但是，如果有修饰符 `g`，那么：
+
+- 调用 `regexp.exec(str)` 会返回第一个匹配项，**并将紧随其后的位置保存在属性 `regexp.lastIndex` 中**
+- **下一次这样的调用会从位置 `regexp.lastIndex` 开始搜索，返回下一个匹配项**，并将其后的位置保存在 `regexp.lastIndex` 中
+- ……以此类推
+- **如果没有匹配项，则 `regexp.exec` 返回 `null`，并将 `regexp.lastIndex` 重置为 `0`**
+
+因此，**重复调用会一个接着一个地返回所有匹配项，使用属性 `regexp.lastIndex` 来跟踪当前搜索位置**。
+
+在过去，没有 `str.matchAll` 方法之前，**会在循环中调用 `regexp.exec` 来获取组的所有匹配项**：
+
+```js
+const str = 'More about JavaScript at https://javascript.info';
+const regexp = /javascript/ig;
+
+let result;
+
+while (result = regexp.exec(str)) {
+  alert( `Found ${result[0]} at position ${result.index}` );
+  // 在位置 11 找到了 JavaScript，然后
+  // 在位置 33 找到了 javascript
+}
+```
+
+这现在也有效，尽管对于较新的浏览器 `str.matchAll` 通常更方便。
+
+**可以通过手动设置 `lastIndex`，用 `regexp.exec` 从给定位置进行搜索**。
+
+例如：
+
+```js
+const str = 'Hello, world!';
+
+const regexp = /\w+/g; // 如果没有修饰符 "g"，lastIndex 属性会被忽略
+regexp.lastIndex = 5; // 从第 5 个位置搜索（从逗号开始）
+
+alert( regexp.exec(str) ); // world
+```
+
+**如果正则表达式带有修饰符 `y`，则搜索将精确地在 `regexp.lastIndex` 位置执行，不会再进一步**。
+
+```js
+const str = 'Hello, world!';
+
+const regexp = /\w+/y;
+regexp.lastIndex = 5; // 在位置 5 精确查找
+
+alert( regexp.exec(str) ); // null
+```
+
+现在没有找到匹配项，因为在位置 `5` 处没有单词。
+
+当需要通过正则表达式在确切位置而不是其后的某处从字符串中 “读取” 某些内容时，这很方便。
+
+
+
+**regexp.test(str)**
+
+方法 `regexp.test(str)` 查找匹配项，然后返回 `true/false` 表示是否存在。
+
+例如：
+
+```js
+const str = 'I love JavaScript';
+
+// 这两个测试相同
+alert( /love/i.test(str) ); // true
+alert( str.search(/love/i) !== -1 ); // true
+```
+
+一个否定答案的例子：
+
+```js
+const str = 'Bla-bla-bla';
+
+alert( /love/i.test(str) ); // false
+alert( str.search(/love/i) !== -1 ); // false
+```
+
+**⚠️ 注意：如果正则表达式带有修饰符 `g`，则 `regexp.test` 从 `regexp.lastIndex` 属性开始查找并更新此属性**，就像就像 `regexp.exec` 一样。
+
+因此，可以用它从给定位置进行查找：
+
+```js
+const regexp = /love/gi;
+
+const str = 'I love JavaScript';
+
+// 从位置 10 开始搜索：
+regexp.lastIndex = 10;
+alert( regexp.test(str) ); // false（没有匹配项）
+```
+
+**⚠️ 注意：相同的全局正则表达式在不同的源字符串上测试可能会失败**。
+
+如果在不同的源字符串上应用相同的全局正则表达式，可能会出现错误的结果，**因为 `regexp.test` 的调用会增加 `regexp.lastIndex` 属性值，因此在另一个字符串中的搜索可能是从非 0 位置开始的**。
+
+例如，这里在同一文本上调用 `regexp.test` 两次，而第二次调用失败了：
+
+```js
+const regexp = /javascript/g;  // （新建立的 regexp：regexp.lastIndex=0)
+
+alert( regexp.test('javascript') ); // true（现在 regexp.lastIndex=10）
+alert( regexp.test('javascript') ); // false
+```
+
+这正是因为在第二个测试中 `regexp.lastIndex` 不为零。
+
+要解决这个问题，可以在每次搜索之前设置 `regexp.lastIndex = 0` 或者不要在正则表达式上调用方法，而是使用字符串方法 `str.match/search/...`，这些方法不使用 `lastIndex`。
+
