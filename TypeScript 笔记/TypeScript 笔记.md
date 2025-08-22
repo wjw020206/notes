@@ -185,7 +185,7 @@ y.bar = 2; // Property 'bar' does not exist on type '{ foo: number; }'.
 
 2013年，微软的 Visual Studio 2013 开始内置支持 TypeScript 语言。
 
-2014年，TypeScript 1.0 版本发布。同年，代码仓库搬到了 GitHub。
+2014年，TypeScript 1.0 版本发布，同年代码仓库搬到了 GitHub。
 
 2016年，TypeScript 2.0 版本发布，引入了很多重大的语法功能。
 
