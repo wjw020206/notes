@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      // const regexp = /\b(?<!-)\d+\b/g;
+      const regexp = /(?<![-\d])\d+/g;
+
+      const str = '0 12 -5 123 -18';
+
+      alert(str.match(regexp)); // 0, 12, 123
+    </script>
+  </body>
+</html>
