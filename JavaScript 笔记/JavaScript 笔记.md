@@ -38553,7 +38553,7 @@ alert( match[2] ); // c
 
 **带有组搜索所有匹配项：matchAll**
 
-**⚠️ 注意：`matchAll` 是一个新方法，旧版本浏览器需要使用 polyfill，例如：https://github.com/ljharb/String.prototype.matchAll**。
+**⚠️ 注意：`matchAll` 是一个新方法，旧版本浏览器需要使用 polyfill，例如：https://github.com/es-shims/String.prototype.matchAll**。
 
 **当搜索所有匹配项（修饰符 `g`）时，`match` 方法不会返回组的内容**。
 
