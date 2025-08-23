@@ -1408,3 +1408,53 @@ type B = A & { bar: number };
 ```
 
 上述代码中，**类型 `B` 是一个交叉类型，在 `A` 的基础上增加了属性 `bar`**。
+
+
+
+**type 命令**
+
+`type` 命令用来**定义一个类型的别名**。
+
+```ts
+type Age = number;
+
+let age:Age = 55;
+```
+
+上述代码中，**`type` 命令为 `number` 类型定义了一个别名 `Age`，这样就能像使用 `number` 一样，使用 `Age` 作为类型**。
+
+**别名可以让类型的名字变得更有意义，也能增加代码的可读性**，还可以使复杂类型用起来更方便，便于以后修改变量的类型。
+
+**⚠️ 注意：别名不允许重名**。
+
+```ts
+type Color = 'red';
+
+// 报错
+type Color = 'blue'; // Duplicate identifier 'Color'.
+```
+
+上述代码中，同一个别名 `Color` 声明了两次就报错了。
+
+**别名的作用域是块级作用域，这意味着代码块内部定义的别名，影响不到外部**。
+
+```ts
+type Color = 'red';
+
+if (Math.random() < 0.5) {
+  type Color = 'blue';
+}
+```
+
+上述代码中，`if` 代码块内部的类型别名 `Color`，跟外部的 `Color` 是不一样的。
+
+**别名支持使用表达式，也可以在定义一个别名时，使用另一个别名**，即别名允许嵌套。
+
+```ts
+type World = 'world';
+type Greeting = `hello ${World}`;
+```
+
+上述代码中，**别名 `Greeting` 使用了模版字符串，读取了另一个别名 `World`**。
+
+**`type` 命令属于类型相关的代码，编译成 JavaScript 的时候，会被全部删除**。
