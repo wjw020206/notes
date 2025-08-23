@@ -1369,3 +1369,42 @@ function getPort(scheme:'http'|'https') {
   }
 }
 ```
+
+
+
+**交叉类型**
+
+交叉类型（intersection types）指**多个类型组成一个新的类型，使用符号 `&` 表示**。
+
+交叉类型 `A&B` 表示，**任何一个类型必须同时属于 `A` 和 `B`，才属于交叉类型 `A&B`**，即交叉类型同时满足`A`和`B`的特征。
+
+```ts
+let x:number&string;
+```
+
+上述代码中，**变量 `x` 同时是数值和字符串，这当然是不可能的，所以 TypeScript 会推断 `x` 的类型为 `never`**。
+
+**交叉类型的主要用途是表示对象的合成**。
+
+``` ts
+let obj:
+  { foo: string } &
+  { bar: string };
+
+obj = {
+  foo: 'hello',
+  bar: 'world'
+};
+```
+
+上述代码中，变量 `obj` 同时具有属性 `foo` 和属性 `bar`。
+
+**交叉类型常常用来为对象类型添加新属性**：
+
+```ts
+type A = { foo: number };
+
+type B = A & { bar: number };
+```
+
+上述代码中，**类型 `B` 是一个交叉类型，在 `A` 的基础上增加了属性 `bar`**。
