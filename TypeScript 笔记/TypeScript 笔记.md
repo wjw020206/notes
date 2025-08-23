@@ -1686,3 +1686,39 @@ type name = Names[0]; // string
 type Names = string[];
 type Name = Names[number]; // string
 ```
+
+
+
+**数组的类型推断**
+
+如果数组变量没有声明类型，**TypeScript 就会推断数组成员的类型，推断行为会因为值的不同，而有所不同**。
+
+**如果变量的初始值是空数组，那么 TypeScript 会推断数组类型为 `any[]`**。
+
+```ts
+// 推断为 any[]
+const arr = [];
+```
+
+**之后为这个数组赋值时，TypeScript 会自动更新类型推断**。
+
+```ts
+const arr = [];
+arr; // 推断为 any[]
+
+arr.push(123);
+arr; // 推断为 number[]
+
+arr.push('abc');
+arr; // 推断为 (string|number)[]
+```
+
+上述代码中，数组的类型会随着新成员的加入，TypeScript 会自动修改推断的数组类型。
+
+**但类型推断的自动更新只发生在初始值为空数组的情况，如果初始值不是空数组，类型推断就不会更新**。
+
+```ts
+const arr = [123];
+
+arr.push('abc'); // 报错
+```
