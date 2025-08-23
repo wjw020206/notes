@@ -1722,3 +1722,94 @@ const arr = [123];
 
 arr.push('abc'); // 报错
 ```
+
+
+
+**只读数组，const 断言**
+
+JavaScript 规定，**`const` 声明的数组变量是可以改变成员的**。
+
+```js
+const arr = [0, 1];
+arr[0] = 2;
+```
+
+但很多时候确实**有声明为只读数组的需求，即不允许变动数组成员**。
+
+TypeScript 允许声明只读数组，**方法是在数组类型前面加上 `readonly` 关键字**。
+
+```ts
+const arr:readonly number[] = [0, 1];
+
+arr[1] = 2; // 报错
+arr.push(3); // 报错
+delete arr[0]; // 报错
+```
+
+上述代码中，`arr` 是一个只读数组，对它删除、修改、新增数组成员都会报错。
+
+**TypeScript 将 `readonly number[]` 与 `number[]` 视为两种不一样的类型，后者是前者的子类型**。
+
+这是**因为只读数组没有 `pop()`、`push()` 之类会改变原数组的方法，所以 `number[]` 的方法数量要多于 `readonly number[]`**，这就意味着 `number[]` 其实是 `readonly number[]` 的子类型。
+
+子类型继承了父类型的所有特征，并加上了自己的特征，**所以子类型 `number[]` 可以用于所有使用父类型的场合，反过来就不行**。
+
+```ts
+let a1:number[] = [0, 1];
+let a2:readonly number[] = a1; // 正确
+
+a1 = a2; // 报错
+```
+
+由于只读数组是数组的父类型，**所以它不能代替数组，这一点容易产生让人困惑的报错**。
+
+```ts
+function getSum(s:number[]) {
+  // ...
+}
+
+const arr:readonly number[] = [1, 2, 3];
+
+getSum(arr); // 报错
+```
+
+上述代码中，报错的原因是**只读数组是数组的父类型，父类型不能替代子类型**。
+
+**⚠️ 注意：`readonly` 关键字不能与数组的泛型写法一起使用**，例如：
+
+```ts
+// 报错
+const arr:readonly Array<number> = [0, 1]; // 'readonly' type modifier is only permitted on array and tuple literal types.
+```
+
+因为实际上，**TypeScript 专门提供了两个泛型，用来生成只读数组的类型：**
+
+```ts
+const a1:ReadonlyArray<number> = [0, 1];
+
+const a2:Readonly<number[]> = [0, 1];
+```
+
+上述代码中，泛型 `ReadonlyArray<T>` 和 `Readonly<T[]>` 都可以用来生成只读数组类型。
+
+**只读数组还有一种声明方法，就是使用 “const 断言”**。
+
+```ts
+const arr = [0, 1] as const;
+
+arr[0] = [2]; // 报错 
+```
+
+上述代码中，**`as const` 告诉 TypeScript，推断类型时要把变量 `arr` 推断为只读数组，从而使得数组成员无法改变**。
+
+
+
+**多维数组**
+
+TypeScript **使用 `T[][]` 的形式来表示二维数组，`T` 是最底层数组成员的类型**。
+
+```ts
+var multi:number[][] = [[1,2,3], [23,24,25]];
+```
+
+上述代码中，变量 `multi` 的类型是 `number[][]`，表示它是一个二维数组，最底层的数组成员类型是 `number`。
