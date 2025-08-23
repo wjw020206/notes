@@ -1545,3 +1545,50 @@ type MyAge = typeof Age; // 'Age' only refers to a type, but is being used as a 
 上述代码中，**`Age` 是一个类型别名，用作 `typeof` 命令的参数就会报错**。
 
 `typeof` 是一个很重要的 TypeScript 运算符，**有些场合不知道某个变量 `foo` 的类型，这时使用 `typeof foo` 就可以获得它的类型**。
+
+
+
+**块级类型声明**
+
+**TypeScript 支持块级类型声明，即类型可以声明在代码块（用大括号表示）中，并且只在当前代码块有效**。
+
+```ts
+if (true) {
+  type T = number;
+  let v:T = 5;
+} else {
+  type T = string;
+  let v:T = 'hello';
+}
+```
+
+上述代码中，两个声明都只在自己的代码块内部有效，在代码块外部无效。
+
+
+
+**类型的兼容**
+
+TypeScript 的类型存在兼容关系，**某些类型可以兼容其它类型**。
+
+```ts
+type T = number|string;
+
+let a:number = 1;
+let b:T = a;
+```
+
+上述代码中，变量 `a` 和 `b` 的类型是不一样的，**但是变量 `a` 赋值给变量 `b` 并不会报错，这时就认为 `b` 的类型兼容 `a` 的类型**。
+
+TypeScript 为这种情况定义了一个专门术语，**如果类型 `A` 的值可以赋值给类型 `B`，那么类型 `A` 就称为类型 `B` 的子类型（subtype）**。
+
+TypeScript 的一个规则是：**凡是可以使用父类型的地方，都可以使用子类型，但是反过来不行**。
+
+```ts
+let a:'hi' = 'hi';
+let b:string = 'hello';
+
+b = a; // 正确
+a = b; // 错误
+```
+
+之所以有这样的规则，是**因为子类型继承了父类型的所有特征，所以可以用在父类型的场合，但是子类型还可能有一些父类型没有的特征，所以父类型不能用在子类型的场合**。
