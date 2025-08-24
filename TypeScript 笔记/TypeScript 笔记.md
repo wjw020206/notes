@@ -1930,3 +1930,53 @@ type TupleEl = Tuple[number];  // string|number|Date
 ```
 
 上述代码中，**`Tuple[number]` 表示元组 `Tuple` 的所有数值索引的成员类型**，返回 `string|number|Date`，即这个类型是三种值的联合类型。
+
+
+
+**只读元组**
+
+**元组也可以是只读的，不允许修改**，有两种写法：
+
+```ts
+// 写法一
+type t = readonly [number, string];
+
+// 写法二
+type t = Readonly<[number, string]>;
+```
+
+上述代码中，两种写法都可以得到只读元组，**其中写法二是一个泛型，用到了工具类型 `Readonly<T>`**。
+
+跟数组一样，**只读元组是元组的父类型，所以元组可以替代只读元组，而只读元组不能替代元组**。
+
+```ts
+type t1 = readonly [number, number];
+type t2 = [number, number];
+
+let x:t2 = [1, 2];
+let y:t1 = x; // 正确
+
+x = y; // 报错
+```
+
+由于只读元组不能替代元组，所以会产生一些令人困惑的报错。
+
+```ts
+function distanceFromOrigin([x, y]:[number, number]) {
+  return Math.sqrt(x**2 + y**2);
+}
+
+const point = [3, 4] as const;
+
+distanceFromOrigin(point); // 报错
+```
+
+上述代码中用到了 `[3, 4] as const` 的写法，**该写法生成的是只读数组，其实生成的同时也是只读元组**，因为它实际上生成的是一个只读的  “值类型” `readonly [3, 4]`，**把它解读成只读数组或只读元组都可以**。
+
+上述代码报错的解决方法，**使用类型断言，在最后一行将传入的参数断言为普通元组**，例如：
+
+```ts
+distanceFromOrigin(
+  point as [number, number]
+)
+```
