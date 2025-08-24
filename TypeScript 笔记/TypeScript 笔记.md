@@ -2073,3 +2073,139 @@ const arr = [1, 2] as const;
 ```
 
 这种写法也可以，因为 TypeScript **会认为 `arr` 的类型是 `readonly [1, 2]` 是一个只读的值类型，可以当作数组，也可以当作元组**。
+
+
+
+## symbol 类型
+
+`Symbol` 是 ES 2015 引入的一种原始类型的值，它类似于字符串，但是**每一个 `Symbol` 值都是独一无二的，与其它任何值都不相等**。
+
+`Symbol` 值通过 `symbol()` 函数生成，**在 TypeScript 中，`Symbol` 的类型使用 `symbol` 表示**。
+
+```ts
+let x:symbol = Symbol();
+let y:symbol = Symbol();
+
+x === y; // false
+```
+
+
+
+**unique symbol**
+
+**`symbol` 类型包含所有的 `Symbol` 值，但无法表示某一个具体的 `Symbol` 值**。
+
+例如，`5` 是一个具体的值，就用 `5` 这个字面量来表示，这也是它的值类型，**但是 `Symbol` 值不存在字面量，必须通过变量来引用，所以写不出只包含单个 `Symbol` 值的那种类型**。
+
+**为了解决这个问题，TypeScript 设计了 `symbol` 的一个子类型 `unique symbol`，它表示单个的、某个具体的 `Symbol` 值**。
+
+因为 `unique symbol` 表示单个值，**所以这个类型的变量是不能修改值的，只能用 `const` 声明，不能用 `let` 声明**。
+
+```ts
+// 正确
+const x:unique symbol = Symbol();
+
+// 错误
+let y:unique symbol = Symbol(); // A variable whose type is a 'unique symbol' type must be 'const'.
+```
+
+**`const` 命令为变量赋值 `Symbol` 值时，变量类型默认就是 `unique symbol`，所以类型可以省略不写**。
+
+```ts
+const x:unique symbol = Symbol();
+// 等同于
+const x = Symbol();
+```
+
+**每个声明为 `unique symbol` 类型的变量，它们的值都是不一样的，其实属于两个值类型**。
+
+```ts
+const a:unique symbol = Symbol();
+const b:unique symbol = Symbol();
+
+a === b // 报错
+```
+
+上述代码中，变量 `a` 和变量 `b` 的类型虽然都是 `unique symbol`，**但其实是两个值类型，不同类型的值肯定是不相等的，所以最后一行就报错了**。
+
+**由于变量 `a` 和 `b` 是两个类型，所以不能把一个赋值给另一个**。
+
+```ts
+const a:unique symbol = Symbol();
+const b:unique symbol = a; // 报错
+```
+
+如果要**将变量 `b` 写成与变量 `a` 同一个 `unique symbol` 值类型，只能写成类型为 `typeof a`**。
+
+```ts
+const a:unique symbol = Symbol();
+const b:typeof a = a; // 正确
+```
+
+**相同参数的 `Symbol.for()` 方法会返回相同的 `Symbol` 值，TypeScript 目前无法识别这种情况，所以可能出现多个 `unique symbol` 类型的变量，等于同一个 `Symbol` 值的情况**。
+
+```ts
+const a:unique symbol = Symbol.for('foo');
+const b:unique symbol = Symbol.for('foo');
+```
+
+上述代码中，变量 `a` 和 `b` 是两个不同的值类型，**但它们的值其实是相等的**。
+
+**`unique symbol` 类型是 `symbol` 类型的子类型，所以可以将前者赋值给后者**，但反过来了就不行。
+
+```ts
+const a:unique symbol = Symbol();
+
+const b:symbol = a; // 正确
+
+const c:unique symbol = b; // 报错
+```
+
+**`unique symbol` 类型的一个作用，就是用作属性名，这可以保证不会跟其它属性名冲突**，如果要把某一个特定的 `Symbol` 值当作属性名，那么它的类型只能是 `unique symbol`，不能是 `symbol`。
+
+```ts
+const x:unique symbol = Symbol();
+const y:symbol = Symbol();
+
+interface Foo {
+  [x]: string; // 正确
+  [y]: string; // 报错（从 5.8.3 版本开始，允许使用 symbol 类型的值作为属性名，所以新版本不会报错）
+}
+```
+
+
+
+**类型推断**
+
+如果变量声明没有给出类型，**TypeScript 会推断出某个 `Symbol` 值变量的类型**。
+
+**`let` 声明的变量，推断类型为 `symbol`**。
+
+```ts
+// 类型为 symbol
+let x = Symbol();
+```
+
+**`const` 声明的变量，推断类型为 `unique symbol`**。
+
+```ts
+// 类型为 unique symbol
+const x = Symbol();
+```
+
+**但 `const` 声明的变量，如果赋值为另一个 `symbol`  类型的变量，则推断类型为 `symbol`**。
+
+```ts
+let x = Symbol();
+
+// 类型为 symbol
+const y = x;
+```
+
+**`let` 声明的变量，如果赋值为另一个 `unique symbol` 类型的变量，则推断类型还是 `symbol`**。
+
+```ts
+const x = Symbol();
+
+let y = x;
+```
