@@ -2209,3 +2209,168 @@ const x = Symbol();
 
 let y = x;
 ```
+
+
+
+## 函数
+
+函数的类型声明，**需要在声明函数时，给出的参数的类型和返回值的类型**。
+
+```ts
+function hello(txt:string):void {
+  console.log('hello ' + txt);
+}
+```
+
+上述代码中给出了函数 `hello()` 的参数 `txt` 的类型（`string`）以及返回值的类型（`void`），**后者写在参数列表的圆括号后面，`void` 类型表示没有返回值**。
+
+如果不指定参数类型，TypeScript 就会推断参数类型，**如果缺乏足够信息，就会推断该参数的类型为 `any`**。
+
+**返回值的类型通常可以不写，因为 TypeScript 会自己推断出来**。
+
+```ts
+function hello(txt:string) {
+  console.log('hello ' + txt);
+}
+```
+
+上述代码中，由于没有 `return` 语句，TypeScript 会自动推断出函数 `hello()` 没有返回值。
+
+不过，**有时候出于文档目的，或者防止不小心改掉返回值，还是会写返回值的类型**。
+
+如果变量被赋值为一个函数，变量的类型有两种写法：
+
+```ts
+// 写法一
+const hello = function (txt:string) {
+  console.log('hello ' + txt);
+}
+
+// 写法二
+const hello:(txt:string) => void = function (txt) {
+  console.log('hello ' + txt);
+}
+```
+
+上述代码中，写法一通过等号右边的函数类型，推断出变量 `hello` 的类型，写法二是使用箭头函数的形式，为变量 `hello` 指定类型，参数的类型写在箭头左侧，返回值的类型写在箭头右侧。
+
+写法二有两个地方需要注意：
+
+1. **函数的参数必须要放在圆括号中，不放会报错**
+2. **类型中的参数名（本例是 `txt`）是必须的**，如果写成 `(string) => void`，TypeScript 会理解成函数有一个名为 `string` 的参数，并且这个参数类型为 `any`
+
+```ts
+type MyFunc = (string, number) => number;
+// 等价于 (string: any, number: any) => number
+```
+
+**函数类型中的参数名与实际函数的参数名可以不一致**。
+
+```ts
+let f:(x:number) => number;
+
+f = function (y:number) {
+  return y;
+}
+```
+
+上述代码中，函数类型里面的参数名为 `x`，实际函数定义里面的参数名为 `y`，两者并不相同。
+
+如果函数的类型定义很冗长，或者多个函数使用同一种类型，写法二用起来很麻烦，因此，**往往用 `type` 命令为函数类型定义一个别名，以便指定给其它变量**。
+
+```ts
+type MyFunc = (txt:string) => void;
+
+const hello:MyFunc = function (txt) {
+  console.log('hello ' + txt);
+}
+```
+
+**函数的实际参数个数，可以少于类型指定的参数个数，但是不能多于，即 TypeScript 允许省略参数**。
+
+```ts
+let myFunc:(a:number, b:number) => number;
+
+myFunc = (a:number) => a; // 正确
+
+myFunc = (a:number, b:number, c:number) => a + b + c; // 报错
+```
+
+之所以这样是**因为 JavaScript 函数在声明时往往有多余的参数，实际使用时可以只传入一部分参数**，例如：数组的 `forEach()` 方法的第一个参数是一个函数，该函数默认有三个参数 `(item, index, array) => void`，实际上往往只使用第一个参数 `(item) => void`，因此 TypeScript 允许函数传入的参数不足。
+
+```ts
+let x = (a:number) => 0;
+let y = (b:number, s:string) => 0;
+
+y = x; // 正确
+x = y; // 报错
+```
+
+上述代码中，函数 `x` 只有一个参数，函数 `y` 有两个参数，`x` 可以赋值给 `y`，反过来就不行。
+
+**如果一个变量要套用另一个函数类型，有一个小技巧，就是使用 `typeof` 运算符**。
+
+```ts
+function add(x:number, y:number) {
+  return x + y;
+}
+
+const myAdd:typeof add = function (x, y) {
+  return x + y;
+}
+```
+
+上述代码中，`add` 本身不是类型，而是一个值，所以要用 `typeof` 运算符返回它的类型。
+
+**函数类型还可以采用对象的写法**：
+
+``` ts
+let add: {
+  (x:number, y:number):number
+};
+
+add = function (x, y) {
+  return x + y;
+}
+```
+
+函数类型的对象写法如下：
+
+```
+{
+  (参数列表): 返回值
+}
+```
+
+**⚠️ 注意：这种写法的函数参数与返回值之间，间隔符是冒号 `:`，而不是正常写法的箭头 `=>`**，因为这里采用的是对象写法，对象的属性名和值之间用的是冒号。
+
+这种写法平时很少用，但非常适合用在一个场合：函数本身存在属性。
+
+```ts
+function f(x:number) {
+  console.log(x);
+}
+
+f.version = '1.0';
+```
+
+上述代码中，函数 `f()` 本身还有一个属性 `version`，**这时 `f` 完全就是一个对象，类型就要使用对象的写法**。
+
+```ts
+let foo: {
+  (x:number):void;
+  version: string
+} = f;
+```
+
+**函数类型也可以使用 `interface` 来声明，这种写法就是对象写法的翻版**，例如：
+
+```ts
+interface myfn {
+  (a:number, b:number): number;
+}
+
+const add:myfn = (a, b) => a + b;
+```
+
+上述代码中，`interface` 定义了接口 `myfn`，这个接口的类型就是一个用对象表示的函数。
