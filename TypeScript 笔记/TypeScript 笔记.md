@@ -1980,3 +1980,47 @@ distanceFromOrigin(
   point as [number, number]
 )
 ```
+
+
+
+**成员数量的推断**
+
+**如果没有可选成员和扩展运算符，TypeScript 会推断出元组的成员数量（即元组长度）**。
+
+```ts
+function f(point:[number, number]) {
+  if(point.length === 3) { // 报错
+    // ...
+  }
+}
+```
+
+上述代码会报错，是**因为 TypeScript 发现元组 `point` 的长度是 `2`，不可能等于 `3`**，所以这个判断无意义。
+
+**如果包含了可选成员，TypeScript 会推断出可能的成员数量**。
+
+```ts
+function f(
+  point:[number, number?, number?]
+) {
+  if (point.length === 4) {  // 报错
+    // ...
+  }
+}
+```
+
+上述代码会报错，**因为 TypeScript 发现 `point.length` 的类型是 `1|2|3`，不可能等于 `4`**。
+
+**如果使用了扩展运算符，TypeScript 就无法推断出成员数量**。
+
+```ts
+const myTuple:[...string[]] = ['a', 'b', 'c'];
+
+if (myTuple.length === 4) { // 正确
+  // ...
+}
+```
+
+上述代码中，虽然 `myTuple` 只有三个成员，但是 TypeScript 推断不出它的成员数量，因为它的类型用到了扩展运算符，TypeScript 把 `myTuple` 当成数组看待，而数组的成员数量是不确定的。
+
+**一旦扩展运算符使元组的成员数量无法推断，TypeScript 内部就会把该元组当成数组处理**。
