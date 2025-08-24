@@ -1809,7 +1809,124 @@ arr[0] = [2]; // 报错
 TypeScript **使用 `T[][]` 的形式来表示二维数组，`T` 是最底层数组成员的类型**。
 
 ```ts
-var multi:number[][] = [[1,2,3], [23,24,25]];
+const multi:number[][] = [[1,2,3], [23,24,25]];
 ```
 
 上述代码中，变量 `multi` 的类型是 `number[][]`，表示它是一个二维数组，最底层的数组成员类型是 `number`。
+
+
+
+## 元组类型
+
+元组（tuple）是 TypeScript 特有的数据类型，JavaScript 没有单独区分这种类型，**它表示成员类型可以自由设置的数组，即数组的各个成员的类型可以不同**。
+
+由于成员的类型可以不一样，所以**元组必须明确声明每个成员的类型**。
+
+``` ts
+const s:[string, string, boolean] = ['a', 'b', true];
+```
+
+元组类型的写法，与数组类型有一个重大差异：**数组的成员类型写在方括号外面（`number[]`），元组的成员类型是写在方括号里面**。
+
+```ts
+// 数组
+let a:number[] = [1];
+
+// 元组
+let t:[number] = [1];
+```
+
+上述代码中，变量 `a` 和 `t` 的值都是 `[1]`，但它们的类型是不一样的。
+
+**使用元组时，必须明确给出类型声明，不能省略，否则 TypeScript 会把一个值自动推断为数组**。
+
+```ts
+// a 的类型被推断为 (number | boolean)[]
+let a = [1, true];
+```
+
+**元组成员的类型可以添加问号后缀（`?`），表示该成员是可选的**。
+
+```ts
+let a:[number, number?] = [1];
+```
+
+**⚠️ 注意：问号只能用于元组的尾部成员，所有可选成员必须在必选成员之后**，例如：
+
+```ts
+type myTuple = [
+  number,
+  number,
+  number?,
+  string?
+];
+```
+
+由于需要声明每个成员的类型，所以**在大多数情况下，元组的成员数量是有限的，从类型声明就可以明确知道，元组包含了多少个成员，越界的成员会报错**。
+
+```ts
+let x:[string, string] = ['a', 'b'];
+
+x[2] = 'c'; // 报错
+```
+
+但是，**使用扩展运算符（`...`），可以表示不限成员数量的元组**。
+
+```ts
+type NamedNums = [
+  string,
+  ...number[]
+];
+
+const a:NamedNums = ['A', 1, 2];
+const b:NamedNums = ['B', 1, 2, 3];
+```
+
+上述代码中，元组类型 `NamedNums` 的第一个成员是字符串，后面的成员使用扩展运算来展开一个数组，从而实现了不定数量的成员。
+
+**扩展运算符（`...`）用在元组的任意位置都可以，它的后面只能是一个数组或元组**。
+
+```ts
+// ... 后跟数组
+type t1 = [string, number, ...boolean[]];
+type t2 = [string, ...boolean[], number];
+
+// ... 后跟元组
+type t3 = [...t2, string, number];
+```
+
+**如果不确定元组成员的类型和数量，可以写成下面这样**：
+
+```ts
+type Tuple = [...any[]];
+```
+
+上述代码中，元组 `Tuple` 可以放置任意数量和类型的成员，**但是这样写也就失去了使用元组和 TypeScript 的意义**。
+
+**元组的成员可以添加成员名，这个成员名是说明性的，可以任意取名，没有实际作用**。
+
+```ts
+type Color = [
+  red: number,
+  green: number,
+  blue: number
+];
+
+const c:Color = [255, 255, 255];
+```
+
+**元组可以通过方括号，读取成员类型**。
+
+```ts
+type Tuple = [string, number];
+type Age = Tuple[1]; // number;
+```
+
+**由于元组的成员都是数值索引，即索引类型都是 `number`，所以可以像下面这样读取**：
+
+```ts
+type Tuple = [string, number, Date];
+type TupleEl = Tuple[number];  // string|number|Date
+```
+
+上述代码中，**`Tuple[number]` 表示元组 `Tuple` 的所有数值索引的成员类型**，返回 `string|number|Date`，即这个类型是三种值的联合类型。
