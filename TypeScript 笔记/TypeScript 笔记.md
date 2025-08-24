@@ -2080,7 +2080,7 @@ const arr = [1, 2] as const;
 
 `Symbol` 是 ES 2015 引入的一种原始类型的值，它类似于字符串，但是**每一个 `Symbol` 值都是独一无二的，与其它任何值都不相等**。
 
-`Symbol` 值通过 `symbol()` 函数生成，**在 TypeScript 中，`Symbol` 的类型使用 `symbol` 表示**。
+`Symbol` 值通过 `Symbol()` 函数生成，**在 TypeScript 中，`Symbol` 的类型使用 `symbol` 表示**。
 
 ```ts
 let x:symbol = Symbol();
