@@ -2161,7 +2161,7 @@ const b:symbol = a; // 正确
 const c:unique symbol = b; // 报错
 ```
 
-**`unique symbol` 类型的一个作用，就是用作属性名，这可以保证不会跟其它属性名冲突**，如果要把某一个特定的 `Symbol` 值当作属性名，那么它的类型只能是 `unique symbol`，不能是 `symbol`。
+**`unique symbol` 类型的一个作用，就是用作属性名，这可以保证不会跟其它属性名冲突**，在 5.8.3 版本之前，如果要把某一个特定的 `Symbol` 值当作属性名，TypeScript 只允许它的类型是 `unique symbol`，不能是 `symbol`，5.8.3 版本之后没有这个限制。
 
 ```ts
 const x:unique symbol = Symbol();
@@ -2169,9 +2169,19 @@ const y:symbol = Symbol();
 
 interface Foo {
   [x]: string; // 正确
-  [y]: string; // 报错（从 5.8.3 版本开始，允许使用 symbol 类型的值作为属性名，所以新版本不会报错）
+  [y]: string; // 5.8.3 版本之前报错
 }
 ```
+
+**`unique symbol` 类型也可以用作类（class）的属性值，但只能赋值给类的 `readonly static` 属性**。
+
+```ts
+class C {
+  static readonly foo:unique symbol = Symbol();
+}
+```
+
+**⚠️ 注意：上述代码中 `static` 和 `readonly` 两个限定符缺一不可，这是为了保证这个属性是固定不变的**。
 
 
 
@@ -2374,3 +2384,756 @@ const add:myfn = (a, b) => a + b;
 ```
 
 上述代码中，`interface` 定义了接口 `myfn`，这个接口的类型就是一个用对象表示的函数。
+
+
+
+**Function 类型**
+
+**TypeScript 提供 Function 类型表示函数，任何函数都属于这个类型**。
+
+```ts
+function doSomething(f:Function) {
+  return f(1, 2, 3);
+}
+```
+
+上述代码中，参数 `f` 的类型就是 `Function`，代表这是一个函数。
+
+**`Function` 类型的值都是可以直接执行**。
+
+**`Function` 类型的函数可以接受任意数量的参数，每个参数的类型都是 `any`，返回值的类型也是 `any`**，代表没有任何约束，**所以不建议使用这个类型，给出函数详细的类型声明比较好**。
+
+
+
+**箭头函数**
+
+箭头函数是普通函数的一种简化写法，**它的类型写法与普通函数类似**。
+
+```ts
+const repeat = (str:string, times:number):string => str.repeat(times);
+```
+
+**⚠️ 注意：类型写在箭头函数的定义里面，与使用箭头函数表示函数类型，写法有所不同**。
+
+```ts
+function greet(fn:(a:string) => void):void {
+  fn('world');
+}
+```
+
+上述代码中，函数 `greet()` 的参数 `fn` 是一个函数，类型就用箭头函数表示。
+
+再看一个例子：
+
+```ts
+type Person = { name: string };
+
+const people = ['alice', 'bob', 'jan'].map(
+  (name):Person => ({ name })
+);
+```
+
+上述代码中，`Person` 是一个类型的别名，代表一个对象，该对象有属性 `name`，变量 `people` 是数组的 `map()` 方法的返回值。
+
+**⚠️ 注意：下面两种写法都是不对的**。
+
+```ts
+// 错误
+(name:Person) => ({name})
+
+// 错误
+name:Person => ({name})
+```
+
+上述代码中，第一种写法表示箭头函数的参数 `name` 的类型是 `Person`，同时没写函数返回值的类型，让 TypeScript 自己去推断，第二种写法中，函数参数缺少圆括号。
+
+
+
+**可选参数**
+
+如果函数的某个参数可以省略，**则在参数名后面加问号表示**。
+
+```ts
+function f(x?:number) {
+  // ...
+}
+
+f(); // 正确
+f(10); // 正确
+```
+
+**参数名带有问号，表示该参数的类型实际上是 `原始类型|undefined`**，它有可能为 `undefined`，例如上述代码中的 `x` 虽然声明为 `number`，但实际上是 `number|undefined`。
+
+```ts
+function f(x?:number) {
+  return x;
+}
+
+f(undefined) // 正确
+```
+
+**但反过来不成立，类型显式设为 `undefined` 的参数，就不能省略**。
+
+```ts
+function f(x:number|undefined) {
+  return x;
+}
+
+f() // 报错
+```
+
+**函数的可选参数只能在参数列表的尾部，跟在必选参数的后面**。
+
+```ts
+let myFunc:(a?:number, b:number) => number; // 报错
+
+let myFunc2:(b:number, a?:number) => number; // 正确
+```
+
+**如果前部参数有可能为空，这时只能显式注明参数类型可能为 `undefined`**。
+
+```ts
+let myFunc: (
+    a:number|undefined,
+    b:number
+  ) => number;
+```
+
+**在函数体内部用到可选参数时，需要判断该参数是否为 `undefined`**。
+
+```ts
+let myFunc: (a:number, b?:number) => number;
+
+myFunc = function (x, y) {
+  if(y === undefined) {
+    return x;
+  }
+  
+  return x + y;
+}
+```
+
+
+
+**参数默认值**
+
+TypeScript 函数的参数默认值写法，**与 JavaScript 一致**。
+
+**设置了默认值的函数，就是可选的，如果不传入该参数，它就会等于默认值**。
+
+```ts
+function createPoint(
+  x:number = 0,
+  y:number = 0
+):[number, number] {
+  return [x, y];
+}
+
+createPoint() // [0, 0]
+```
+
+**上述代码中可以省略 `x` 和 `y` 的类型声明，因为可以从默认值推断出来**，例如：
+
+```ts
+function createPoint(
+  x = 0, y = 0
+) {
+  return [x, y];
+}
+```
+
+**可选参数与默认值不能同时使用**。
+
+```ts
+// 报错
+function f(x?: number = 0) {
+  // ...
+}
+```
+
+**设置了默认值的参数，如果传入 `undefined`，也会触发默认值**。
+
+```ts
+function f(x = 456) {
+  return x;
+}
+
+f(undefined) // 456
+```
+
+**具有默认值的参数如果不位于参数列表的末尾，调用时不能省略，如果要触发默认值，必须显式传入 `undefined`**。
+
+```ts
+function add(
+  x:number = 0,
+  y:number
+) {
+  return x + y;
+}
+
+add(1) // 报错
+add(undefined, 1) // 正确
+```
+
+
+
+**参数解构**
+
+函数参数如果存在变量解构，类型写法如下：
+
+```ts
+// 数组参数解构
+function f(
+  [x, y]: [number, number]
+) {
+  // ...
+}
+
+
+// 对象参数解构
+function sum(
+  { a, b, c }: {
+     a: number;
+     b: number;
+     c: number
+  }
+) {
+  console.log(a + b + c);
+}
+```
+
+**参数解构可以结合类型别名（`type` 命令）一起使用，代码看起来简洁一些**。
+
+```ts
+type ABC = { a:number; b:number; c:number };
+
+function sum({ a, b, c }:ABC) {
+  console.log(a + b + c);
+}
+```
+
+
+
+**rest 参数**
+
+rest 参数**表示函数剩余的所有参数，它可以是数组（剩余参数类型相同），也可能是元组（剩余参数类型不同）**。
+
+```ts
+// rest 参数为数组
+function joinNumbers(...nums:number[]) {
+  // ...
+}
+
+// rest 参数为元组
+function f(...args:[boolean, number]) {
+  // ...
+}
+```
+
+**⚠️ 注意：元组需要声明每一个剩余参数的类型，如果元组里面的参数是可选的，则要使用可选参数**，例如：
+
+```ts
+function f(
+  ...args:[boolean, string?]
+) {}
+```
+
+下面是一个 rest 参数的例子：
+
+```ts
+function multiply(n:number, ...m:number[]) {
+  return m.map((x) => n * x);
+}
+```
+
+**rest 参数甚至可以嵌套**。
+
+```ts
+function f(...args:[boolean, ...string[]]) {
+  // ...
+}
+```
+
+**rest 参数可以与变量解构结合使用**。
+
+```ts
+function repeat(
+  ...[str, times]: [string, number]
+):string {
+  return str.repeat(times);
+}
+
+// 等同于
+function repeat(
+  str: string,
+  times: number
+):string {
+  return str.repeat(times);
+}
+```
+
+
+
+**readonly 只读参数**
+
+如果函数内部不能修改某个参数，**可以在函数定义时，在参数类型前加上 `readonly` 关键字，表示这是只读参数**。
+
+```ts
+function arraySum(
+  arr:readonly number[]
+) {
+  // ...
+  arr[0] = 0; // 报错
+}
+```
+
+**⚠️ 注意：`readonly` 关键字目前只允许用在数组和元组类型的参数前面，如果用在其它类型的参数前面，就会报错**。
+
+
+
+**void 类型**
+
+`void` 类型**表示函数没有返回值**。
+
+```ts
+function f():void {
+  console.log('hello');
+}
+```
+
+**如果返回其它值，就会报错**。
+
+```ts
+function f():void {
+  return 123; // 报错
+}
+```
+
+**`void` 类型允许返回 `undefined` 或 `null`**。
+
+```ts
+function f():void {
+  return undefined; // 正确
+}
+
+function f():void {
+  return null; // 正确
+}
+```
+
+**如果打开了 `strictNullChecks` 编译选项，那么 `void` 类型只能允许返回 `undefined`，如果返回 `null`，就会报错**，这是因为 JavaScript 规定，如果函数没有返回值，就等同于返回 `undefined`。
+
+```ts
+// 打开编译选项 strictNullChecks
+
+function f():void {
+  return undefined; // 正确
+}
+
+function f():void {
+  return null; // 报错
+}
+```
+
+**⚠️ 注意：如果变量、对象方法、函数参数是一个返回值为 `void` 类型的函数，那么并不代表不能赋值为有返回值的函数，恰恰相反，该变量、对象方法和函数参数可以接受返回任意值的函数，这时并不会报错**。
+
+```ts
+type voidFunc = () => void;
+
+const f:voidFunc = () => {
+  return 123;
+};
+```
+
+之所以这样，**是因为 TypeScript 认为，这里的 `void` 类型只是表示该函数的返回值没有利用价值，或者说不应该使用该函数的返回值，只要不用到这里的返回值，就不会报错**。
+
+这样设计是有现实意义的，例如：数组方法 `Array.prototype.forEach(fn)` 的参数 `fn` 是一个函数，而这个函数应该没有返回值，即返回值类型是 `void`。
+
+但在实际应用中，**很多时候传入的函数是有返回值，但是它的返回值不重要，或者不产生作用**。
+
+```ts
+const src = [1, 2, 3];
+const ret = [];
+
+src.forEach(el => ret.push(el));
+```
+
+上述代码中，`push()` 有返回值，表示插入新元素后数组的长度，但是对于 `forEach()` 方法来说，**这个返回值是没有作用的，根本用不到，所以 TypeScript 不会报错**。
+
+如果后面使用了这个函数的返回值，就违反了约定，则会报错。
+
+```ts
+type voidFunc = () => void;
+
+const f:voidFunc = () => {
+  return 123;
+};
+
+f() * 2; // 报错
+```
+
+**⚠️ 注意：这种情况仅限于变量、对象方法和函数参数，函数字面量如果声明了返回值是 `void` 类型，还是不能有返回值**。
+
+```ts
+function f():void {
+  return true; // 报错
+}
+ 
+const f3 = function ():void {
+  return true; // 报错
+};
+```
+
+上述代码中，函数字面量声明了返回 `void` 类型，这时只要有返回值（除了 `undefind` 和 `null`） 就会报错。
+
+**函数的运行结果如果是抛出错误，也允许将返回值写成 `void`**。
+
+```ts
+function throwErr():void {
+  throw new Error('something wrong');
+}
+```
+
+**除了函数，其它变量声明为 `void` 类型没有多大意义，因为这时只能赋值为 `undefined` 或 `null`**（假定没有打开`strictNullChecks`) 。
+
+```ts
+let foo:void = undefined;
+
+// 没有打开 strictNullChecks 的情况下
+let bar:void = null;
+```
+
+
+
+**never 类型**
+
+`never` 类型**表示肯定不会出现的值**，它用在函数的返回值，就**表示某个函数肯定不会返回值，即函数不会正常执行结束**。
+
+它主要有以下两种情况：
+
+1. **抛出错误的函数**
+
+   ```ts
+   function fail(msg:string):never {
+     throw new Error(msg);
+   }
+   ```
+
+   上述代码中，**函数 `fail()` 会抛出错误，不会正常退出，所以返回值类型是 `never`**。
+
+   **由于抛出错误的情况属于 `never` 类型或 `void` 类型，所以无法从返回值类型中知道抛出的是哪一种错误**。
+
+2. **无限执行的函数**
+
+   ```ts
+   const sing = function():never {
+     while (true) {
+       console.log('sing');
+     }
+   };
+   ```
+
+   上述代码中，**函数 `sing()` 会永远执行，不会返回，所以返回值类型是 `never`**。
+
+**⚠️ 注意：`never` 类型不同于 `void` 类型，前者表示函数没有执行结束，不可能有返回值，后者表示函数正常执行结束，但不返回值或者说返回 `undefined`**。
+
+```ts
+// 正确
+function sing():void {
+  console.log('sing');
+}
+
+// 报错
+function sing():never {
+  console.log('sing');
+}
+```
+
+上述代码中，**函数 `sing()` 虽然没有 `return` 语句，但实际上是省略了 `return undefined` 这行语句，真实的返回值是 `undefined`，所以它的返回值类型要写成 `void`，而不是 `never`**，写成 `never` 报错。
+
+如果一个函数抛出了异常或陷入死循环，那么该函数无法正常返回一个值，因此该函数的返回值类型就是 `never`，**如果程序中调用了一个返回值类型为 `never` 的函数，就意味着程序会在该函数调用位置终止，永远不会继续执行后续的代码**。
+
+```ts
+function neverReturns():never {
+  throw new Error();
+}
+
+function f(x:string|undefined) {
+  if (x === undefined) {
+    neverReturns();
+  }
+
+  x; // 推断为 string
+}
+```
+
+上述代码中，函数 `f()` 的参数 `x` 的类型为 `string|undefined`，**当 `x` 的类型为 `undefined` 时，调用了 `neverReturns()`，这个函数不会返回并且不会执行后续的代码，因此 TypeScript 可以推断出，判断语句后面的那个 `x`，类型一定是 `string`**。
+
+**一个函数如果某些条件下有正常返回值，另一些条件下抛出错误，这时它的返回值类型可以省略 `never`**。
+
+```ts
+function sometimesThrow():number {
+  if(Math.random() > 0.5) {
+    return 100;
+  }
+  
+  throw new Error('Something went wrong');
+}
+
+const result = sometimesThrow();
+```
+
+上述代码中，**函数 `sometimesThrow()` 的返回值其实是 `number|never`，但一般都写成 `number`，包括最后一行的变量 `result` 的类型，也是被推断为 `number`**。
+
+之所以这样，因为 `never` 是 TypeScript 的唯一一个底层类型，所有其它类型中都包括了 `never`，从集合论角度来看，`number|never` 等同于 `number`，**这也说明了，函数的返回值无论是什么类型，都可能包含了抛出错误的情况**。
+
+
+
+**局部类型**
+
+函数内部允许声明其它类型，**该类型只在函数内部有效，被称为局部类型**。
+
+```ts
+function hello(txt:string) {
+  type message = string;
+  let newTxt:message = 'hello ' + txt;
+  return newTxt;
+}
+
+const newTxt:message = hello('world'); // 报错
+```
+
+上述代码中，类型 `message` 是在函数 `hello()` 内部定义的，**只能在函数内部使用，在函数外部使用就会报错**。
+
+
+
+**高阶函数**
+
+一个函数的返回值还是一个函数，**那么前一个函数就被称为高阶函数（higher-order function）**。
+
+例如：
+
+```ts
+(someValue:number) => (multiplier:number) => someValue * multiplier;
+```
+
+上述代码中，箭头函数返回的还是一个箭头函数。
+
+
+
+**函数重载**
+
+有些函数可以接受不同类型或不同个数的参数，并且根据参数的不同，会有不同的函数行为，**这种根据参数类型或个数不同，执行不同逻辑的行为，被称为函数重载（function overload）**。
+
+```ts
+reverse('abc') // 'cba'
+reverse([1, 2, 3]) // [3, 2, 1]
+```
+
+例如上述代码，函数 `reverse()` 可以将参数颠倒输出，参数可以是字符串，也可以是数组。
+
+这意味着，**该函数内部有处理字符串和数组的两套逻辑，根据参数类型的不同，分别执行对应的逻辑**，这就是 “函数重载”。
+
+**TypeScript 对于 “函数重载” 的类型声明方式是：逐一定义每一种情况的类型**。
+
+```ts
+function reverse(str:string):string;
+function reverse(arr:any[]):any[];
+```
+
+上述代码中，**分别对函数 `reverse()` 的两种情况，给予了类型声明，但到这还没有结束，后面还必须对函数 `reverse()` 给予完整的类型声明**。
+
+```ts
+function reverse(str:string):string;
+function reverse(arr:any[]):any[];
+function reverse(
+  stringOrArray:string|any[]
+):string|any[] {
+  if(typeof stringOrArray === 'string') {
+    return stringOrArray.split('').reverse().join('');
+  } else {
+    return stringOrArray.slice().reverse();
+  }
+}
+```
+
+上述代码中，**前两行类型声明列举了重载的各种情况，第三行是函数本身的类型声明，它必须与前面已有的重载声明兼容**。
+
+有一些编程语言允许不同的函数参数，对应不同的函数实现，**但 JavaScript 中函数只能有一个实现，必须在这个实现中，处理不同的参数，因此函数体内部就需要判断参数的类型及个数，并根据判断结果执行不同的操作**。
+
+```ts
+function add(
+  x:number,
+  y:number
+):number;
+
+function add(
+  x:any[],
+  y:any[]
+):any[];
+
+function add(
+  x:number|any[],
+  y:number|any[]
+):number|any[] {
+  if(typeof x === 'number' && typeof y === 'number') {
+    return x + y;
+  } else if(Array.isArray(x) && Array.isArray(y)) {
+    return [...x, ...y];
+  }
+   
+  throw new Error('wrong parameters');
+}
+```
+
+上述代码中，函数 `add()` 内部使用 `if` 代码块，分别处理参数的情况。
+
+**⚠️ 注意：重载的各个类型描述与函数的具体实现之间，不能有其它代码，否则会报错**。
+
+另外，**虽然函数的具体实现中，有完整的类型声明，但是函数实际调用的类型，以前面的类型声明为主**，比如，上述代码中函数实现，参数类型和返回值类型都是 `number|any[]`，但不意味着参数类型为 `number` 时返回值类型为 `any[]`。
+
+**函数重载的每个类型声明之间，以及类型声明与函数实现的类型之间，不能有冲突**。
+
+```ts
+// 报错
+function fn(x:boolean):void;
+function fn(x:string):void;
+function fn(x:number|string) {
+  console.log(x);
+}
+```
+
+**重载声明的排序很重要，因为 TypeScript 是按照顺序进行检查的**，一旦发现符合某个类型声明，就不再往下检查了，**所以类型最宽的声明应该放在最后面，防止覆盖其它类型声明**。
+
+```ts
+function f(x:any):number;
+function f(x:string): 0|1;
+function f(x:any):any {
+  // ...
+}
+
+const a:0|1 = f('hi'); // 报错
+```
+
+上述代码中，**第一行类型声明 `x:any` 范围最宽，导致函数 `f()` 的调用都会匹配这行声明，无法匹配第二行类型声明**，所以最后一行调用就报错了。
+
+**对象的方法也可以使用重载**。
+
+```ts
+class StringBuilder {
+  #data = '';
+  
+  add(num:number): this;
+  add(bool:boolean): this;
+  add(str:string): this;
+  add(value:any): this {
+    this.#data += String(value);
+    return this;
+  }
+
+  toString() {
+    return this.#data;
+  }
+}
+```
+
+**函数重载也可以用来精确描述函数参数与返回值之间的对应关系**。
+
+```ts
+function createElement(
+  tag:'a'
+):HTMLAnchorElement;
+function createElement(
+  tag:'canvas'
+):HTMLCanvasElement;
+function createElement(
+  tag:'table'
+):HTMLTableElement;
+function createElement(
+  tag:string
+):HTMLElement {
+  // ...
+}
+```
+
+上述代码中，**函数重载精确描述了参数 `tag` 的三个值，所对应的不同的函数返回值**。
+
+这个示例的函数重载，**也可以用对象表示**。
+
+```ts
+type CreateElement = {
+  (tag:'a'): HTMLAnchorElement;
+  (tag:'canvas'): HTMLCanvasElement;
+  (tag:'table'): HTMLTableElement;
+  (tag:string): HTMLElement;
+}
+```
+
+由于重载是一种比较复杂的类型声明方法，**为了降低复杂性，一般来说如果可以的话，应该优先使用联合类型替代函数重载，除非多个参数之间、或者某个参数与返回值之间，存在对应关系**。
+
+```ts
+// 写法一
+function len(s:string):number;
+function len(arr:any[]):number;
+function len(x:any):number {
+  return x.length;
+}
+
+// 写法二
+function len(x:any[]|string):number {
+  return x.length;
+}
+```
+
+上述代码中，**写法二使用联合类型，要比写法一的函数重载简单很多**。
+
+
+
+**构造函数**
+
+JavaScript 语言使用构造函数，生成对象的实例。
+
+**构造函数的最大特点，就是必须使用 `new` 命令调用**。
+
+```ts
+const d = new Date();
+```
+
+在上述代码中，`Date()` 就是一个构造函数，使用 `new` 命令调用，返回 `Date` 对象的实例。
+
+**构造函数的类型写法，就是在参数列表前面加上 `new` 命令**。
+
+```ts
+class Animal {
+  numLegs:number = 4;
+}
+
+type AnimalConstructor = new () => Animal;
+
+function create(c:AnimalConstructor):Animal {
+  return new c();
+}
+
+const a = create(Animal);
+```
+
+上述代码中，类型 `AnimalConstructor` 就是一个构造函数，而函数 `create()` 需要传入一个构造函数，在 JavaScript 中，类（class）本质上是构造函数，所以 `Animal` 这个类可以传入 `create()`。
+
+**构造函数还有另一种类型写法，就是采用对象形式**。
+
+```ts
+type F = {
+  new (s:string): object;
+};
+```
+
+某些函数既是构造函数，又可以当做普通函数使用，比如 `Date()`，这时类型声明可以写成下面这样：
+
+```ts
+type F = {
+  new (s:string): object;
+  (n?:number): number;
+}
+```
+
+上述代码中，**`F` 既可以当作普通函数执行，也可以当做构造函数使用**。
