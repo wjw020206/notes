@@ -4293,7 +4293,7 @@ interface B extends A {
 const b:B = {
   x: '',
   y: function() { return true },
-  z" 123,
+  z: 123,
 };
 ```
 
@@ -4310,7 +4310,7 @@ interface B extends A {
 }
 
 // 报错
-const b:B = { /* ... */ }
+const b: B = { /* ... */ }
 
 // 报错
 class C implements B {
