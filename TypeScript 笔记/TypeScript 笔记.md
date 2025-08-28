@@ -4638,3 +4638,1030 @@ interface Country {
    上述代码中，类型 `AorB` 是一个联合类型，`AorBwithName` 则是为 `AorB` 添加加一个属性，这两种运算，`interface` 都无法表达。
 
 **综上所述，如果有复杂的类型运算，没有其它选择只能使用 `type`，一般情况下，`interface` 灵活性比较高，便于扩充类型和自动合并，建议优先使用**。
+
+
+
+## 类
+
+类（class）是面向对象编程的基本构件，封装了属性和方法，TypeScript 给予了全面支持。
+
+
+
+**属性的类型**
+
+类的属性可以在顶层声明，也可以在构造方法内部声明。
+
+**对于顶层声明的属性，可以在声明时同时给出类型**。
+
+```ts
+class Point {
+  x: number;
+  y: number;
+}
+```
+
+**如果不给出类型，TypeScript 会认为 `x` 和 `y` 的类型都是 `any`**。
+
+```ts
+class Point {
+  x;
+  y;
+}
+```
+
+**如果声明时给出初值，可以不写类型，TypeScript 会自动推断属性的类型**。
+
+```ts
+class Point {
+  x = 0;
+  y = 0;
+}
+```
+
+上述代码中，属性 `x` 和 `y` 的类型都会被推断为 `number`。
+
+**TypeScript 有一个配置项 `strictPropertyInitialization`，只要打开（默认是打开的），就会检查属性是否设置了初值，如果没有就报错**。
+
+```ts
+// 打开 strictPropertyInitialization
+class Point {
+  x: number; // 报错
+  y: number; // 报错
+}
+```
+
+上述代码中，如果类的顶层属性不赋值，就会报错，**如果不希望出现报错，可以使用非空断言**。
+
+```ts
+class Point {
+  x!: number;
+  y!: number;
+}
+```
+
+上述代码中，**属性 `x` 和 `y` 没有初值，但是属性名后面添加感叹号，表示这两个属性肯定不会为空，所以 TypeScript 就不报错了**。
+
+
+
+**readonly 修饰符**
+
+属性名前面加上 `readonly` 修饰符，**就表示该属性是只读的，实例对象不能修改这个属性**。
+
+```ts
+class A {
+  readonly id = 'foo';
+}
+
+const a = new A();
+
+a.id = 'bar'; // 报错
+```
+
+**`readonly` 属性的初始值，可以写在顶层属性，也可以写在构造方法里面**。
+
+```ts
+class A {
+  readonly id: string;
+  
+  constructor() {
+    this.id = 'bar'; // 正确
+  }
+}
+```
+
+上述代码中，**构造函数内部设置只读属性的初值，这是可以的**。
+
+```ts
+class A {
+  readonly id:string = 'foo';
+  
+  constructor() {
+    this.id = 'bar'; // 正确
+  }
+}
+```
+
+上述代码中，**构造函数中修改只读属性的值也是可以的，但如果两个地方都设置了只读属性的值，以构造方法为准，在其它地方修改只读属性都会报错**。
+
+
+
+**方法的类型**
+
+类的方法就是普通函数，类型声明方式与函数一致。
+
+```ts
+class Point {
+  x: number;
+  y: number;
+  
+  constructor(x: number, y: number) {
+    this.x = x;
+    this.y = y;
+  }
+  
+  add(point: Point) {
+    return new Point(
+      this.x + point.x,
+      this.y + point.y
+    )
+  }
+}
+```
+
+上述代码中，**构造方法 `constructor()` 和普通方法 `add()` 都注明了参数类型，但是省略了返回值类型，因为 TypeScript 可以自己推断出来**。
+
+**类的方法跟普通函数一样，可以使用参数默认值，以及函数重载**。
+
+下面是参数默认值的例子。
+
+```ts
+class Point {
+  x: number;
+  y: number;
+  
+  constructor(x = 0, y = 0) {
+    this.x = x;
+    this.y = y;
+  }
+}
+```
+
+上述代码中，如果新建实例时，不提供属性 `x` 和 `y` 的值，它们都等于默认值 `0`。
+
+下面是函数重载的例子。
+
+```ts
+class Point {
+  constructor(x: number, y: string);
+  constructor(s: string);
+  constructor(xs: number|string, y?: string) {
+    // ...
+  }
+}
+```
+
+上述代码中，**构造方法可以接受一个参数，也可以接受两个参数，采用函数重载进行类型声明**。
+
+**⚠️ 注意：构造方法不能声明返回值类型，否则报错，因为它总是返回实例对象**。
+
+```ts
+class B {
+  constructor():object { // 报错
+    // ...
+  }
+}
+```
+
+
+
+**存取器方法**
+
+存取器（accessor）是特殊的类方法，**包括取值器（getter）和存值器（setter）两种方法**。
+
+它们用于读写某个属性，取值器用来读取属性，存值器用来写入属性。
+
+```ts
+class C {
+  _name = '';
+  get name() {
+    return this._name;
+  }
+  set name(value) {
+    this._name = value;
+  }
+}
+```
+
+上述代码中，**`get name()` 是取值器，其中 `get` 是关键词，`name` 是属性名，外部读取 `name` 属性时，实例对象会自动调用这个方法，该方法的返回值就是 `name` 属性的值**。
+
+**`set name()` 是存值器，其中 `set` 是关键词，`name` 是属性名，外部写入的 `name` 属性时，实例对象会自动调用这个方法，并将所赋的值作为函数参数传入**。
+
+TypeScript 对存取器有以下规则：
+
+1. **如果某个属性只有 `get` 方法，没有 `set` 方法，那么该属性自动成为只读属性**
+
+   ```ts
+   class C {
+     _name = 'foo';
+     
+     get name() {
+       return this._name;
+     }
+   }
+   
+   const c = new C();
+   c.name = 'bar';
+   ```
+
+2. **TypeScript 5.1 版本之前，`set` 方法的参数类型，必须兼容 `get` 方法的返回值类型，否则报错**
+
+   ```ts
+   // TypeScript 5.1 之前
+   class C {
+     _name = '';
+     get name():string { // 报错
+       return this._name;
+     }
+     set name(value: number) {
+       this._name = String(value);
+     }
+   }
+   ```
+
+   上述代码中，`get` 方法的返回值类型是字符串，与 `set` 方法的参数类型 `number` 不兼容，导致报错，改成下面这样就不会报错了。
+
+   ```ts
+   class C {
+     _name = '';
+     get name():string {
+       return this._name;
+     }
+     set name(value: number|string) {
+       this._name = String(value);
+     }
+   }
+   ```
+
+   上述代码中，**`set` 方法的参数类型（`number|string`）兼容 `get` 方法的返回值类型（`string`），这是允许的**。
+
+   **TypeScript 5.1 版本做出改变，现在两者可以不兼容**。
+
+3. **`get` 方法与 `set` 方法的可访问性必须一致，要么都为公开方法，要么都为私有方法**
+
+
+
+**属性索引**
+
+**类允许定义属性索引**。
+
+```ts
+class MyClass {
+  [s:string]: boolean | ((s:string) => boolean);
+  
+  get(s:string) {
+    return this[s] as boolean;
+  }
+}
+```
+
+上述代码中，**`[s:string]` 表示所有属性名类型为字符串的属性，它们的属性值要么是布尔值，要么是返回布尔值的函数**。
+
+**⚠️ 注意：由于类的方法是一种特殊属性（属性值为函数的属性），所以属性索引的类型定义也涵盖了方法，如果一个对象同时定义了属性索引和方法，那么前者必须包含后者的类型**。
+
+```ts
+class MyClass {
+  [s:string]: boolean;
+  f() { // 报错
+    return true;
+  }
+}
+```
+
+上述代码中，属性索引的类型里面不包括方法，导致后面的方法 `f()` 定义直接报错，正确的写法是下面这样。
+
+```ts
+class MyClass {
+  [s:string]: boolean | (() => boolean);
+  f() {
+    return true;
+  }
+}
+```
+
+**属性存取器视为属性**。
+
+```ts
+class MyClass {
+  [s:string]: boolean;
+  
+  get isInstance() {
+    return true;
+  }
+}
+```
+
+上述代码中，**属性 `isInstance` 的读取器虽然是一个函数方法，但是视同属性，所以属性索引虽然没有涉及方法类型，但是不会报错**。
+
+
+
+**implements 关键字**
+
+`interface` 接口或 `type` 别名，**可以用对象的形式，为 `class` 指定一组检查条件，类使用 `implements` 关键字，表示当前类满足这些外部条件的限制**。
+
+```ts
+interface Country {
+  name: string;
+  capital: string;
+}
+
+// 或者
+type Country = {
+  name: string;
+  capital: string;
+}
+
+class MyCountry implements Country {
+  name = '';
+  capital = '';
+}
+```
+
+上述代码中，`interface` 或 `type` 都可以定义一个对象类型，**类 `MyCountry` 使用 `implements` 关键字，表示该类的实例对象满足这个外部类型**。
+
+**`interface` 只是指定检查条件，如果不满足这些条件就会报错，它并不能代替 `class` 自身的类型声明**。
+
+```ts
+interface A {
+  get(name: string): boolean;
+}
+
+class B implements A {
+  get(s) { // s 的类型是 any
+    return true;
+  }
+}
+```
+
+上述代码中，**类 `B` 实现了接口 `A`，但是后者并不能代替前者的类型声明，所以 `B` 的 `get()` 方法的参数 `s` 的类型是 `any`，而不是 `string`，`B` 类依然需要声明参数 `s` 的类型**，例如：
+
+```ts
+interface A {
+  get(name: string): boolean;
+}
+
+class B implements A {
+  get(s: string) {
+    return true;
+  }
+}
+```
+
+下面是另一个例子。
+
+```ts
+interface A {
+  x: number;
+  y?: number;
+}
+
+class B implements A {
+  x = 0;
+}
+
+const b = new B();
+b.y = 10; // 报错
+```
+
+上述代码中，**接口 `A` 有一个可选属性 `y`，类 `B` 没有声明这个属性，所以可以通过类型检查，但是，如果给 `B` 的实例对象的属性 `y` 赋值，就会报错，所以，`B` 类还是需要声明可选属性 `y`**，例如：
+
+```ts
+interface A {
+  x: number;
+  y?: number;
+}
+
+class B implements A {
+  x = 0;
+  y?: number;
+}
+
+const b = new B();
+b.y = 10; // 正确
+```
+
+**同理，类可以定义接口没有声明的方法和属性**。
+
+```ts
+interface Point {
+  x: number;
+  y: number;
+}
+
+class MyPoint implements Point {
+  x = 1;
+  y = 1;
+  z: number = 1;
+}
+```
+
+上述代码中，`MyPoint` 类实现了 `Point` 接口，**但是内部还定义了一个额外的属性 `z`，这是允许的，表示除了满足接口给出的条件，类还有额外的条件**。
+
+**`implements` 关键字后面，不仅可以是接口，也可以是另一个类，这时后面的类将被当作接口**。
+
+```ts
+class Car {
+  id: number = 1;
+  move():void {};
+}
+
+class MyCar implements Car {
+  id = 2; // 不可省略
+  move():void {};   // 不可省略
+}
+```
+
+上述代码中，`implements` 后面是类 `Car`，**这时 TypeScript 把 `Car` 视为一个接口，要求 `MyCar` 实现 `Car` 里面的每一个属性和方法，否则就报错**，所以这时不能因为 `Car` 类已经实现过一次，而在 `MyCar` 类省略属性或方法。
+
+**⚠️ 注意：`interface` 描述的是类的对外接口，也就是实例的公开属性和公开方法，不能定义私有的属性和方法，这是因为 TypeScript 的设计者认为，私有属性是类的内部实现，接口作为模版，不应该涉及类的内部代码写法**。
+
+```ts
+interface Foo {
+  private member:{}; // 报错
+}
+```
+
+
+
+**实现多个接口**
+
+类可以实现多个接口（其实是接受多重限制），每个接口之间使用逗号分隔。
+
+```ts
+class Car implements MotorVehicle, Flyable, Swimmable {
+  // ...
+}
+```
+
+上述代码中，`Car` 类同时实现了 `MotorVehicle`、`Flyable`、`Swimmable` 这三个接口，这**意味着，它必须部署这三个接口声明的所有属性和方法，满足它们的所有条件**。
+
+但是，**同时实现多个接口并不是一个好的方法，容易使得代码难以管理，可以使用以下两种方式替代**。
+
+1. **类的继承**
+
+   ```ts
+   class Car implements MotorVehicle {
+   }
+   
+   class SecretCar extends Car implements Flyable, Swimmable {
+   }
+   ```
+
+   上述代码中，`Car` 类实现了 `MotorVehicle`，而 `SecretCar` 类继承了 `Car` 类，然后再实现 `Flyable` 和 `Swimmable1` 两个接口，相当于 `SecretCar` 类同时实现了三个接口。
+
+2. **接口的继承**
+
+   ```ts
+   interface A {
+     a: number;
+   }
+   
+   interface B extends A {
+     b: number;
+   }
+   ```
+
+   上述代码中，接口 `B` 继承了接口 `A`，类只要实现接口 `B`，就相当于实现 `A` 和 `B` 两个接口。
+
+   前一个例子可以用接口的继承改写。
+
+   ```ts
+   interface MotorVehicle {
+     // ...
+   }
+   
+   interface Flyable {
+     // ...
+   }
+   
+   interface Swimmable {
+     // ...
+   }
+   
+   interface SuperCar extends MotorVehicle, Flyable, Swimmable {
+     // ...
+   }
+   
+   class SecretCar implements SuperCar {
+     // ...
+   }
+   ```
+
+   上述代码中，**类 `SecretCar` 通过 `SuperCar` 接口就间接实现了多个接口**。
+
+   **⚠️ 注意：发生多重实现时（即一个接口同时实现多个接口），不同接口不能有互相冲突的属性**。
+
+   ```ts
+   interface Flyable {
+     foo: number;;
+   }
+   
+   interface Swimmable {
+     foo: string;
+   }
+   
+   class Car implements Flyable, Swimmable {
+     foo: 123; // 报错
+   }
+   ```
+
+   上述代码中，**属性 `foo` 在两个接口中的类型不同，如果同时实现着两个接口，就会报错**。
+
+
+
+**类与接口的合并**
+
+TypeScript 不允许两个同名的类，**但是如果一个类和一个接口同名，那么接口会被合并进类**。
+
+```ts
+class A {
+  x: number = 1;
+}
+
+interface A {
+  y: number;
+}
+
+let a = new A();
+a.y = 10;
+
+a.x; // 1
+a.y; // 10
+```
+
+上述代码中，类 `A` 与接口 `A` 同名，后者会被合并进前者的类型定义。
+
+**⚠️ 注意：合并进类的非空属性（上例的 `y`），如果在赋值之前读取，会返回 `undefined`**。
+
+```ts
+class A {
+  x: number = 1;
+}
+
+interface A {
+  y: number;
+}
+
+let a = new A();
+a.y; // undefined
+```
+
+
+
+**实例类型**
+
+TypeScript 的类本身就是一种类型，**但是它代表该类的实例类型，而不是 `class` 的自身类型**。
+
+```ts
+class Color {
+  name: string;
+  
+  constructor(name: string) {
+    this.name = name;
+  }
+}
+
+const green:Color = new Color('green');
+```
+
+上述代码中，**定义了一个类 `Color`，它的类名就代表一种类型，实例对象 `green` 就属于该类型**。
+
+**对于引用实例对象的变量来说，既可以声明类型为 `class`，也可以声明类型为 `interface`，因为两者都代表实例对象的类型**。
+
+```ts
+interface MotorVehicle {
+}
+
+class Car implements MotorVehicle {
+}
+
+// 写法一
+const c1:Car = new Car();
+// 写法二
+const c2:MotorVehicle = new Car();
+```
+
+上述代码中，变量的类型可以写成类 `Car`，也可以写成接口 `MotorVehicle`，**它们的区别是：如果类 `Car` 有接口 `MotorVehicle` 没有的属性和方法，那么只有变量 `c1` 可以调用这些属性和方法**。
+
+**作为类型使用时，类名只能表示实例的类型，不能表示类的自身类型**。
+
+```ts
+class Point {
+  x: number;
+  y: number;
+	
+  constructor(x: number, y:number) {
+    this.x = x;
+    this.y = y;
+  }
+}
+
+// 错误
+function createPoint(
+  PointClass: Point,
+  x: number,
+ 	y: number
+) {
+  return new PointClass(x, y);
+}
+```
+
+上述代码中，**函数 `createPoint()` 的第一个参数 `PointClass` ，需要传入 `Point` 这个类，但是如果要把参数的类型写成 `Point` 就会报错，因为 `Point` 描述的是实例类型，而不是 `Class` 的自身类型**。
+
+**由于类名作为类型使用，实际上代表一个对象，因此可以把类看作为对象类型起名，实际上，TypeScript 有三种方法可以为对象类型起名：`type`、`interface` 和 `class`**。
+
+
+
+**类的自身类型**
+
+要获得一个类的自身类型，**一个简便的方法就是使用 `typeof` 运算符**。
+
+```ts
+// 正确
+function createPoint(
+  PointClass: typeof Point,
+  x: number,
+ 	y: number
+) {
+  return new PointClass(x, y);
+}
+```
+
+上述代码中，`createPoint()` 的第一个参数 `PointClass` 是 `Point` 类自身，要声明这个类型的参数，**简便的方法就是使用 `typeof Point`，因为 `Point` 类是一个值，`typeof Point` 返回这个值的类型**。
+
+**⚠️ 注意：`createPoint()` 的返回值类型是 `Point`，代表实例类型**。
+
+在 JavaScript 语言中，类只是构造函数的一种语法糖，**本质上是构造函数的另一种写法，所以，类的自身类型可以写成构造函数的形式**。
+
+```ts
+// 正确
+function createPoint(
+  PointClass: new (x:number, y:number) => Point,
+  x: number,
+ 	y: number
+) {
+  return new PointClass(x, y);
+}
+```
+
+**构造函数也可以写成对象形式，所以参数 `PointClass` 的类型还有另一种写法**。
+
+```ts
+// 正确
+function createPoint(
+  PointClass: {
+    new (x:number, y:number): Point
+  },
+  x: number,
+ 	y: number
+) {
+  return new PointClass(x, y);
+}
+```
+
+根据上面的写法，**可以把构造函数提取出来，单独定义一个接口（interface），这样可以大大提高代码的通用性**。
+
+```ts
+interface PointerConstructor {
+   new (x: number, y:number): Point;
+}
+
+// 正确
+function createPoint(
+  PointClass: PointerConstructor,
+  x: number,
+ 	y: number
+) {
+  return new PointClass(x, y);
+}
+```
+
+总结一下，**类的自身类型就是一个构造函数，可以单独定义一个接口来表示**。
+
+
+
+**结构类型原则**
+
+**`class` 也遵循 “结构类型原则”，一个对象只要满足 `class` 的实例结构，就跟该 `class` 属于同一类型**。
+
+```ts
+class Foo {
+  id!: number;
+}
+
+function fn(arg: Foo) {
+  // ...
+}
+
+const bar = {
+  id: 10,
+  amount: 100,
+};
+
+fn(bar); // 正确
+```
+
+上述代码中，对象 `bar` 满足类 `Foo` 的实例结构，只是多了一个属性 `amount`，所以它可以当作参数，传入函数 `fn()`。
+
+**如果两个类的实例结构相同，那么这两个类就是兼容的，可以用在对方的使用场合**。
+
+```ts
+class Person {
+  name: string;
+}
+
+class Customer {
+  name: string;
+}
+
+// 正确
+const cust:Customer = new Person();
+```
+
+上述代码中，`Person` 和 `Customer` 是两个结构相同的类，TypeScript 将它们视为相同类型，因此 `Person` 可以用在类型为 `Customer` 的场合。
+
+现在修改一下代码，`Person` 类添加一个属性。
+
+```ts
+class Person {
+  name: string;
+  age: number;
+}
+
+class Customer {
+  name: string;
+}
+
+// 正确
+const cust:Customer = new Person();
+```
+
+上述代码中，**`Person` 类添加了一个属性 `age`，跟 `Customer` 类的结构不再相同，但这种情况下，TypeScript 依然认为 `Person` 属于 `Customer` 类型**。
+
+**这是因为根据 “结构类型原则”，只要 `Person` 类具有 `name` 属性，就满足 `Customer` 类型的实例结构，所以可以代替它，但是反过来就不行，如果 `Customer` 类多出一个属性，就会报错**。
+
+```ts
+class Person {
+  name: string;
+}
+
+class Customer {
+  name: string;
+  age: number;
+}
+
+// 报错
+const cust:Customer = new Person();
+```
+
+总之，**只要 A 类具有 B 类的结构，哪怕还有额外的属性和方法，TypeScript 也认为 A 兼容 B 的类型**。
+
+**不仅是类，如果某个对象跟某个 `class` 的实例结构相同，TypeScript 也认为两者的类型问题**，例如：
+
+```ts
+class Person {
+  name: string;
+}
+
+const obj = { name: 'John' };
+const p:Person = obj; // 正确
+```
+
+上述代码中，对象 `obj` 并不是 `Person` 的实例，但赋值给变量 `p` 不会报错，TypeScript 认为 `obj` 也属于 `Person` 类型，因为它们的属性相同。
+
+由于这种情况，**运算符 `instanceof` 不适用于判断某个对象是否跟某个 `class` 属于同一类型**。
+
+```ts
+obj instanceof Person // false
+```
+
+上面示例中，**运算符 `instanceof` 确认变量 `obj` 不是 `Person` 的实例，但是两者的类型是相同的**。
+
+**空类不包含任何成员，任何其它类都可以看作与空类结构相同，因此凡是类型为空类的地方，所有类（包括对象）都可以使用**。
+
+```ts
+class Empty {}
+
+function fn(x: Empty) {
+  // ...
+}
+
+fn({});
+fn(window);
+fn(fn);
+```
+
+**⚠️ 注意：确定两个类的兼容关系后，只检查实例成员，不考虑静态成员和构造方法**。
+
+```ts
+class Point {
+  x: number;
+  y: number;
+  static t: number;
+  constructor(x: number) {}
+}
+
+class Position {
+  x: number;
+  y: number;
+  z: number;
+  constructor(x: string) {}
+}
+
+const point:Point = new Position(''); // 正确
+```
+
+上述代码中，**虽然 `Point` 与 `Position` 的静态属性和构造方法都不一样，但因为 `Point` 的实例成员与 `Position` 相同，所以 `Position` 兼容 `Point`**。
+
+**如果类中存在私有成员（private）或保护成员（protected），那么确定兼容关系时，TypeScript 要求私有成员和保护成员来自同一个类，这意味着两个类需要存在继承关系**。
+
+```ts
+// 情况一
+class A {
+  private name = 'a';
+}
+
+class B extends A {
+}
+
+const a:A = new B();
+
+// 情况二
+class A {
+  protected name = 'a';
+}
+
+class B extends A {
+  protected name = 'b';
+}
+
+const a:A = new B();
+```
+
+上述代码中，**`A` 和 `B` 都有私有成员（或保护成员）`name`，这时只有在 `B` 继承 `A` 的情况下（`class B extends A`），`B` 才兼容 `A`**。
+
+
+
+**类的继承**
+
+**类（这里又称 “子类”）可以使用 `extends` 关键字继承另一个类（这里又称 “基类”）的所有属性和方法**。
+
+```ts
+class A {
+  greet() {
+    console.log('Hello, world!');
+  }
+}
+
+class B extends A {
+}
+
+const b = new B();
+
+b.greet(); // Hello, world!
+```
+
+上述代码中，子类 `B` 继承了基类 `A`，因此拥有了 `greet()` 方法，不需要再次在类的内部定义这个方法了。
+
+**根据结构类原则，子类也可以用于类型为基类的场合**。
+
+```ts
+const a:A = b;
+a.greet();
+```
+
+**子类可以覆盖基类同名方法**。
+
+```ts
+class B extends A {
+  greet(name?: string) {
+    if(name === undefined) {
+      super.greet();
+    } else {
+      console.log(`Hello, ${name}`);
+    }
+  }
+}
+```
+
+上述代码中，子类 `B` 定义了一个方法 `greet()`，覆盖了基类 `A` 的同名方法，其中参数 `name` 省略时，就调用基类 `A` 的 `greet()` 方法，**这里可以写成 `super.greet()`，使用 `super` 关键字是指代基类的常见做法**。
+
+**但是，子类的同名方法不能与基类的类型定义相冲突**。
+
+```ts
+class A {
+  greet() {
+    console.log('Hello, world!');
+  }
+}
+
+class B extends A {
+  // 报错
+  greet(name: string) {
+    console.log(`Hello, ${name}`);
+  }
+}
+```
+
+上述代码中，**子类 `B` 的 `greet()` 有一个 `name` 参数，跟基类 `A` 的 `greet()` 定义不兼容，因此就报错了**。
+
+**如果基类包括保护成员（`protected` 修饰符），子类可以将该成员的可访问性设置为公开（`public` 修饰符），也可以保持保护成员不变，但是不能改用私有成员（`private` 修饰符）**。
+
+```ts
+class A {
+  protected x: string = '';
+  protected y: string = '';
+  protected z: string = '';
+}
+
+class B extends A {
+  // 正确
+  public x: string = '';
+  
+  // 正确
+  public y: string = '';
+  
+  // 报错
+  private z: string = '';
+}
+```
+
+上述代码中，子类 `B` 将基类 `A` 的受保护成员改为私有成员，就会报错。
+
+**⚠️ 注意：`extends` 关键字后面不一定是类名，可以是一个表达式，只要它的类型是构造函数就可以了**，例如：
+
+```ts
+// 例一
+class MyArray extends Array<number> {}
+
+// 例二
+class MyError extends Error {}
+
+// 例三
+class A {
+  greeting() {
+    return 'Hello from A';
+  }
+}
+
+class B {
+  greeting() {
+    return 'Hello from B';
+  }
+}
+
+interface Greeter {
+  greeting(): string;
+}
+
+interface GreeterConstructor {
+  new (): Greeter;
+}
+
+function getGreeterBase(): GreeterConstructor {
+  return Math.random() >= 0.5 ? A : B;
+}
+
+class Test extends getGreeterBase() {
+  sayHello() {
+    console.log(this.greeting());
+  }
+}
+```
+
+上述代码中，例一和例二的 `extends` 关键字后面都是构造函数，例三的 `extends` 关键字后面是一个表达式，执行后得到的也是一个构造函数。
+
+
+
+**override 关键字**
+
+子类继承父类时，**可以覆盖父类的同名方法**。
+
+```ts
+class A {
+  show() {
+    // ...
+  }
+  
+  hide() {
+    // ...
+  }
+}
+
+class B extends A {
+  show() {
+    // ...
+  }
+  
+  hide() {
+    // ...
+  }
+}
+```
+
+**但是有些时候，继承他人的类，可能会在不知不觉中，就覆盖了他人的方法，为了防止这种情况，TypeScript 4.3 引入了 `override` 关键字**。
+
+```ts
+class B extends A {
+  override show() {
+    // ...
+  }
+  
+  override hide() {
+    // ...
+  }
+}
+```
+
+上述代码中，**`B` 类的 `show()` 方法和 `hide()` 方法前面添加了 `override` 关键字，明确表明了使用者的意图，就是覆盖 `A` 类里面的这两个同名方法，这时如果 `A` 类没有定义自己的 `show()` 方法和 `hide()` 方法，就会报错**。
+
+**但这依然没有解决子类无意中覆盖父类同名方法的问题，因此，TypeScript 又提供了一个编译参数 `noImplicitOverride`，一旦打开这个参数，子类覆盖父类的同名方法就会报错，除非使用了 `override` 关键字**。
