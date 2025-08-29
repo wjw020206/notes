@@ -5665,3 +5665,716 @@ class B extends A {
 上述代码中，**`B` 类的 `show()` 方法和 `hide()` 方法前面添加了 `override` 关键字，明确表明了使用者的意图，就是覆盖 `A` 类里面的这两个同名方法，这时如果 `A` 类没有定义自己的 `show()` 方法和 `hide()` 方法，就会报错**。
 
 **但这依然没有解决子类无意中覆盖父类同名方法的问题，因此，TypeScript 又提供了一个编译参数 `noImplicitOverride`，一旦打开这个参数，子类覆盖父类的同名方法就会报错，除非使用了 `override` 关键字**。
+
+
+
+**可访问性修饰符**
+
+类的内部成员的外部可访问性，**由三个可访问性修饰符（access modifiers）控制：`public`、`private` 和 `protected`**。
+
+**这三个修饰符的位置，都写在属性或方法的最前面**。
+
+
+
+**public**
+
+`public` 修饰符表示这是公开成员，**外部可以自由访问**。
+
+```ts
+class Greeter {
+  public greet() {
+    console.log('hi!');
+  }
+}
+
+const g = new Greeter();
+g.greet();
+```
+
+上述代码中，`greet()` 方法前面的 `public` 修饰符，**表示该方法可以在类的外部调用，即外部实例可以调用**。
+
+**`public` 修饰符是默认修饰符，如果省略不写，实际上就带有该修饰符，因此，类的属性和方法默认都是外部可访问的**。
+
+**正常情况下，除非为了醒目和代码可读性，`public` 都是省略不写的**。
+
+
+
+**private**
+
+`private` 修饰符表示私有成员，**只能用在当前类的内部，类的实例和子类都不能使用该成员**。
+
+```ts
+class A {
+  private x: number = 0;
+}
+
+const a = new A();
+a.x; // 报错
+
+class B extends A {
+  showX() {
+    console.log(this.x); // 报错
+  }
+}
+```
+
+**⚠️ 注意：子类不能定义父类私有成员的同名成员**，例如：
+
+```ts
+class A {
+  private x = 0;
+}
+
+class B extends A {
+  x = 1; // 报错
+}
+```
+
+上述代码中，**`A` 类有一个私有属性 `x`，子类 `B` 就不能定义自己的属性 `x` 了**。
+
+**如果在类的内部，当前类的实例可以获取私有成员**。
+
+```ts
+class A {
+  private x = 10;
+  
+  f(obj: A) {
+    console.log(obj.x);
+  }
+}
+
+const a = new A();
+a.f(a); // 10
+```
+
+**严格来说，`private` 定义的私有成员，并不是真正的私有成员，一方面编译成 JavaScript 后，`private` 关键字就被剥离了，这时外部访问该成员就不会报错，另一方面，由于前一个原因，TypeScript 对于访问 `private` 成员没有严格禁止，使用方括号写法（`[]`）或者 `in` 运算符，实例对象就能访问成员**。
+
+```ts
+class A {
+  private x = 1;
+}
+
+const a = new A();
+a['x']; // 1
+
+
+if ('x' in a) { // 正确
+  // ...
+}
+```
+
+由于 `private` 存在这些问题，加上它是 ES2022 标准发布前出台的，而 ES2022 引入了自己的私有成员写法 `#propName`，**因此建议不使用 `private`，改用 ES2022 的写法，获得真正意义上的私有成员**。
+
+```ts
+class A {
+  #x = 1;
+}
+
+const a = new A();
+a['x']; // 报错
+```
+
+上述代码中，采用了 ES2022 的私有成员写法（属性名前加 `#`），TypeScript 就正确识别了实例对象没有属性 `x`，从而报错。
+
+**构造方法也可以是私有的，这就直接防止了使用 `new` 命令生成实例对象，只能在类的内部创建实例对象**。
+
+这时一般会有一个静态方法，充当工厂函数，强制所有实例都通过该方法生成。
+
+```ts
+class Singleton {
+  private static instance?: Singleton;
+  
+  private constructor() {}
+  
+  static getInstance() {
+    if(!Singleton.instance) {
+      Singleton.instance = new Singleton();
+    }
+    return Singleton.instance;
+  }
+}
+
+const s = Singleton.getInstance();
+```
+
+上述代码使用私有构造方法，**实现了单例模式，想要获得 `Singleton` 的实例，不能使用 `new` 命令，只能使用 `getInstance()` 方法**。
+
+
+
+**protected**
+
+`protected` 修饰符表示该成员是保护成员，**只能在类的内部使用该成员，实例无法使用该成员，但是子类内部可以使用**。
+
+```ts
+class A {
+  protected x = 1;
+}
+
+class B extends A {
+  getX() {
+    return this.x;
+  }
+}
+
+const a = new A();
+const b = new B();
+
+a.x; // 报错
+b.getX(); // 1
+```
+
+**子类不仅可以拿到父类的保护成员，还可以定义同名成员**。
+
+```ts
+class A {
+  protected x = 1;
+}
+
+class B extends A {
+  x = 2;
+}
+```
+
+上述代码中，**子类 `B` 定义了父类 `A` 的同名成员 `x`，并且父类的 `x` 是保护成员，子类将其改成了公开成员，`B` 类的 `x` 属性前面没有修饰符，等同于修饰符是 `public`，外界可以读取这个属性**。 
+
+**在类的外部，实例对象不能读取保护成员，但是在类的内部可以**。
+
+```ts
+class A {
+  protected x = 1;
+  
+  f(obj: A) {
+    console.log(obj.x);
+  }
+}
+
+const a = new A();
+
+a.x; // 报错
+a.f(a); // 1
+```
+
+
+
+**实例属性的简写形式**
+
+实际开发中，**很多实例属性的值，是通过构造方法传入的**。
+
+```ts
+class Point {
+  x: number;
+  y: number;
+  
+  constructor(x: number, y: number) {
+    this.x = x;
+    this.y = y;
+  }
+}
+```
+
+上述代码中，属性 `x` 和 `y` 的值是通过构造方法的参数传入的。
+
+**这样的写法等于同一个属性要声明两次类型，一次在类的头部，另一次在构造方法的参数中，这有些重复，TypeScript 就提供了一种简写形式**。
+
+```ts
+class Point {
+  constructor(
+    public x: number,
+    public y: number
+  ) {}
+}
+
+const p = new Point(10, 10);
+p.x; // 10
+p.y; // 10
+```
+
+上述代码中，**构造方法的参数 `x` 前面有 `public` 修饰符，这时 TypeScript 就会自动声明一个公开属性 `x`，不必在构造方法中写任何代码，同时还会设置 `x` 的值为构造方法的参数值**。
+
+**⚠️ 注意：这里的 `public` 不能省略**。
+
+**除了 `public` 修饰符，构造方法的参数名只要有 `private`、`protected`、`readonly` 修饰符，都会自动声明对应修饰符的实例属性**。
+
+```ts
+class A {
+  constructor(
+    public a: number,
+    protected b: number,
+    private c: number,
+    readonly d: number
+  ) {}
+}
+
+// 编译结果
+class A {
+  constructor(a, b, c, d) {
+    this.a = a;
+    this.b = b;
+    this.c = c;
+    this.d = d;
+  }
+}
+```
+
+**`readonly` 还可以与其它三个可访问修饰符一起使用**。
+
+```ts
+class A {
+  constructor(
+    public readonly x: number,
+    protected readonly y: number,
+    private readonly z: number
+  ) {}
+}
+```
+
+
+
+**顶层属性的处理方法**
+
+对于类的顶层属性，**TypeScript 早期的处理方法与后来的 ES2022 标准不一致，这会导致某些代码的运行结果不一样**。
+
+类的顶层属性在 TypeScript 中，有两种写法：
+
+```ts
+class User {
+  // 写法一
+  age = 25;
+  
+  // 写法二
+  constructor(private currentYear: number) {}
+}
+```
+
+上述代码中，**写法一是直接声明一个实例属性 `age` 并初始化，写法二是顶层属性的简写形式，直接将构造方法的参数 `currentYear` 声明为实例属性**。
+
+**TypeScript 早期的处理方法是，先在顶层声明属性，但不进行初始化，等到运行构造方法时，再完成所有初始化**。
+
+```ts
+class User {
+  age = 25;
+}
+
+// TypeScript 的早期处理方法
+class User {
+  age: number;
+  
+  constructor() {
+    this.age = 25;
+  }
+}
+```
+
+上述代码中，**TypeScript 早期会先声明顶层属性 `age`，然后等到运行构造函数时，再将其初始化为 `25`**。
+
+**ES2022 标准中的处理方法是，先进行顶层属性的初始化，再运行构造方法，这在某些情况下，会使得同一段代码在 TypeScript 和 JavaScript 下运行结果不一致**。
+
+这种不一致一般发生在两种情况：
+
+1. **第一种情况就是，顶层属性的初始化依赖于其它实例属性**
+
+   ```ts
+   class User {
+     age = this.currentYear - 2002;
+     
+     constructor(private currentYear: number) {
+       // 输出结果将不一致
+       console.log('Current age:', this.age);
+     }
+   }
+   
+   const user = new User(2025);
+   ```
+
+   上述代码中，顶层属性 `age` 的初始化值依赖于实例属性 `this.currentYear`，按照 TypeScript 的处理方法，初始化是在构造方法中完成的，会输出结果为 `23`，**但是按照 ES2022 标准的处理方法，初始化在声明顶层属性时就会完成，这时 `this.currentYear` 还等于 `undefined`，所以 `age` 的初始化结果为 `NaN`，因此最后输出的也是 `NaN`**。
+
+2. **第二种情况与类继承有关，子类声明的顶层属性在父类完成初始化**
+
+   ```ts
+   interface Animal {
+     animalStuff: any;
+   }
+   
+   interface Dog extends Animal {
+     dogStuff: any;
+   }
+   
+   class AnimalHouse {
+     resident: Animal;
+     
+     constructor(animal: Animal) {
+       this.resident = animal;
+     }
+   }
+   
+   class DogHouse extends AnimalHouse {
+     resident: Dog;
+     
+     constructor(dog: Dog) {
+       super(dog);
+     }
+   }
+   ```
+
+   上述代码中，**类 `DogHouse` 继承自 `AnimalHouse`，它声明了顶层属性 `resident`，但是该属性的初始化是在父类 `AnimalHouse` 完成的，不同的编译选项，运行下面的代码结果将不一致**。
+
+   ```ts
+   const dog = {
+     animalStuff: 'animal',
+     dogStuff: 'dog'
+   };
+   
+   const dogHouse = new DogHouse(dog);
+   
+   console.log(dogHouse.resident); // 输出结果将不一致
+   ```
+
+   上述代码中，TypeScript 的处理方法会使得 `resident` 属性能否初始化，所以输出参数对象的值。
+
+   **但是 ES2022 标准的处理方法是，顶层属性的初始化优先于构造方法运行，这使得 `resident` 属性不会得到赋值，因此输出为 `undefined`**。
+
+   **为了解决这个问题，同时保证以前代码的一致性，TypeScript 从 3.7 版本开始，引入了编译设置 `useDefineForClassFields`，这个设置为 `true`，则采用 ES2022 标准的的处理方法，否则采用 TypeScript 早期的处理方法**。
+
+   **它的默认值与 `target` 编译选项有关，如果输出目标设置为 `ES2022` 或更高（包括 `ESNext` ），那么 `useDefineForClassFields` 的默认值为 `true`，否则为 `false`**。
+
+   **如果希望避免这种不一致，让代码在不同设置下的行为都一样，可以将所有顶层属性的初始化都放在构造函数中**。
+
+   ```ts
+   class User {
+     age: number;
+     
+     constructor(private currentYear: number) {
+       this.age = this.currentYear - 2002;
+       console.log('Current age:', this.age);
+     }
+   }
+   
+   const user = new User(2025);
+   ```
+
+   上述代码中，顶层属性 `age` 的初始化就放在构造函数中，那么任何情况下，代码行为都是一致的。
+
+   **对于类的继承，还有另一种解决方法，就是使用 `declare`  命令，去声明子类顶层属性的类型，告诉 TypeScript 这些属性的初始化由父类实现**。
+
+   ```ts
+   class DogHouse extends AnimalHouse {
+     declare resident: Dog;
+     
+     constructor(dog: Dog) {
+       super(dog);
+     }
+   }
+   ```
+
+   上述代码中，`resident` 属性的类型声明前面用了 `declare` 命令，这种情况下，这一行代码在编译成 JavaScript 后就不存在了，那么也就不会有行为不一致的情况，**无论是否设置 `useDefineForClassFields`，输出结果都是一样的**。
+
+
+
+**静态成员**
+
+类的内部可以使用 `static` 关键字，定义静态成员。
+
+**静态成员是只能通过类本身使用的成员，不能通过实例对象使用**。
+
+```ts
+class MyClass {
+  static x = 0;
+  static printX() {
+    console.log(MyClass.x);
+  }
+}
+
+MyClass.x; // 0
+MyClass.printX(); // 0
+```
+
+上述代码中，`x` 是静态属性，`printX()` 是静态方法，**它们都必须通过 `MyClass` 获取，而不能通过实例对象调用**。
+
+**`static` 关键字前面可以使用 `public`、`private`、`protected` 修饰符**。
+
+```ts
+class MyClass {
+  private static x = 0;
+}
+
+MyClass.x; // 报错
+```
+
+**静态私有属性也可以使用 ES6 语法的 `#` 前缀表示**，上面的代码可以改写如下：
+
+```ts
+class MyClass {
+  static #x = 0;
+}
+```
+
+**`public` 和 `protected` 的静态成员可以被继承**。
+
+```ts
+class A {
+  public static x = 1;
+  protected static y = 1;
+}
+
+class B extends A {
+  static getY() {
+    return B.y;
+  }
+}
+
+B.x; // 1
+B.getY(); // 1
+```
+
+上述代码中，类 `A` 的静态属性 `x` 和 `y` 都被 `B` 继承，公开成员 `x` 可以在 `B` 的外部获取，保护成员 `y` 只能在 `B` 的内部获取。
+
+
+
+**泛型类**
+
+**类也可以写成泛型，使用类型参数**。
+
+```ts
+class Box<Type> {
+  contents: Type;
+  
+  constructor(value: Type) {
+    this.contents = value;
+  }
+}
+
+const b:Box<string> = new Box('hello!');
+```
+
+上述代码中，**类 `Box` 有类型参数 `Type`，因此属于泛型类，新建实例时，变量的类型声明需要带有类型参数的值，不过本例等号左边的 `Box<string>` 可以沈略不写，因为可以从等号右边推断得到**。
+
+**⚠️ 注意：静态成员不能使用泛型的类型参数**，例如：
+
+```ts
+class Box<Type> {
+  static defaultContents: Type; // 报错
+}
+```
+
+上述代码中，静态属性 `defaultContents` 的类型写成类型参数 `Type` 会报错，**因为这意味着调用时必须给出类型参数（即写成 `Box<string>.defaultContents`），并且类型参数发生变化，这个属性也会跟着变，这并不是好的做法**。
+
+
+
+**抽象类，抽象成员**
+
+TypeScript 允许在类的定义前面，**加上关键字 `anstract`，表示该类不能被实例化，只能当做其它类的模版，这种被被叫做 “抽象类（abstract class）”**。
+
+```ts
+abstract class A {
+  id = 1;
+}
+
+const a = new A(); // 报错
+```
+
+**抽象类只能当做基类使用，用来在它的基础上定义子类**。
+
+```ts
+abstract class A {
+  id = 1;
+}
+
+class B extends A {
+  amount = 100;
+}
+
+const b = new B();
+
+b.id; // 1
+b.amount; // 100
+```
+
+上述代码中，`A` 是一个抽象类，`B` 是 `A` 的子类，继承了 `A` 的所有成员，并且可以定义自己的成员和实例化。
+
+**抽象类的子类也可以是抽象类，也就是说，抽象类可以继承其它抽象类**。
+
+```ts
+abstract class A {
+  foo: number;
+}
+
+abstract class B extends A {
+  bar: string;
+}
+```
+
+**抽象类的内部可以有已经实现好的属性和方法，也可以有还未实现的属性和方法，后者就叫做 “抽象成员（abstract member）”，即属性名和方法名有 `abstract` 关键字，表示该方法需要子类实现，如果子类没有实现抽象成员，就会报错**。
+
+```ts
+abstract class A {
+  abstract foo: string;
+  bar: string = '';
+}
+
+class B extends A {
+  foo = 'b';
+}
+```
+
+上述代码中，抽象类 `A` 定义了抽象属性 `foo`，**子类 `B` 必须实现这个属性，否则会报错**。
+
+下面是抽象方法的例子，**如果抽象类的方法前面加上 `abstract`，就表明子类必须给出的方法的实现**。
+
+```ts
+abstract class A {
+  abstract execute(): string;
+}
+
+class B extends A {
+  execute() {
+    return `B executed`;
+  }
+}
+```
+
+**⚠️ 注意：**
+
+- **抽象成员只能存在于抽象类，不能存在于普通类**
+- **抽象成员不能有具体的实现代码，也就是说已经实现好的成员前面不能加 `abstract` 关键字**
+- **抽象成员前也不能有 `private` 修饰符，否则无法在子类中实现成员**
+- **一个子类最多只能继承一个抽象类**
+
+总之，抽象类的作用是：**确保各种相关的子类都拥有跟基类相同的接口，可以看作是模版，其中的抽象成员都是必须由子类实现的成员，非抽象成员则表示基类已经实现的、由所有子类共享的成员**。
+
+
+
+**this 问题**
+
+类的方法经常用到 `this` 关键字，**它表示该方法当前所在的对象**。
+
+```ts
+class A {
+  name = 'A';
+  
+  getName() {
+    return this.name;
+  }
+}
+
+const a = new A();
+a.getName(); // A
+
+const b = {
+  name: 'b',
+  getName: a.getName
+};
+
+b.getName(); // b
+```
+
+**有些场合需要给出 `this` 类型，但是 JavaScript 函数通常不带有 `this` 参数，这时 TypeScript 允许函数增加一个名为 `this` 的参数，放在参数列表的第一位，用来描述函数内部的 `this` 关键字的类型**。
+
+``` ts
+// 编译前
+function fn(
+  this: SomeType,
+  x: number
+) {
+  /* ... */
+}
+
+// 编译后
+function fn(x) {
+  /* ... */
+}
+```
+
+上述代码中，**函数 `fn()` 的第一个参数是 `this`，用来声明函数内部的 `this` 的类型，编译时，TypeScript 一旦发现函数的第一个参数名为 `this`，则会去除这个参数，即编译结果不会带有该参数**。
+
+```ts
+class A {
+  name = 'A';
+  
+  getName(this: A) {
+    return this.name;
+  }
+}
+
+const a = new A();
+const b = a.getName;
+
+b(); // 报错
+```
+
+上述代码中，**类 `A` 的 `getName()` 添加了 `this` 参数，如果直接调用这个方法，`this` 的类型就会跟声明的类型不一致，从而报错**。
+
+**`this` 参数的类型可以声明为各种对象**。
+
+```ts
+function foo(
+  this: { name: string }
+) {
+  this.name = 'Jack';
+  this.name = 0; // 报错
+}
+
+foo.call({ name: 123 }); // 报错
+```
+
+**TypeScript 提供了一个 `noImplicitThis` 编译选项，如果打开了这个设置项，如果 `this` 的值推断为 `any` 类型，就会报错**。
+
+```ts
+// noImplicitThis 打开
+class Rectangle {
+  constructor(
+    public width: number,
+    public height: number
+  ) {}
+  
+  getAreaFunction() {
+    return function() {
+      return this.width * this.height; // 报错
+    }
+  }
+}
+```
+
+上述代码中，`getAreaFunction()` 方法返回一个函数，这个函数里面用到了 `this`，但是这个 `this` 跟 `Rectangle` 这个类没关系，它的类型推断为 `any`，所以就报错了。
+
+**在类的内部，`this` 本身也可以当作类型使用，表示当前类的实例对象**。
+
+```ts
+class Box {
+  contents: string = '';
+  
+  set(value: string): this {
+    this.contents = value;
+    return this;
+  }
+}
+```
+
+上述代码中，**`set` 方法的返回值类型就是 `this`，表示当前的实例对象**。
+
+**⚠️ 注意：`this` 类型不允许应用于静态成员**，例如：
+
+```ts
+class A {
+  static a: this; // 报错
+}
+```
+
+上述代码中，静态属性 `a` 的返回值类型是 `this`，就报错了，**原因是 `this` 类型表示实例对象，但是静态成员拿不到实例对象**。
+
+**有些方法返回一个布尔值，表示当前的 `this` 是否属于某种类型，这时，这些方法的返回值可以写成 `this is Type` 的形似，其中用到了 `is` 运算符**。
+
+```ts
+class FileSystemObject {
+  isFile(): this is FileRep {
+    return this instanceof FileRep;
+  }
+  
+  isDirectory(): this is Directory {
+    return this instanceof Directory;
+  }
+  
+  // ...
+}
+```
+
+上述代码中，**两个方法的返回值都是布尔值，写成 `this is Type` 的形式，可以精确表示返回值**。
