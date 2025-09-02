@@ -11457,3 +11457,270 @@ let myUrl = URL.parse('https://www.typescriptlang.org');
 ```
 
 上述代码中，`es2017.string` 对应的库文件就是 `lib.es2017.string.d.ts`。
+
+
+
+## keyof 运算符
+
+`keyof` 是一个单目运算符，**接受一个对象类型作为参数，返回该对象类型的所有键名组成的联合类型**。
+
+```ts
+type MyObj = {
+  foo: number;
+  bar: string;
+};
+
+type Keys = keyof MyObj; // 'foo' | 'bar'
+```
+
+上述代码中，`keyof MyObj` 返回 `MyObj` 的所有键名组成的联合类型，即 `'foo' | 'bar'`。
+
+下面是另一个例子。
+
+```ts
+interface T {
+  0: boolean;
+  a: string;
+  b(): void;
+}
+
+type KeyT = keyof T; // 0 | 'a' | 'b'
+```
+
+**由于 JavaScript 对象的键名只有三种类型，所以对任意对象的键名的联合类型就是 `string | number | symbol`**。
+
+```ts
+// string | number | symbol
+type KeyT = keyof any;
+```
+
+**对于没有自定义键名的类型使用 `keyof` 运算符，返回 `never` 类型，表示不可能有这样类型的键名**。
+
+```ts
+type KeyT = keyof object;  // never
+```
+
+上述代码中，**由于 `object` 类型没有自身的属性，也就没有键名，所以 `keyof object` 返回 `never` 类型**。
+
+**由于 `keyof` 返回的类型是 `string | number | symbol`，如果有些场合只需要其中一种类型，那么可以采用交叉类型的写法**。
+
+```ts
+type Capital<T extends string> = Capitalize<T>;
+
+type MyKeys<Obj extends object> = Capital<keyof Obj>; // 报错
+```
+
+上述代码中，类型 `Capital` 只能接受字符串作为类型参数，传入 `keyof obj` 会报错，**原因是这时的参数是 `string | number | symbol`，跟字符串不兼容，采用下面的交叉类型写法就不会报错**。
+
+```ts
+type MyKeys<Obj extends object> = Capital<string & keyof Obj>
+```
+
+上述代码中，**`string & keyof Obj` 等同于 `string & string | number | symbol` 进行交集运算，最后返回 `string`，因此 `Capital<T extends string>` 就不会报错了**。
+
+**如果对象属性名采用索引形式，`keyof` 会返回属性名的索引类型**。
+
+```ts
+// 示例一
+interface T {
+  [prop: number]: number;
+}
+
+// number
+type KeyT = keyof T;
+
+// 示例二
+interface T {
+  [prop: string]: number;
+}
+
+// string | number
+type KeyT = keyof T;
+
+// 示例三
+interface T {
+  [prop: symbol]: number;
+}
+
+// symbol
+type KeyT = keyof T;
+```
+
+上述代码中的示例二，`keyof T` 返回的类型是 `string | number`，**原因是 JavaScript 属性名为字符串类型时，包含了属性名为数值的情况，因为数值属性名会自动转为字符串**。
+
+**如果 `keyof` 运算符用于数组或元组类型，得到的结果可能出人意料**。
+
+```ts
+type Result = keyof ['a', 'b', 'c'];
+// 返回 number | "0" | "1" | "2"
+// | "length" | "pop" | "push" | ···
+```
+
+上述代码中，**`keyof` 会返回数组的所有键名，包括数字键名和继承的键名**。
+
+**对于联合类型，`keyof` 返回成员共有的键名**。
+
+```ts
+type A = { a: string; z: boolean };
+type B = { b: string; z: boolean };
+
+// 返回 'z'
+type KeyT = keyof (A | B);
+```
+
+**对于交叉类型，`keyof` 会返回所有键名**。
+
+```ts
+type A = { a: string; x: boolean };
+type B = { b: string; y: number };
+
+// 返回 'a' | 'x' | 'b' | 'y'
+type KeyT = keyof (A & B);
+
+// 相当于 keyof A | keyof B
+```
+
+**`keyof` 取出的是键名组成的联合类型，如果想取出键值组成的联合类型**，可以像下面这样写：
+
+```ts
+type MyObj = {
+  foo: number;
+  bar: string;
+};
+
+type Keys = keyof MyObj;
+
+type Values = MyObj[Keys]; // number | string
+```
+
+上述代码中，**`Keys` 是键名组成的联合类型，而 `MyObj[Keys]` 会取出每个键名对应的键值类型，组成一个新的联合类型，即 `number | string`**。
+
+
+
+**keyof 运算符的用途**
+
+`keyof` 运算符**往往用于精确表达对象的属性类型**。
+
+例如，取出对象的某个指定属性的值，JavaScript 版本可以写成下面这样。
+
+```js
+function prop(obj, key) {
+  return obj[key];
+}
+```
+
+上面这个函数添加类型，只能写成下面这样：
+
+```ts
+function prop(
+  obj: { [p: string]: any },
+  key: string
+): any {
+  return obj[key];
+}
+```
+
+上面的类型声明有两个问题：
+
+1. **无法表示参数 `key` 与参数 `obj` 之间的关系**
+2. **返回值类型只能写成 `any`**
+
+**有 `keyof` 之后，就可以解决这两个问题，精确表达返回值类型**。
+
+```ts
+function prop<Obj, K extends keyof Obj>(
+  obj: Obj, key: K
+): Obj[K] {
+  return obj[key];
+}
+```
+
+上述代码中，`K extends keyof Obj` 表示 `K` 是 `Obj` 的一个属性名，传入其它字符串会报错，返回值类型 `Obj[K]` 就表示这个属性值的类型。
+
+**`keyof` 的另一个用途是用于属性映射，即将一个类型的所有属性逐一映射为其它值**。
+
+```ts
+type NewProps<Obj> = {
+  [Prop in keyof Obj]: boolean;
+};
+
+// 用法
+type MyObj = { foo: number; };
+
+// 等于 { foo: boolean; }
+type NewObj = NewProps<MyObj>;
+```
+
+上述代码中，**类型 `NewProps` 是类型 `Obj` 的映射类型，前者继承了后者的所有属性，但是把所有属性值类型都改成了 `boolean`**。
+
+下面的例子是**去掉 `readonly` 修饰符**。
+
+```ts
+type Mutable<Obj> = {
+  -readonly [Prop in keyof Obj]: Obj[Prop];
+};
+
+// 用法
+type MyObj = {
+  readonly foo: number;
+}
+
+// 等于 { foo: number; }
+type NewObj = Mutable<MyObj>;
+```
+
+上述代码中，`[Prop in keyof Obj]` 是 `Obj` 类型的所有属性名，**`-readonly` 表示去除这些属性的只读属性设置，对应的，还有 `+readonly` 的写法，表示添加只读属性设置**。
+
+下面的例子是**让可选属性变成必有的属性**。
+
+```ts
+type Concrete<Obj> = {
+  [Prop in keyof Obj]-?: Obj[Prop];
+}
+
+// 用法
+type MyObj = {
+  foo?: number;
+}
+
+// 等于 { foo: number; }
+type NewObj = Concrete<MyObj>;
+```
+
+上述代码中，`[Prop in keyof Obj]` 后面的 **`-?` 表示去除可选属性设置，对应的，还有 `+?` 的写法，表示添加可选属性设置**。
+
+
+
+**in 运算符**
+
+JavaScript 语言中，`in` 运算符用来确定对象是否包含某个属性名。
+
+```js
+const obj = { a: 123 };
+
+if ('a' in obj)
+  console.log('found a');
+```
+
+上述代码中，`in` 运算符用来判断对象 `obj` 是否包含属性 `a`。
+
+**`in` 运算符的左侧是一个字符串，表示属性名，右侧是一个对象，它的返回值是一个布尔值**。
+
+TypeScript 语言的类型运算中，`in` 运算符有不同的用法，用来取出（遍历）联合类型的每一个成员类型。
+
+```ts
+type U = 'a' | 'b' | 'c';
+
+type Foo = {
+  [Prop in U]: number;
+};
+
+// 等同于
+type Foo = {
+  a: number,
+  b: number,
+  c: number
+};
+```
+
+上述代码中，`[Prop in U]` 表示依次取出联合类型 `U` 中的每一个成员。
