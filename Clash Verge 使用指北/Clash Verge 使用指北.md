@@ -56,9 +56,9 @@ Clash Verge 支持 Windows、Mac 和 Linux 系统
 
    ![image-20260511075805787](images/image-20260511075805787.png)
 
-   2. 打开 `使用系统 Hosts` 开关
+2. 打开 `使用系统 Hosts` 开关
 
-      ![image-20260511080005202](images/image-20260511080005202.png)
+   ![image-20260511080005202](images/image-20260511080005202.png)
 
 
 
